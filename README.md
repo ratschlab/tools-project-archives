@@ -6,3 +6,11 @@ Simple and easy command line tool a researcher can use to archive files at the e
 
 -   python 3.x
 -   plzip
+
+## Usage
+
+```
+$ archiver archive [src] [dest] # Create a new archive
+$ archiver list [src] [<subdir>] # List content of archive
+$ archiver unarchive [-part <path in archive>] [src] [dest] # Extract archive
+```
