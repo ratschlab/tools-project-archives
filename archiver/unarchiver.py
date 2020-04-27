@@ -7,14 +7,14 @@ import helpers
 
 # TODO: Handle subprocess exceptions
 # TODO: What should happen with the archive after extraction?
-# TODO: Only extract certain files
 
 
-def unarchive(args):
+def extract(args):
     # Path to archive file *.tar.lz
-    source_file_path = Path(args.source)
+    source_file_path = Path(args.archive_dir)
     destination_directory_path = Path(args.destination)
-    partial_unarchive_part = args.part
+    # TODO: Implement
+    partial_extraction_part = args.subdir
 
     # Path validation
     helpers.terminate_if_partent_directory_nonexistent(destination_directory_path)
@@ -30,5 +30,5 @@ def decompress_and_extract(source_file_path, destination_directory_path):
     ps.wait()
 
 
-def partial_unarchive(source_file_path, destination_directory_path, partial_unarchive_part):
-    subprocess.run(["tar", "-xvf", source_file_path, partial_unarchive_part])
+def partial_extraction(source_file_path, destination_directory_path, partial_extraction_part):
+    subprocess.run(["tar", "-xvf", source_file_path, "-C", destination_directory_path, partial_extraction_part])

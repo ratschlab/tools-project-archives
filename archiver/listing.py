@@ -6,7 +6,7 @@ import helpers
 
 def list(args):
     # Path to archive file *.tar.lz
-    source_path = Path(args.source)
+    source_path = Path(args.archive_dir)
     subdir_path = args.subdir
 
     helpers.terminate_if_path_not_file_of_type(source_path, ".tar.lz")

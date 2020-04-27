@@ -10,7 +10,7 @@ def archive(args):
     # Path to a file or directory which will be archives
     source_path = Path(args.source)
     # Path to a directory which will be created (if it does yet exist)
-    destination_path = Path(args.destination)
+    destination_path = Path(args.archive_dir)
 
     # Argparse already checks if arguments are present, so only argument format needs to be validated
     helpers.terminate_if_path_nonexistent(source_path)

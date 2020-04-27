@@ -10,7 +10,7 @@ Simple and easy command line tool a researcher can use to archive files at the e
 ## Usage
 
 ```
-$ archiver archive [src] [dest] # Create a new archive
-$ archiver list [src] [<subdir>] # List content of archive
-$ archiver unarchive [-part <path in archive>] [src] [dest] # Extract archive
+$ archiver archive [src] [archive_dir] # Create a new archive
+$ archiver list [archive_dir] [<subdir>] # List content of archive
+$ archiver extract [-subdir <path in archive>] [archive_dir] [dest] # Extract archive
 ```
