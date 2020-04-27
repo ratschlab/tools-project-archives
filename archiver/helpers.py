@@ -21,7 +21,7 @@ def terminate_if_path_not_file_of_type(path, file_type):
 def terminate_if_partent_directory_nonexistent(path):
     # Make sure path is absolute
     absolute_path = path.absolute()
-    parent_directory = output_directory_path.parents[0]
+    parent_directory = absolute_path.parents[0]
 
     terminate_if_directory_nonexistent(parent_directory)
 
@@ -29,6 +29,11 @@ def terminate_if_partent_directory_nonexistent(path):
 def terminate_if_directory_nonexistent(path):
     if not path.is_dir():
         terminate_with_message("No such directory: " + get_absolute_path_string(path))
+
+
+def terminate_if_path_exists(path):
+    if path.exists():
+        terminate_with_message("Path must not exist: " + get_absolute_path_string(path))
 
 
 def get_absolute_path_string(path):

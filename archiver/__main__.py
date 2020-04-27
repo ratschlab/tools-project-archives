@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import argparse
 import sys
 
@@ -25,7 +27,7 @@ parser_extract.set_defaults(func=unarchiver.unarchive)
 # List parser
 parser_list = subparsers.add_parser("list", help="List content of archive")
 parser_list.add_argument("source", type=str, help="Select source archive tar.lz file")
-parser_list.add_argument("subdir", type=str, nargs="?", help="Select subdir as path inside of archive")
+parser_list.add_argument("subdir", type=str, nargs="?", help="(Optional): Select subdir as path inside of archive")
 parser_list.set_defaults(func=listing.list)
 
 

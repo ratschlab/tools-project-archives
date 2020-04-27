@@ -5,8 +5,6 @@ from pathlib import Path
 
 import helpers
 
-source_name = "archive"
-
 
 def archive(args):
     # Path to a file or directory which will be archives
@@ -16,23 +14,25 @@ def archive(args):
 
     # Argparse already checks if arguments are present, so only argument format needs to be validated
     helpers.terminate_if_path_nonexistent(source_path)
-    # # Check if destination parent directory exist but not actual directory
+
+    # Check if destination parent directory exist but not actual directory
     helpers.terminate_if_partent_directory_nonexistent(destination_path)
+    helpers.terminate_if_path_exists(destination_path)
 
     source_name = source_path.name
 
     destination_path.mkdir()
-    create_file_listing_hash(source_path, destination_path)
-    create_tar_archive(source_path, destination_path)
-    create_archive_listing(destination_path)
-    compress_using_lzip(destination_path)
-    create_archive_hash(destination_path)
+    create_file_listing_hash(source_path, destination_path, source_name)
+    create_tar_archive(source_path, destination_path, source_name)
+    create_archive_listing(destination_path, source_name)
+    compress_using_lzip(destination_path, source_name)
+    create_archive_hash(destination_path, source_name)
 
     print("Archive created: " + destination_path.absolute().as_posix())
 
 
 # TODO: parallelization
-def create_file_listing_hash(source_path, destination_path):
+def create_file_listing_hash(source_path, destination_path, source_name):
     for root, _, files in os.walk(source_path):
         hashes = []
         for file in files:
@@ -43,12 +43,12 @@ def create_file_listing_hash(source_path, destination_path):
         write_hash_list_to_file(Path.joinpath(destination_path, source_name + ".md5"), hashes)
 
 
-def create_tar_archive(source_path, destination_path):
+def create_tar_archive(source_path, destination_path, source_name):
     path = Path.joinpath(destination_path, source_name + ".tar")
     subprocess.run(["tar", "-cf", path, source_path])
 
 
-def create_archive_listing(destination_path):
+def create_archive_listing(destination_path, source_name):
     listing_path = Path.joinpath(destination_path, source_name + ".tar.lst")
     tar_path = Path.joinpath(destination_path, source_name + ".tar")
 
@@ -56,12 +56,12 @@ def create_archive_listing(destination_path):
     subprocess.run(["tar", "-tvf", tar_path], stdout=archive_listing_file)
 
 
-def compress_using_lzip(destination_path):
+def compress_using_lzip(destination_path, source_name):
     path = Path.joinpath(destination_path, source_name + ".tar")
     subprocess.run(["plzip", path])
 
 
-def create_archive_hash(destination_path):
+def create_archive_hash(destination_path, source_name):
     path = Path.joinpath(destination_path, source_name + ".tar.lz")
 
     hasher = hashlib.md5()
