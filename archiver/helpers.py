@@ -1,5 +1,6 @@
 import sys
 import os
+import hashlib
 
 
 def terminate_if_path_nonexistent(path):
@@ -60,3 +61,16 @@ def get_absolute_path_string(path):
 
 def terminate_with_message(message):
     sys.exit(message)
+
+
+def create_and_write_file_hash(file_path):
+    """ Will save the file in same directory """
+
+    hasher = hashlib.md5()
+
+    with open(file_path, "rb") as read_file:
+        buffer = read_file.read()
+        hasher.update(buffer)
+
+    hash_file = open(file_path.as_posix() + ".md5", "w")
+    hash_file.write(hasher.hexdigest())

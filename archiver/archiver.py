@@ -24,9 +24,10 @@ def archive(args):
     destination_path.mkdir()
     create_file_listing_hash(source_path, destination_path, source_name)
     create_tar_archive(source_path, destination_path, source_name)
+    create_and_write_archive_hash(destination_path, source_name)
     create_archive_listing(destination_path, source_name)
     compress_using_lzip(destination_path, source_name)
-    create_archive_hash(destination_path, source_name)
+    create_and_write_compressed_archive_hash(destination_path, source_name)
 
     print("Archive created: " + destination_path.absolute().as_posix())
 
@@ -61,17 +62,16 @@ def compress_using_lzip(destination_path, source_name):
     subprocess.run(["plzip", path])
 
 
-def create_archive_hash(destination_path, source_name):
-    path = Path.joinpath(destination_path, source_name + ".tar.lz")
+def create_and_write_archive_hash(destination_path, source_name):
+    path = destination_path.joinpath(source_name + ".tar").absolute()
 
-    hasher = hashlib.md5()
-    # Read file content as binary for hash
-    with open(path, 'rb') as read_file:
-        buf = read_file.read()
-        hasher.update(buf)
+    helpers.create_and_write_file_hash(path)
 
-    hash_file = open(Path.joinpath(destination_path, source_name + ".tar.lz.md5"), "w")
-    hash_file.write(hasher.hexdigest())
+
+def create_and_write_compressed_archive_hash(destination_path, source_name):
+    path = destination_path.joinpath(source_name + ".tar.lz").absolute()
+
+    helpers.create_and_write_file_hash(path)
 
 
 def write_hash_list_to_file(file_path, hashes):
