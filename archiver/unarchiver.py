@@ -11,24 +11,34 @@ import helpers
 
 def extract(args):
     # Path to archive file *.tar.lz
-    source_file_path = Path(args.archive_dir)
+    source_path = Path(args.archive_dir)
     destination_directory_path = Path(args.destination)
-    # TODO: Implement
-    partial_extraction_part = args.subdir
 
-    # Path validation
-    helpers.terminate_if_partent_directory_nonexistent(destination_directory_path)
-    helpers.terminate_if_path_not_file_of_type(source_file_path, ".tar.lz")
+    source_file_path = ""
 
-    decompress_and_extract(source_file_path, destination_directory_path)
+    partial_extraction_path = args.subdir
+
+    #  Validation
+    helpers.terminate_if_directory_nonexistent(destination_directory_path)
+
+    if (source_path.is_dir()):
+        source_file_path = helpers.get_file_with_type_in_directory_or_terminate(source_path, ".tar.lz")
+    else:
+        helpers.terminate_if_path_not_file_of_type(source_path, ".tar.lz")
+        source_file_path = source_path
+
+    if partial_extraction_path:
+        partial_extraction(source_file_path, destination_directory_path, partial_extraction_path)
+    else:
+        uncompress_and_extract(source_file_path, destination_directory_path)
 
 
-def decompress_and_extract(source_file_path, destination_directory_path):
+def uncompress_and_extract(source_file_path, destination_directory_path):
     ps = subprocess.Popen(["plzip", "-dc", source_file_path], stdout=subprocess.PIPE)
-    subprocess.Popen(["tar", "-x", "--directory", destination_directory_path], stdin=ps.stdout)
+    subprocess.Popen(["tar", "-x", "-C", destination_directory_path], stdin=ps.stdout)
     ps.stdout.close()
     ps.wait()
 
 
-def partial_extraction(source_file_path, destination_directory_path, partial_extraction_part):
-    subprocess.run(["tar", "-xvf", source_file_path, "-C", destination_directory_path, partial_extraction_part])
+def partial_extraction(source_file_path, destination_directory_path, partial_extraction_path):
+    subprocess.run(["tar", "-xvf", source_file_path, "-C", destination_directory_path, partial_extraction_path])

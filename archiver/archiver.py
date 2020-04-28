@@ -16,7 +16,7 @@ def archive(args):
     helpers.terminate_if_path_nonexistent(source_path)
 
     # Check if destination parent directory exist but not actual directory
-    helpers.terminate_if_partent_directory_nonexistent(destination_path)
+    helpers.terminate_if_parent_directory_nonexistent(destination_path)
     helpers.terminate_if_path_exists(destination_path)
 
     source_name = source_path.name

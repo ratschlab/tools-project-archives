@@ -1,4 +1,5 @@
 import sys
+import os
 
 
 def terminate_if_path_nonexistent(path):
@@ -18,7 +19,7 @@ def terminate_if_path_not_file_of_type(path, file_type):
         terminate_with_message("File does not have suffix " + file_type + " : " + path.absolute().as_posix())
 
 
-def terminate_if_partent_directory_nonexistent(path):
+def terminate_if_parent_directory_nonexistent(path):
     # Make sure path is absolute
     absolute_path = path.absolute()
     parent_directory = absolute_path.parents[0]
@@ -34,6 +35,23 @@ def terminate_if_directory_nonexistent(path):
 def terminate_if_path_exists(path):
     if path.exists():
         terminate_with_message("Path must not exist: " + get_absolute_path_string(path))
+
+
+def get_file_with_type_in_directory_or_terminate(directory, file_type):
+    archives_in_directory = []
+
+    for file in os.listdir(directory):
+        if file.endswith(file_type):
+            path = directory.joinpath(file).absolute()
+            archives_in_directory.append(path)
+
+    if len(archives_in_directory) > 1:
+        terminate_with_message("Multiple files of type " + file_type + " found, please specify file path")
+
+    if len(archives_in_directory) == 0:
+        terminate_with_message("No archive found in directory: " + get_absolute_path_string(directory))
+
+    return archives_in_directory[0]
 
 
 def get_absolute_path_string(path):
