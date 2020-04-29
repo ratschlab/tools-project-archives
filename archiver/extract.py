@@ -3,16 +3,16 @@ import os
 import sys
 from pathlib import Path
 
-import helpers
+import archiver.helpers as helpers
 
 # TODO: Handle subprocess exceptions
 # TODO: What should happen with the archive after extraction?
 
 
-def extract_archive(source_path, destination_directory_path, partial_extraction_path):
+def extract_archive(source_path, destination_directory_path, partial_extraction_path=None):
     source_file_path = ""
 
-    #  Validation
+    # Make sure destination path directory existts
     helpers.terminate_if_directory_nonexistent(destination_directory_path)
 
     if source_path.is_dir():

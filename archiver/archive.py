@@ -3,7 +3,7 @@ import subprocess
 import hashlib
 from pathlib import Path
 
-import helpers
+import archiver.helpers as helpers
 
 
 def create_archive(source_path, destination_path):
