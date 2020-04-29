@@ -4,16 +4,16 @@ import argparse
 import sys
 from pathlib import Path
 
-from .archive import create_archive
-from .extract import extract_archive
-from .listing import create_listing
+from archive import create_archive
+from extract import extract_archive
+from listing import create_listing
 
 
 def main():
     parsed_arguments = parse_arguments(sys.argv[1:])
 
     if parsed_arguments.func:
-        args.func(args)
+        parsed_arguments.func(parsed_arguments)
     else:
         sys.exit("Unknown function call")
 

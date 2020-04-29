@@ -2,5 +2,5 @@
 
 """ Enables direct execution of archiver directory """
 
-from .main import main
+from main import main
 main()
