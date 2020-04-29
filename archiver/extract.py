@@ -3,28 +3,22 @@ import os
 import sys
 from pathlib import Path
 
-import helpers
+from .helpers import terminate_if_directory_nonexistent, get_file_with_type_in_directory_or_terminate, terminate_if_path_not_file_of_type
 
 # TODO: Handle subprocess exceptions
 # TODO: What should happen with the archive after extraction?
 
 
-def extract(args):
-    # Path to archive file *.tar.lz
-    source_path = Path(args.archive_dir)
-    destination_directory_path = Path(args.destination)
-
+def extract_archive(source_path, destination_directory_path, partial_extraction_path):
     source_file_path = ""
 
-    partial_extraction_path = args.subdir
-
     #  Validation
-    helpers.terminate_if_directory_nonexistent(destination_directory_path)
+    terminate_if_directory_nonexistent(destination_directory_path)
 
     if (source_path.is_dir()):
-        source_file_path = helpers.get_file_with_type_in_directory_or_terminate(source_path, ".tar.lz")
+        source_file_path = get_file_with_type_in_directory_or_terminate(source_path, ".tar.lz")
     else:
-        helpers.terminate_if_path_not_file_of_type(source_path, ".tar.lz")
+        terminate_if_path_not_file_of_type(source_path, ".tar.lz")
         source_file_path = source_path
 
     if partial_extraction_path:

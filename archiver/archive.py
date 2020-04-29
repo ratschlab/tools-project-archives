@@ -3,21 +3,16 @@ import subprocess
 import hashlib
 from pathlib import Path
 
-import helpers
+from .helpers import terminate_if_parent_directory_nonexistent, terminate_if_path_nonexistent, terminate_if_path_exists, create_and_write_file_hash
 
 
-def archive(args):
-    # Path to a file or directory which will be archives
-    source_path = Path(args.source)
-    # Path to a directory which will be created (if it does yet exist)
-    destination_path = Path(args.archive_dir)
-
+def create_archive(source_path, destination_path):
     # Argparse already checks if arguments are present, so only argument format needs to be validated
-    helpers.terminate_if_path_nonexistent(source_path)
+    terminate_if_path_nonexistent(source_path)
 
     # Check if destination parent directory exist but not actual directory
-    helpers.terminate_if_parent_directory_nonexistent(destination_path)
-    helpers.terminate_if_path_exists(destination_path)
+    terminate_if_parent_directory_nonexistent(destination_path)
+    terminate_if_path_exists(destination_path)
 
     source_name = source_path.name
 
@@ -65,13 +60,13 @@ def compress_using_lzip(destination_path, source_name):
 def create_and_write_archive_hash(destination_path, source_name):
     path = destination_path.joinpath(source_name + ".tar").absolute()
 
-    helpers.create_and_write_file_hash(path)
+    create_and_write_file_hash(path)
 
 
 def create_and_write_compressed_archive_hash(destination_path, source_name):
     path = destination_path.joinpath(source_name + ".tar.lz").absolute()
 
-    helpers.create_and_write_file_hash(path)
+    create_and_write_file_hash(path)
 
 
 def write_hash_list_to_file(file_path, hashes):

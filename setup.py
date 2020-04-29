@@ -7,5 +7,8 @@ setup(
     version=0.1,
     description="A CLI to handle the archiving of large project data.",
     url="https://github.com/ratschlab/tools-project-archives",
-    packages=['archiver']
+    packages=['archiver'],
+    entry_points={
+        "console_scripts": ['archiver = archiver.main:main']
+    },
 )
