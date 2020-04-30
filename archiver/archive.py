@@ -3,7 +3,7 @@ import subprocess
 import hashlib
 from pathlib import Path
 
-import archiver.helpers as helpers
+import helpers
 
 
 def create_archive(source_path, destination_path):
@@ -24,7 +24,7 @@ def create_archive(source_path, destination_path):
     compress_using_lzip(destination_path, source_name)
     create_and_write_compressed_archive_hash(destination_path, source_name)
 
-    print("Archive created: " + destination_path.absolute().as_posix())
+    print("Archive created: " + helpers.get_absolute_path_string(destination_path))
 
 
 # TODO: parallelization

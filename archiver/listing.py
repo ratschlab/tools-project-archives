@@ -1,7 +1,7 @@
 import subprocess
 from pathlib import Path
 
-import archiver.helpers as helpers
+import helpers
 
 
 def create_listing(source_path, subdir_path=None):
@@ -14,7 +14,9 @@ def create_listing(source_path, subdir_path=None):
         source_file_path = source_path
 
     if subdir_path:
-        subprocess.run(["tar", "-tvf", source_file_path, subdir_path])
+        result = subprocess.run(["tar", "-tvf", source_file_path, subdir_path], stdout=subprocess.PIPE)
         return
 
-    subprocess.run(["tar", "-tvf", source_file_path])
+    result = subprocess.run(["tar", "-tvf", source_file_path], stdout=subprocess.PIPE)
+
+    print(result.stdout)

@@ -3,7 +3,7 @@ import os
 import sys
 from pathlib import Path
 
-import archiver.helpers as helpers
+import helpers
 
 # TODO: Handle subprocess exceptions
 # TODO: What should happen with the archive after extraction?
@@ -25,6 +25,8 @@ def extract_archive(source_path, destination_directory_path, partial_extraction_
         partial_extraction(source_file_path, destination_directory_path, partial_extraction_path)
     else:
         uncompress_and_extract(source_file_path, destination_directory_path)
+
+    print("Archive extracted: " + helpers.get_absolute_path_string(destination_directory_path))
 
 
 def uncompress_and_extract(source_file_path, destination_directory_path):

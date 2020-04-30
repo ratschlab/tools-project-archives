@@ -14,3 +14,13 @@ $ archiver archive [src] [archive_dir] # Create a new archive
 $ archiver list [archive_dir] [<subdir>] # List content of archive
 $ archiver extract [-subdir <path in archive>] [archive_dir] [dest] # Extract archive
 ```
+
+## Testing
+
+```
+PYTHONPATH=./archiver/ pytest tests/ -s
+```
+
+## Issues
+
+Tar archive has inconsistent relative paths that are dependent on where the script will be executed from
