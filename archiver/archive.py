@@ -29,19 +29,22 @@ def create_archive(source_path, destination_path):
 
 # TODO: parallelization
 def create_file_listing_hash(source_path, destination_path, source_name):
-    for root, _, files in os.walk(source_path):
+    for root, dirs, files in os.walk(source_path):
         hashes = []
         for file in files:
             # Read file content as binary for hash
             with open(os.path.join(root, file), "rb") as read_file:
-                hashes.append([root, file, hashlib.md5(read_file.read()).hexdigest()])
+                reative_path_to_file_string = Path(root).relative_to(source_path.parent).joinpath(file).as_posix()
+                hashes.append([reative_path_to_file_string, hashlib.md5(read_file.read()).hexdigest()])
 
         write_hash_list_to_file(Path.joinpath(destination_path, source_name + ".md5"), hashes)
 
 
 def create_tar_archive(source_path, destination_path, source_name):
-    path = Path.joinpath(destination_path, source_name + ".tar")
-    subprocess.run(["tar", "-cf", path, source_path])
+    destination_file_path = destination_path.joinpath(source_name + ".tar")
+
+    # -C flag necessary to get relative path in tar archive
+    subprocess.run(["tar", "-cf", destination_file_path, "-C", source_path.parent, source_path.stem])
 
 
 def create_archive_listing(destination_path, source_name):
@@ -72,5 +75,4 @@ def create_and_write_compressed_archive_hash(destination_path, source_name):
 def write_hash_list_to_file(file_path, hashes):
     hash_file = open(file_path, "a")
     for file in hashes:
-        path = os.path.join(file[0], file[1])
-        hash_file.write(file[2] + " " + path + "\n")
+        hash_file.write(file[1] + " " + file[0] + "\n")

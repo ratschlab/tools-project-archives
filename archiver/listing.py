@@ -15,8 +15,7 @@ def create_listing(source_path, subdir_path=None):
 
     if subdir_path:
         result = subprocess.run(["tar", "-tvf", source_file_path, subdir_path], stdout=subprocess.PIPE)
-        return
+    else:
+        result = subprocess.run(["tar", "-tvf", source_file_path], stdout=subprocess.PIPE)
 
-    result = subprocess.run(["tar", "-tvf", source_file_path], stdout=subprocess.PIPE)
-
-    print(result.stdout)
+    print(result.stdout.decode("utf-8"))
