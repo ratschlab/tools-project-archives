@@ -7,6 +7,7 @@ from pathlib import Path
 from archive import create_archive
 from extract import extract_archive
 from listing import create_listing
+from integrity import check_integrity
 
 
 def main():
@@ -41,6 +42,11 @@ def parse_arguments(args):
     parser_list.add_argument("archive_dir", type=str, help="Select source archive directory or .tar.lz file")
     parser_list.add_argument("subdir", type=str, nargs="?", help="(Optional): Select subdir as path inside of archive")
     parser_list.set_defaults(func=handle_list)
+    
+    # List parser
+    parser_list = subparsers.add_parser("check", help="Check integrity of archive")
+    parser_list.add_argument("archive_dir", type=str, help="Select source archive directory or .tar.lz file")
+    parser_list.set_defaults(func=handle_check)
 
     return parser.parse_args()
 
@@ -69,6 +75,12 @@ def handle_list(args):
     subdir_path = args.subdir
 
     create_listing(source_path, subdir_path)
+
+def handle_check(args):
+    # Path to archive file *.tar.lz
+    source_path = Path(args.archive_dir)
+
+    check_integrity(source_path)
 
 
 if __name__ == "__main__":
