@@ -16,7 +16,7 @@ $ archiver extract [-subdir <path in archive>] [archive_dir] [dest] # Extract ar
 $ archiver check [archive_dir] # Check integrity of archive
 ```
 
-## Testing
+## Testing
 
 ```
 PYTHONPATH=./archiver/ pytest tests/ -s

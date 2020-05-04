@@ -34,13 +34,13 @@ def parse_arguments(args):
     parser_extract = subparsers.add_parser("extract", help="Extract archive")
     parser_extract.add_argument("archive_dir", type=str, help="Select source archive tar.lz file")
     parser_extract.add_argument("destination", type=str, help="Path to directory where archive will be extracted")
-    parser_extract.add_argument("-s", "--subdir", type=str, help="Directory or file inside archive to extract")
+    parser_extract.add_argument("-s", "--subpath", type=str, help="Directory or file inside archive to extract")
     parser_extract.set_defaults(func=handle_extract)
 
     # List parser
     parser_list = subparsers.add_parser("list", help="List content of archive")
     parser_list.add_argument("archive_dir", type=str, help="Select source archive directory or .tar.lz file")
-    parser_list.add_argument("subdir", type=str, nargs="?", help="(Optional): Select subdir as path inside of archive")
+    parser_list.add_argument("subdir", type=str, nargs="?", help="(Optional): Only list selected subdir inside archive")
     parser_list.set_defaults(func=handle_list)
     
     # List parser

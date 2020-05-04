@@ -37,7 +37,7 @@ def create_file_listing_hash(source_path, destination_path, source_name):
                 reative_path_to_file_string = Path(root).relative_to(source_path.parent).joinpath(file).as_posix()
                 hashes.append([reative_path_to_file_string, hashlib.md5(read_file.read()).hexdigest()])
 
-        write_hash_list_to_file(Path.joinpath(destination_path, source_name + ".md5"), hashes)
+        write_hash_list_to_file(destination_path.joinpath(source_name + ".md5"), hashes)
 
 
 def create_tar_archive(source_path, destination_path, source_name):
@@ -48,15 +48,15 @@ def create_tar_archive(source_path, destination_path, source_name):
 
 
 def create_archive_listing(destination_path, source_name):
-    listing_path = Path.joinpath(destination_path, source_name + ".tar.lst")
-    tar_path = Path.joinpath(destination_path, source_name + ".tar")
+    listing_path = destination_path.joinpath(source_name + ".tar.lst")
+    tar_path = destination_path.joinpath(source_name + ".tar")
 
     archive_listing_file = open(listing_path, "w")
     subprocess.run(["tar", "-tvf", tar_path], stdout=archive_listing_file)
 
 
 def compress_using_lzip(destination_path, source_name):
-    path = Path.joinpath(destination_path, source_name + ".tar")
+    path = destination_path.joinpath(source_name + ".tar")
     subprocess.run(["plzip", path])
 
 
