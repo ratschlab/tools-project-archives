@@ -41,6 +41,7 @@ def parse_arguments(args):
     parser_list = subparsers.add_parser("list", help="List content of archive")
     parser_list.add_argument("archive_dir", type=str, help="Select source archive directory or .tar.lz file")
     parser_list.add_argument("subdir", type=str, nargs="?", help="(Optional): Only list selected subdir inside archive")
+    parser_list.add_argument("-d", "--deep", type=bool, help="(Optional): Query actual archive instead of relying on existing listing file")
     parser_list.set_defaults(func=handle_list)
     
     # List parser
@@ -73,8 +74,9 @@ def handle_list(args):
     # Path to archive file *.tar.lz
     source_path = Path(args.archive_dir)
     subdir_path = args.subdir
+    deep = args.deep
 
-    create_listing(source_path, subdir_path)
+    create_listing(source_path, subdir_path, deep)
 
 def handle_check(args):
     # Path to archive file *.tar.lz

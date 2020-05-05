@@ -63,7 +63,15 @@ def test_list_archive_content(capsys):
 
     create_listing(archive_dir)
 
-    # create_listing(archive_dir, "test-folder/folder-in-archive")
+    captured_std_out = capsys.readouterr().out
+
+    with open(archive_dir.joinpath("test-folder.tar.lst"), "r") as file:
+        assert captured_std_out.rstrip() == file.read().rstrip()
+
+def test_list_archive_content_deep(capsys):
+    archive_dir = get_archive_path()
+
+    create_listing(archive_dir, None, True)
 
     captured_std_out = capsys.readouterr().out
 
@@ -81,9 +89,23 @@ def test_list_archive_content_subpath(capsys):
     with open(tests_dir.joinpath("listing-partial.lst"), "r") as file:
         assert captured_std_out.rstrip() == file.read().rstrip()
 
+
+def test_list_archive_content_subpath_deep(capsys):
+    archive_dir = get_archive_path()
+    tests_dir = get_test_dir_path()
+
+    create_listing(archive_dir, "test-folder/folder-in-archive", True)
+
+    captured_std_out = capsys.readouterr().out
+
+    with open(tests_dir.joinpath("listing-partial.lst"), "r") as file:
+        assert captured_std_out.rstrip() == file.read().rstrip()
+
+
 def get_test_dir_path():
     """Get path of test directory"""
     return Path(os.path.dirname(os.path.realpath(__file__)))
+
 
 def get_archive_path():
     """Get path of archive used for tests"""

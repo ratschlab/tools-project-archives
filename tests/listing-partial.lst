@@ -1,3 +1,2 @@
-drwxr-xr-x  0 noah   staff       0 Apr 29 09:14 test-folder/folder-in-archive/
--rw-r--r--  0 noah   staff      14 Apr 30 16:00 test-folder/folder-in-archive/file2.txt
-
+drwxr-xr-x  0 noah   staff       0 29 Apr 09:14 test-folder/folder-in-archive/
+-rw-r--r--  0 noah   staff      14 30 Apr 16:00 test-folder/folder-in-archive/file2.txt
