@@ -80,7 +80,7 @@ def test_list_archive_content_deep(capsys):
 
 def test_list_archive_content_subpath(capsys):
     archive_dir = get_archive_path()
-    tests_dir = get_test_dir_path()
+    tests_dir = get_test_ressources_path()
 
     create_listing(archive_dir, "test-folder/folder-in-archive")
 
@@ -92,7 +92,7 @@ def test_list_archive_content_subpath(capsys):
 
 def test_list_archive_content_subpath_deep(capsys):
     archive_dir = get_archive_path()
-    tests_dir = get_test_dir_path()
+    tests_dir = get_test_ressources_path()
 
     create_listing(archive_dir, "test-folder/folder-in-archive", True)
 
@@ -102,18 +102,18 @@ def test_list_archive_content_subpath_deep(capsys):
         assert captured_std_out.rstrip() == file.read().rstrip()
 
 
-def get_test_dir_path():
+def get_test_ressources_path():
     """Get path of test directory"""
-    return Path(os.path.dirname(os.path.realpath(__file__)))
+    return Path(os.path.dirname(os.path.realpath(__file__))).joinpath("test-ressources")
 
 
 def get_archive_path():
     """Get path of archive used for tests"""
     dir_path = Path(os.path.dirname(os.path.realpath(__file__)))
-    return Path(os.path.join(dir_path, "test-archive"))
+    return Path(os.path.join(dir_path, "test-ressources/test-archive"))
 
 
 def get_folder_path():
     """Get path of folder for creating test archive"""
     dir_path = Path(os.path.dirname(os.path.realpath(__file__)))
-    return Path(os.path.join(dir_path, "test-folder"))
+    return Path(os.path.join(dir_path, "test-ressources/test-folder"))
