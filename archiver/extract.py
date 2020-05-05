@@ -30,11 +30,26 @@ def extract_archive(source_path, destination_directory_path, partial_extraction_
 
 
 def uncompress_and_extract(source_file_path, destination_directory_path):
+    print(f"Starting complete archive extraction...")
+
     ps = subprocess.Popen(["plzip", "-dc", source_file_path], stdout=subprocess.PIPE)
     subprocess.Popen(["tar", "-x", "-C", destination_directory_path], stdin=ps.stdout)
     ps.stdout.close()
     ps.wait()
 
+    source_file_path_string = helpers.get_absolute_path_string(source_file_path)
+    destination_directory_path_string = helpers.get_absolute_path_string(destination_directory_path)
+
+    print(f"Extracted archive {source_file_path_string} to {destination_directory_path_string}")
+
+
 
 def partial_extraction(source_file_path, destination_directory_path, partial_extraction_path):
+    source_file_path_string = helpers.get_absolute_path_string(source_file_path)
+    destination_directory_path_string = helpers.get_absolute_path_string(destination_directory_path)
+
+    print(f"Start extracting {partial_extraction_path} from archive...")
+
     subprocess.run(["tar", "-xvf", source_file_path, "-C", destination_directory_path, partial_extraction_path])
+
+    print(f"Extracted {partial_extraction_path} from archive {source_file_path_string} to {destination_directory_path_string}")

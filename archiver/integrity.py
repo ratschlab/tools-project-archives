@@ -20,6 +20,8 @@ def check_integrity(source_path):
         archive_directory_path = source_path.parents[0]
         archive_hash_file_path = helpers.get_file_with_type_in_directory_or_terminate(archive_directory_path, source_path.name + ".md5")
 
+    print("Starting integrity check...")
+
     if compare_hashes_from_files(archive_file_path, archive_hash_file_path):
         print("Integrity check successful")
     else:

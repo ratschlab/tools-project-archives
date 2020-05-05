@@ -4,7 +4,7 @@ Simple and easy command line tool a researcher can use to archive files at the e
 
 ## Requirements
 
--   python 3.x
+-   python >= 3.6
 -   plzip
 
 ## Usage

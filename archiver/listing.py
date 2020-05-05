@@ -21,8 +21,8 @@ def listing_from_file(source_path, subdir_path):
         # Search for listing file in directory of tar.lz file
         listing_file_path = helpers.get_file_with_type_in_directory_or_terminate(source_path.parent, LISTING_SUFFIX)
 
-    # print("Performing shallow file-based listing...")
 
+    # TODO: Smarter dir-based search, not just filtering for string in path
     with open(listing_file_path, "r") as file:
         for line in file:
             if not subdir_path or subdir_path in line:
@@ -35,8 +35,6 @@ def listing_from_archive(source_path, subdir_path):
     else:
         helpers.terminate_if_path_not_file_of_type(source_path, COMPRESSED_ARCHIVE_SUFFIX)
         source_file_path = source_path
-
-    # print("Performing deep archive-based listing...")
 
     if subdir_path:
         result = subprocess.run(["tar", "-tvf", source_file_path, subdir_path], stdout=subprocess.PIPE)

@@ -16,15 +16,20 @@ def create_archive(source_path, destination_path):
 
     source_name = source_path.name
 
+    print(f"Start creating archive for: {helpers.get_absolute_path_string(source_path)}")
+
     destination_path.mkdir()
     create_file_listing_hash(source_path, destination_path, source_name)
     create_tar_archive(source_path, destination_path, source_name)
     create_and_write_archive_hash(destination_path, source_name)
     create_archive_listing(destination_path, source_name)
+
+    print("Starting compression...")
+    
     compress_using_lzip(destination_path, source_name)
     create_and_write_compressed_archive_hash(destination_path, source_name)
 
-    print("Archive created: " + helpers.get_absolute_path_string(destination_path))
+    print(f"Archive created: {helpers.get_absolute_path_string(destination_path)}")
 
 
 # TODO: parallelization
