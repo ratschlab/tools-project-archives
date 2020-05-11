@@ -23,7 +23,7 @@ def test_create_archive(tmp_path):
     dir_listing = os.listdir(tmp_path)
 
     # Test if all files exist
-    assert dir_listing == ['test-folder.tar.lst', 'test-folder.md5', 'test-folder.tar.lz.md5', 'test-folder.tar.lz', 'test-folder.tar.md5']
+    assert sorted(dir_listing) == sorted(['test-folder.tar.lst', 'test-folder.tar.lz.md5', 'test-folder.md5', 'test-folder.tar.lz', 'test-folder.tar.md5'])
 
     # Test listing of tar 
     assert compare_listing_files(archive_path.joinpath("test-folder.tar.lst"), tmp_path.joinpath("test-folder.tar.lst"))
