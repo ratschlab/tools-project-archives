@@ -19,7 +19,8 @@ $ archiver check [archive_dir] # Check integrity of archive
 ## Testing
 
 ```
-pytest tests/ -s
+# run in project root
+python3 -m pytest tests/ -s
 ```
 
 ## Issues

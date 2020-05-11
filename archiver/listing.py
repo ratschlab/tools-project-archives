@@ -1,7 +1,7 @@
 import subprocess
 from pathlib import Path
 
-import helpers
+from . import helpers
 
 LISTING_SUFFIX = ".tar.lst"
 COMPRESSED_ARCHIVE_SUFFIX = ".tar.lz"

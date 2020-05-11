@@ -4,10 +4,11 @@ import argparse
 import sys
 from pathlib import Path
 
-from archive import create_archive
-from extract import extract_archive
-from listing import create_listing
-from integrity import check_integrity
+# from archiver.archive import create_archive
+from .archive import create_archive
+from .extract import extract_archive
+from .listing import create_listing
+from .integrity import check_integrity
 
 
 def main():

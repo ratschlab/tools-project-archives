@@ -3,7 +3,7 @@ from pathlib import Path
 import os
 import hashlib
 
-import helpers
+from . import helpers
 
 
 def check_integrity(source_path):

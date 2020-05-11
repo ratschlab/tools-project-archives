@@ -3,7 +3,7 @@ import os
 import sys
 from pathlib import Path
 
-import helpers
+from . import helpers
 
 # TODO: Handle subprocess exceptions
 # TODO: What should happen with the archive after extraction?
@@ -20,8 +20,6 @@ def extract_archive(source_path, destination_directory_path, partial_extraction_
     else:
         helpers.terminate_if_path_not_file_of_type(source_path, ".tar.lz")
         source_file_path = source_path
-
-    # TODO: Validate threads is a valid number (if argparse doesn't do this)
 
     if partial_extraction_path:
         partial_extraction(source_file_path, destination_directory_path, partial_extraction_path)

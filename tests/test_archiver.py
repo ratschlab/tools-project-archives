@@ -5,11 +5,12 @@ import time
 import filecmp
 from pathlib import Path
 
-sys.path.append(os.path.abspath('./archiver/'))
+# sys.path.append(os.path.abspath('./archiver/'))
+# run tests in project root using: python3 -m pytest
 
-from archive import create_archive
-from extract import extract_archive
-from listing import create_listing
+from archiver.archive import create_archive
+from archiver.extract import extract_archive
+from archiver.listing import create_listing
 
 def test_create_archive(tmp_path):
     folder_path = get_folder_path()
@@ -45,7 +46,6 @@ def test_extract_archive(tmp_path):
 
     # wait until this aciton has completed
     extract_archive(archive_path, extraction_path)
-    # Asynchronous?
     # TODO: Find fix for this
     time.sleep(0.1)
 

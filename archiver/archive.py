@@ -3,8 +3,7 @@ import subprocess
 import hashlib
 from pathlib import Path
 
-import helpers
-
+from . import helpers
 
 def create_archive(source_path, destination_path, threads=None, compression=6):
     # Argparse already checks if arguments are present, so only argument format needs to be validated
