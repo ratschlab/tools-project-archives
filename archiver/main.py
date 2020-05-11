@@ -43,7 +43,7 @@ def parse_arguments(args):
     # List parser
     parser_list = subparsers.add_parser("list", help="List content of archive")
     parser_list.add_argument("archive_dir", type=str, help="Select source archive directory or .tar.lz file")
-    parser_list.add_argument("subdir", type=str, nargs="?", help="Only list selected subdir inside archive")
+    parser_list.add_argument("subpath", type=str, nargs="?", help="Only list selected subpath inside archive")
     parser_list.add_argument("-d", "--deep", action="store_true", help="Query actual archive instead of relying on existing listing file")
     parser_list.set_defaults(func=handle_list)
     
@@ -60,26 +60,28 @@ def handle_archive(args):
     source_path = Path(args.source)
     # Path to a directory which will be created (if it does yet exist)
     destination_path = Path(args.archive_dir)
+    compression_level = args.compression
 
-    create_archive(source_path, destination_path, args.threads, args.compression)
+    if compression_level:
+        create_archive(source_path, destination_path, args.threads, compression_level)
+    else:
+        create_archive(source_path, destination_path, args.threads)
+
 
 
 def handle_extract(args):
     # Path to archive file *.tar.lz
     source_path = Path(args.archive_dir)
     destination_directory_path = Path(args.destination)
-    partial_extraction_path = args.subdir
 
-    extract_archive(source_path, destination_directory_path, partial_extraction_path, args.threads)
+    extract_archive(source_path, destination_directory_path, args.subpath, args.threads)
 
 
 def handle_list(args):
     # Path to archive file *.tar.lz
     source_path = Path(args.archive_dir)
-    subdir_path = args.subdir
-    deep = args.deep
 
-    create_listing(source_path, subdir_path, deep)
+    create_listing(source_path, args.subpath, args.deep)
 
 def handle_check(args):
     # Path to archive file *.tar.lz
