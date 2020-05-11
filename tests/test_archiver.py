@@ -26,7 +26,7 @@ def test_create_archive(tmp_path):
     assert dir_listing == ['test-folder.tar.lst', 'test-folder.md5', 'test-folder.tar.lz.md5', 'test-folder.tar.lz', 'test-folder.tar.md5']
 
     # Test listing of tar 
-    assert filecmp.cmp(archive_path.joinpath("test-folder.tar.lst"), tmp_path.joinpath("test-folder.tar.lst"))
+    assert compare_listing_files(archive_path.joinpath("test-folder.tar.lst"), tmp_path.joinpath("test-folder.tar.lst"))
 
     # Test content md5 tar
     assert filecmp.cmp(archive_path.joinpath("test-folder.tar.md5"), tmp_path.joinpath("test-folder.tar.md5"))
@@ -66,7 +66,8 @@ def test_list_archive_content(capsys):
     captured_std_out = capsys.readouterr().out
 
     with open(archive_dir.joinpath("test-folder.tar.lst"), "r") as file:
-        assert captured_std_out.rstrip() == file.read().rstrip()
+        assert compare_listing_text(captured_std_out, file.read())
+
 
 def test_list_archive_content_deep(capsys):
     archive_dir = get_archive_path()
@@ -76,7 +77,8 @@ def test_list_archive_content_deep(capsys):
     captured_std_out = capsys.readouterr().out
 
     with open(archive_dir.joinpath("test-folder.tar.lst"), "r") as file:
-        assert captured_std_out.rstrip() == file.read().rstrip()
+        assert compare_listing_text(captured_std_out, file.read())
+
 
 def test_list_archive_content_subpath(capsys):
     archive_dir = get_archive_path()
@@ -87,7 +89,7 @@ def test_list_archive_content_subpath(capsys):
     captured_std_out = capsys.readouterr().out
 
     with open(tests_dir.joinpath("listing-partial.lst"), "r") as file:
-        assert captured_std_out.rstrip() == file.read().rstrip()
+        assert compare_listing_text(captured_std_out, file.read())
 
 
 def test_list_archive_content_subpath_deep(capsys):
@@ -99,7 +101,7 @@ def test_list_archive_content_subpath_deep(capsys):
     captured_std_out = capsys.readouterr().out
 
     with open(tests_dir.joinpath("listing-partial.lst"), "r") as file:
-        assert captured_std_out.rstrip() == file.read().rstrip()
+        assert compare_listing_text(captured_std_out, file.read())
 
 
 def get_test_ressources_path():
@@ -117,3 +119,29 @@ def get_folder_path():
     """Get path of folder for creating test archive"""
     dir_path = Path(os.path.dirname(os.path.realpath(__file__)))
     return Path(os.path.join(dir_path, "test-ressources/test-folder"))
+
+
+def compare_listing_files(listing_file_path_a, listing_file_path_b):
+    with open(listing_file_path_a, "r") as file1, open(listing_file_path_b, "r") as file2:
+        return compare_listing_text(file1.read(), file2.read())
+
+
+def compare_listing_text(listing1, listing2):
+    listing1_path_array = get_array_of_last_multiline_text_parts(listing1)
+    listing2_path_array = get_array_of_last_multiline_text_parts(listing2)
+
+    return listing1_path_array == listing2_path_array
+
+
+def get_array_of_last_multiline_text_parts(multiline_text):
+    parts_array = []
+
+    for line in multiline_text.splitlines():
+        # ignore empty lines
+        try:
+            path = line.split()[-1]
+            parts_array.append(path)
+        except:
+            pass
+
+    return parts_array
