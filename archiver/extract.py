@@ -9,7 +9,7 @@ import helpers
 # TODO: What should happen with the archive after extraction?
 
 
-def extract_archive(source_path, destination_directory_path, partial_extraction_path=None):
+def extract_archive(source_path, destination_directory_path, partial_extraction_path=None, threads=None):
     source_file_path = ""
 
     # Make sure destination path directory existts
@@ -21,18 +21,25 @@ def extract_archive(source_path, destination_directory_path, partial_extraction_
         helpers.terminate_if_path_not_file_of_type(source_path, ".tar.lz")
         source_file_path = source_path
 
+    # TODO: Validate threads is a valid number (if argparse doesn't do this)
+
     if partial_extraction_path:
         partial_extraction(source_file_path, destination_directory_path, partial_extraction_path)
     else:
-        uncompress_and_extract(source_file_path, destination_directory_path)
+        uncompress_and_extract(source_file_path, destination_directory_path, threads)
 
     print("Archive extracted: " + helpers.get_absolute_path_string(destination_directory_path))
 
 
-def uncompress_and_extract(source_file_path, destination_directory_path):
+def uncompress_and_extract(source_file_path, destination_directory_path, threads):
     print(f"Starting complete archive extraction...")
 
-    ps = subprocess.Popen(["plzip", "-dc", source_file_path], stdout=subprocess.PIPE)
+    additional_arguments = []
+
+    if threads:
+        additional_arguments.extend(["--threads", str(threads)])
+
+    ps = subprocess.Popen(["plzip", "-dc", source_file_path] + additional_arguments, stdout=subprocess.PIPE)
     subprocess.Popen(["tar", "-x", "-C", destination_directory_path], stdin=ps.stdout)
     ps.stdout.close()
     ps.wait()

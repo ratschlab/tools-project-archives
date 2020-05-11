@@ -28,6 +28,8 @@ def parse_arguments(args):
     parser_archive = subparsers.add_parser("archive", help="Create archive")
     parser_archive.add_argument("source", type=str, help="Source input file or directory")
     parser_archive.add_argument("archive_dir", type=str, help="Path to directory which will be created")
+    parser_archive.add_argument("-n", "--threads", type=int, help="Set the number of worker threads, overriding the system's default")
+    parser_archive.add_argument("-c", "--compression", type=int, help="Compression level between 0 (fastest) to 9 (slowest), default is 6")
     parser_archive.set_defaults(func=handle_archive)
 
     # Extraction parser
@@ -35,16 +37,17 @@ def parse_arguments(args):
     parser_extract.add_argument("archive_dir", type=str, help="Select source archive tar.lz file")
     parser_extract.add_argument("destination", type=str, help="Path to directory where archive will be extracted")
     parser_extract.add_argument("-s", "--subpath", type=str, help="Directory or file inside archive to extract")
+    parser_extract.add_argument("-n", "--threads", type=int, help="Set the number of worker threads, overriding the system's default")
     parser_extract.set_defaults(func=handle_extract)
 
     # List parser
     parser_list = subparsers.add_parser("list", help="List content of archive")
     parser_list.add_argument("archive_dir", type=str, help="Select source archive directory or .tar.lz file")
-    parser_list.add_argument("subdir", type=str, nargs="?", help="(Optional): Only list selected subdir inside archive")
-    parser_list.add_argument("-d", "--deep", type=bool, help="(Optional): Query actual archive instead of relying on existing listing file")
+    parser_list.add_argument("subdir", type=str, nargs="?", help="Only list selected subdir inside archive")
+    parser_list.add_argument("-d", "--deep", action="store_true", help="Query actual archive instead of relying on existing listing file")
     parser_list.set_defaults(func=handle_list)
     
-    # List parser
+    # Integrity check
     parser_list = subparsers.add_parser("check", help="Check integrity of archive")
     parser_list.add_argument("archive_dir", type=str, help="Select source archive directory or .tar.lz file")
     parser_list.set_defaults(func=handle_check)
@@ -58,7 +61,7 @@ def handle_archive(args):
     # Path to a directory which will be created (if it does yet exist)
     destination_path = Path(args.archive_dir)
 
-    create_archive(source_path, destination_path)
+    create_archive(source_path, destination_path, args.threads, args.compression)
 
 
 def handle_extract(args):
@@ -67,7 +70,7 @@ def handle_extract(args):
     destination_directory_path = Path(args.destination)
     partial_extraction_path = args.subdir
 
-    extract_archive(source_path, destination_directory_path, partial_extraction_path)
+    extract_archive(source_path, destination_directory_path, partial_extraction_path, args.threads)
 
 
 def handle_list(args):

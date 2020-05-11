@@ -6,7 +6,7 @@ from pathlib import Path
 import helpers
 
 
-def create_archive(source_path, destination_path):
+def create_archive(source_path, destination_path, threads=None, compression=6):
     # Argparse already checks if arguments are present, so only argument format needs to be validated
     helpers.terminate_if_path_nonexistent(source_path)
 
@@ -15,6 +15,9 @@ def create_archive(source_path, destination_path):
     helpers.terminate_if_path_exists(destination_path)
 
     source_name = source_path.name
+
+    # TODO: Validate threads is a valid number (if argparse doesn't do this)
+    # TODO: Make sure compression level is number between 0 and 9
 
     print(f"Start creating archive for: {helpers.get_absolute_path_string(source_path)}")
 
@@ -26,7 +29,7 @@ def create_archive(source_path, destination_path):
 
     print("Starting compression...")
     
-    compress_using_lzip(destination_path, source_name)
+    compress_using_lzip(destination_path, source_name, threads, compression)
     create_and_write_compressed_archive_hash(destination_path, source_name)
 
     print(f"Archive created: {helpers.get_absolute_path_string(destination_path)}")
@@ -60,9 +63,15 @@ def create_archive_listing(destination_path, source_name):
     subprocess.run(["tar", "-tvf", tar_path], stdout=archive_listing_file)
 
 
-def compress_using_lzip(destination_path, source_name):
+def compress_using_lzip(destination_path, source_name, threads, compression):
     path = destination_path.joinpath(source_name + ".tar")
-    subprocess.run(["plzip", path])
+
+    additional_arguments = [];
+
+    if threads:
+        additional_arguments.extend(["--threads", str(threads)])
+
+    subprocess.run(["plzip", path, f"-{compression}"] + additional_arguments)
 
 
 def create_and_write_archive_hash(destination_path, source_name):

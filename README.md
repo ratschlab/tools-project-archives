@@ -10,8 +10,8 @@ Simple and easy command line tool a researcher can use to archive files at the e
 ## Usage
 
 ```
-$ archiver archive [src] [archive_dir] # Create a new archive
-$ archiver list [archive_dir] [<subdir>] [--deep] # List content of archive
+$ archiver archive [src] [archive_dir] [-n --threads] [-c --compression] # Create a new archive
+$ archiver list [archive_dir] [<subdir>] [-d --deep] [-n --threads] # List content of archive
 $ archiver extract [-subdir <path in archive>] [archive_dir] [dest] # Extract archive
 $ archiver check [archive_dir] # Check integrity of archive
 ```
