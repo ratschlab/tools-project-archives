@@ -121,12 +121,14 @@ def get_folder_path():
     dir_path = Path(os.path.dirname(os.path.realpath(__file__)))
     return Path(os.path.join(dir_path, "test-ressources/test-folder"))
 
+
 def compare_text_file(file_a_path, file_b_path):
     try:
         with open(file_a_path, "r") as file1, open(file_b_path, "r") as file2:
             return file1.read().rstrip() == file2.read().rstrip()
     except:
         return False
+
 
 def compare_listing_files(listing_file_path_a, listing_file_path_b):
     try:
@@ -135,21 +137,13 @@ def compare_listing_files(listing_file_path_a, listing_file_path_b):
     except:
         return False
 
-def valid_md5_hash_in_file(hash_file_path):
-    """Returns true if file contains valid md5 hash"""
-    try:
-        with open(hash_file_path, "r") as file:
-            file_content = file.read().rstrip()
-            if re.search(r"([a-fA-F\d]{32})", file_content):
-                return True
-            
-            return False
-    except:
-        return False
 
 def compare_listing_text(listing_a, listing_b):
     listing_a_path_array = get_array_of_last_multiline_text_parts(listing_a)
     listing_b_path_array = get_array_of_last_multiline_text_parts(listing_b)
+
+    print(listing_a_path_array)
+    print(listing_b_path_array)
 
     return listing_a_path_array == listing_b_path_array
 
@@ -166,3 +160,16 @@ def get_array_of_last_multiline_text_parts(multiline_text):
             pass
 
     return parts_array
+
+
+def valid_md5_hash_in_file(hash_file_path):
+    """Returns true if file contains valid md5 hash"""
+    try:
+        with open(hash_file_path, "r") as file:
+            file_content = file.read().rstrip()
+            if re.search(r"([a-fA-F\d]{32})", file_content):
+                return True
+            
+            return False
+    except:
+        return False
