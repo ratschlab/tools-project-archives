@@ -49,9 +49,10 @@ def parse_arguments(args):
     parser_list.set_defaults(func=handle_list)
     
     # Integrity check
-    parser_list = subparsers.add_parser("check", help="Check integrity of archive")
-    parser_list.add_argument("archive_dir", type=str, help="Select source archive directory or .tar.lz file")
-    parser_list.set_defaults(func=handle_check)
+    parser_check = subparsers.add_parser("check", help="Check integrity of archive")
+    parser_check.add_argument("archive_dir", type=str, help="Select source archive directory or .tar.lz file")
+    parser_check.add_argument("-d", "--deep", action="store_true", help="Verify integrity by unpacking archive and hashing each file")
+    parser_check.set_defaults(func=handle_check)
 
     return parser.parse_args()
 
@@ -88,7 +89,7 @@ def handle_check(args):
     # Path to archive file *.tar.lz
     source_path = Path(args.archive_dir)
 
-    check_integrity(source_path)
+    check_integrity(source_path, args.deep)
 
 
 if __name__ == "__main__":

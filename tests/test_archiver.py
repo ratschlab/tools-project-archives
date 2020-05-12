@@ -12,6 +12,7 @@ from pathlib import Path
 from archiver.archive import create_archive
 from archiver.extract import extract_archive
 from archiver.listing import create_listing
+from archiver.integrity import check_integrity
 
 def test_create_archive(tmp_path):
     folder_path = get_folder_path()
@@ -19,7 +20,7 @@ def test_create_archive(tmp_path):
 
     tmp_path = tmp_path.joinpath("go-here")
 
-    create_archive(folder_path, tmp_path)
+    create_archive(folder_path, tmp_path, None, 5)
 
     dir_listing = os.listdir(tmp_path)
 
@@ -105,6 +106,52 @@ def test_list_archive_content_subpath_deep(capsys):
     with open(tests_dir.joinpath("listing-partial.lst"), "r") as file:
         assert compare_listing_text(captured_std_out, file.read())
 
+def test_integrity_check_shallow(capsys):
+    archive_dir = get_archive_path()
+
+    check_integrity(archive_dir)
+
+    captured_std_out = capsys.readouterr().out
+
+    assert captured_std_out == "Starting integrity check...\nIntegrity check successful\n"
+
+def test_integrity_check_shallow_corrupted(capsys):
+    archive_dir = get_corrupted_archive_path()
+
+    check_integrity(archive_dir)
+
+    captured_std_out = capsys.readouterr().out
+
+    expected_string = "Starting integrity check...\nIntegrity check unsuccessful. Archive has been changed since creation.\n"
+
+    assert captured_std_out == expected_string
+
+
+@pytest.mark.skip(reason="Not yet implemented")
+def test_integrity_check_deep(capsys):
+    archive_dir = get_archive_path()
+
+    check_integrity(archive_dir, True)
+
+    captured_std_out = capsys.readouterr().out
+
+    assert captured_std_out == "Starting integrity check...\nDeep integrity check successful\n"
+
+
+@pytest.mark.skip(reason="Not yet implemented")
+def test_integrity_check_deep_corrupted(capsys):
+    archive_dir = get_corrupted_archive_path()
+
+    check_integrity(archive_dir)
+
+    captured_std_out = capsys.readouterr().out
+
+    expected_string = "Starting integrity check...\nDeep integrity check unsuccessful. Archive has been changed since creation.\n"
+
+    assert captured_std_out == expected_string
+
+
+# MARK: Helpers
 
 def get_test_ressources_path():
     """Get path of test directory"""
@@ -116,6 +163,10 @@ def get_archive_path():
     dir_path = Path(os.path.dirname(os.path.realpath(__file__)))
     return Path(os.path.join(dir_path, "test-ressources/test-archive"))
 
+def get_corrupted_archive_path():
+    """Get path of corrupted archive used for tests"""
+    dir_path = Path(os.path.dirname(os.path.realpath(__file__)))
+    return Path(os.path.join(dir_path, "test-ressources/test-archive-corrupted"))
 
 def get_folder_path():
     """Get path of folder for creating test archive"""

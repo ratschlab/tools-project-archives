@@ -6,10 +6,7 @@ import hashlib
 from . import helpers
 
 
-def check_integrity(source_path):
-    archive_file_path = ""
-    archive_hash_file_path = ""
-
+def check_integrity(source_path, deep_flag=False):
     if source_path.is_dir():
         archive_file_path = helpers.get_file_with_type_in_directory_or_terminate(source_path, ".tar.lz")
         archive_hash_file_path = helpers.get_file_with_type_in_directory_or_terminate(source_path, ".tar.lz.md5")
@@ -22,12 +19,25 @@ def check_integrity(source_path):
 
     print("Starting integrity check...")
 
-    if compare_hashes_from_files(archive_file_path, archive_hash_file_path):
-        print("Integrity check successful")
-    else:
-        print("Integrity check unsuccessful")
+    if not shallow_integrity_check(archive_file_path, archive_hash_file_path):
+        print("Integrity check unsuccessful. Archive has been changed since creation.")
+        return
 
+    if deep_flag and not deep_integrity_check(archive_file_path):
+        print("Deep integrity check unsuccessful. Archive has been changed since creation.")
+        return
 
+    if deep_flag:
+        print("Deep integrity check successful")
+        return
+
+    print("Integrity check successful")
+
+def shallow_integrity_check(archive_file_path, archive_hash_file_path):
+    return compare_hashes_from_files(archive_file_path, archive_hash_file_path)
+
+def deep_integrity_check(archive_file_path):
+    return False
 
 def compare_hashes_from_files(archive_file_path, archive_hash_file_path):
     # Generate hash of .tar.lz
