@@ -3,6 +3,7 @@ import os
 import sys
 import time
 import filecmp
+import re
 from pathlib import Path
 
 # sys.path.append(os.path.abspath('./archiver/'))
@@ -29,10 +30,10 @@ def test_create_archive(tmp_path):
     assert compare_listing_files(archive_path.joinpath("test-folder.tar.lst"), tmp_path.joinpath("test-folder.tar.lst"))
 
     # Test content md5 tar
-    assert compare_text_file(archive_path.joinpath("test-folder.tar.md5"), tmp_path.joinpath("test-folder.tar.md5"))
+    assert valid_md5_hash_in_file(tmp_path.joinpath("test-folder.tar.md5"))
 
     # Test content md5 tar.lz
-    assert compare_text_file(archive_path.joinpath("test-folder.tar.lz.md5"), tmp_path.joinpath("test-folder.tar.lz.md5"))
+    assert valid_md5_hash_in_file(tmp_path.joinpath("test-folder.tar.lz.md5"))
 
     # Assert content md5 of archive content
     assert compare_text_file(archive_path.joinpath("test-folder.md5"), tmp_path.joinpath("test-folder.md5"))
@@ -134,6 +135,17 @@ def compare_listing_files(listing_file_path_a, listing_file_path_b):
     except:
         return False
 
+def valid_md5_hash_in_file(hash_file_path):
+    """Returns true if file contains valid md5 hash"""
+    try:
+        with open(hash_file_path, "r") as file:
+            file_content = file.read().rstrip()
+            if re.search(r"([a-fA-F\d]{32})", file_content):
+                return True
+            
+            return False
+    except:
+        return False
 
 def compare_listing_text(listing_a, listing_b):
     listing_a_path_array = get_array_of_last_multiline_text_parts(listing_a)

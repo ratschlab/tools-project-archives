@@ -66,11 +66,17 @@ def terminate_with_message(message):
 def create_and_write_file_hash(file_path):
     """ Will save the file in same directory """
 
-    hasher = hashlib.md5()
-
-    with open(file_path, "rb") as read_file:
-        buffer = read_file.read()
-        hasher.update(buffer)
+    hash_output = file_hash_from_path(file_path)
 
     hash_file = open(file_path.as_posix() + ".md5", "w")
-    hash_file.write(hasher.hexdigest())
+    hash_file.write(hash_output)
+
+
+def file_hash_from_path(file_path):
+    hasher = hashlib.md5()
+    
+    with open(file_path, "rb") as file:
+        for chunk in iter(lambda: file.read(4096), b""):
+            hasher.update(chunk)
+        
+    return hasher.hexdigest()

@@ -36,13 +36,14 @@ def create_archive(source_path, destination_path, threads=None, compression=6):
 
 # TODO: parallelization
 def create_file_listing_hash(source_path, destination_path, source_name):
-    for root, dirs, files in os.walk(source_path):
+    for root, _, files in os.walk(source_path):
         hashes = []
         for file in files:
-            # Read file content as binary for hash
-            with open(os.path.join(root, file), "rb") as read_file:
-                reative_path_to_file_string = Path(root).relative_to(source_path.parent).joinpath(file).as_posix()
-                hashes.append([reative_path_to_file_string, hashlib.md5(read_file.read()).hexdigest()])
+            reative_path_to_file_string = Path(root).relative_to(source_path.parent).joinpath(file).as_posix()
+            # TODO: Switch to Pathlib
+            file_hash = helpers.file_hash_from_path(os.path.join(root, file))
+
+            hashes.append([reative_path_to_file_string, file_hash])
 
         write_hash_list_to_file(destination_path.joinpath(source_name + ".md5"), hashes)
 
