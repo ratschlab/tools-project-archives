@@ -24,15 +24,16 @@ def test_create_archive(tmp_path):
     dir_listing = os.listdir(tmp_path)
 
     # Test if all files exist
-    assert sorted(dir_listing) == sorted(['test-folder.tar.lst', 'test-folder.tar.lz.md5', 'test-folder.md5', 'test-folder.tar.lz', 'test-folder.tar.md5'])
+    expected_listing = ['test-folder.tar.lst', 'test-folder.tar.lz.md5', 'test-folder.md5', 'test-folder.tar.lz', 'test-folder.tar.md5']
+    assert compare_array_content_ignoring_order(dir_listing, expected_listing)
 
     # Test listing of tar 
     assert compare_listing_files(archive_path.joinpath("test-folder.tar.lst"), tmp_path.joinpath("test-folder.tar.lst"))
 
-    # Test content md5 tar
+    # Test md5 hash validity for tar
     assert valid_md5_hash_in_file(tmp_path.joinpath("test-folder.tar.md5"))
 
-    # Test content md5 tar.lz
+    # Test md5 hash validity for tar.lz
     assert valid_md5_hash_in_file(tmp_path.joinpath("test-folder.tar.lz.md5"))
 
     # Assert content md5 of archive content
@@ -142,10 +143,7 @@ def compare_listing_text(listing_a, listing_b):
     listing_a_path_array = get_array_of_last_multiline_text_parts(listing_a)
     listing_b_path_array = get_array_of_last_multiline_text_parts(listing_b)
 
-    print(listing_a_path_array)
-    print(listing_b_path_array)
-
-    return listing_a_path_array == listing_b_path_array
+    return compare_array_content_ignoring_order(listing_a_path_array, listing_b_path_array)
 
 
 def get_array_of_last_multiline_text_parts(multiline_text):
@@ -161,6 +159,9 @@ def get_array_of_last_multiline_text_parts(multiline_text):
 
     return parts_array
 
+def compare_array_content_ignoring_order(array_a, array_b):
+    """Works for arrays that can be sorted"""
+    return sorted(array_a) == sorted(array_b)
 
 def valid_md5_hash_in_file(hash_file_path):
     """Returns true if file contains valid md5 hash"""
