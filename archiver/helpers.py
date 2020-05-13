@@ -1,6 +1,7 @@
 import sys
 import os
 import hashlib
+from pathlib import Path
 
 
 def terminate_if_path_nonexistent(path):
@@ -74,9 +75,22 @@ def create_and_write_file_hash(file_path):
 
 def file_hash_from_path(file_path):
     hasher = hashlib.md5()
-    
+
     with open(file_path, "rb") as file:
         for chunk in iter(lambda: file.read(4096), b""):
             hasher.update(chunk)
-        
+
     return hasher.hexdigest()
+
+
+def hash_listing_for_files_in_folder(source_path):
+    hashes_list = []
+    for root, _, files in os.walk(source_path):
+        for file in files:
+            reative_path_to_file_string = Path(root).relative_to(source_path.parent).joinpath(file).as_posix()
+            # TODO: Switch to Pathlib
+            file_hash = file_hash_from_path(os.path.join(root, file))
+
+            hashes_list.append([reative_path_to_file_string, file_hash])
+
+    return hashes_list

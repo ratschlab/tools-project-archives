@@ -5,6 +5,7 @@ from pathlib import Path
 
 from . import helpers
 
+
 def create_archive(source_path, destination_path, threads=None, compression=6):
     # Argparse already checks if arguments are present, so only argument format needs to be validated
     helpers.terminate_if_path_nonexistent(source_path)
@@ -27,7 +28,7 @@ def create_archive(source_path, destination_path, threads=None, compression=6):
     create_archive_listing(destination_path, source_name)
 
     print("Starting compression...")
-    
+
     compress_using_lzip(destination_path, source_name, threads, compression)
     create_and_write_compressed_archive_hash(destination_path, source_name)
 
@@ -36,16 +37,12 @@ def create_archive(source_path, destination_path, threads=None, compression=6):
 
 # TODO: parallelization
 def create_file_listing_hash(source_path, destination_path, source_name):
-    for root, _, files in os.walk(source_path):
-        hashes = []
-        for file in files:
-            reative_path_to_file_string = Path(root).relative_to(source_path.parent).joinpath(file).as_posix()
-            # TODO: Switch to Pathlib
-            file_hash = helpers.file_hash_from_path(os.path.join(root, file))
+    hashes = helpers.hash_listing_for_files_in_folder(source_path)
+    file_path = destination_path.joinpath(source_name + ".md5")
 
-            hashes.append([reative_path_to_file_string, file_hash])
-
-        write_hash_list_to_file(destination_path.joinpath(source_name + ".md5"), hashes)
+    with open(file_path, "a") as hash_file:
+        for hash in hashes:
+            hash_file.write(hash[1] + " " + hash[0] + "\n")
 
 
 def create_tar_archive(source_path, destination_path, source_name):
@@ -66,7 +63,7 @@ def create_archive_listing(destination_path, source_name):
 def compress_using_lzip(destination_path, source_name, threads, compression):
     path = destination_path.joinpath(source_name + ".tar")
 
-    additional_arguments = [];
+    additional_arguments = []
 
     if threads:
         additional_arguments.extend(["--threads", str(threads)])
@@ -84,9 +81,3 @@ def create_and_write_compressed_archive_hash(destination_path, source_name):
     path = destination_path.joinpath(source_name + ".tar.lz").absolute()
 
     helpers.create_and_write_file_hash(path)
-
-
-def write_hash_list_to_file(file_path, hashes):
-    hash_file = open(file_path, "a")
-    for file in hashes:
-        hash_file.write(file[1] + " " + file[0] + "\n")
