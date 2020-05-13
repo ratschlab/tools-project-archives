@@ -48,7 +48,6 @@ def uncompress_and_extract(source_file_path, destination_directory_path, threads
     print(f"Extracted archive {source_file_path_string} to {destination_directory_path_string}")
 
 
-
 def partial_extraction(source_file_path, destination_directory_path, partial_extraction_path):
     source_file_path_string = helpers.get_absolute_path_string(source_file_path)
     destination_directory_path_string = helpers.get_absolute_path_string(destination_directory_path)

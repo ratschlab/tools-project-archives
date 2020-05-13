@@ -47,7 +47,7 @@ def parse_arguments(args):
     parser_list.add_argument("subpath", type=str, nargs="?", help="Only list selected subpath inside archive")
     parser_list.add_argument("-d", "--deep", action="store_true", help="Query actual archive instead of relying on existing listing file")
     parser_list.set_defaults(func=handle_list)
-    
+
     # Integrity check
     parser_check = subparsers.add_parser("check", help="Check integrity of archive")
     parser_check.add_argument("archive_dir", type=str, help="Select source archive directory or .tar.lz file")
@@ -70,7 +70,6 @@ def handle_archive(args):
         create_archive(source_path, destination_path, args.threads)
 
 
-
 def handle_extract(args):
     # Path to archive file *.tar.lz
     source_path = Path(args.archive_dir)
@@ -85,10 +84,11 @@ def handle_list(args):
 
     create_listing(source_path, args.subpath, args.deep)
 
+
 def handle_check(args):
     # Path to archive file *.tar.lz
     source_path = Path(args.archive_dir)
-
+    # TODO: ADD threads option for deep check with extraction
     check_integrity(source_path, args.deep)
 
 
