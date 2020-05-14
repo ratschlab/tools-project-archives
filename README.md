@@ -16,13 +16,17 @@ $ archiver extract [archive_dir] [dest] [--subdir <path in archive>] # Extract a
 $ archiver check [archive_dir] [-d --deep] # Check integrity of archive
 ```
 
+### Archive Package structure
+An archive generated with this CLI-Tool will constist of the following files:
+-   Base archive: project_name.tar.lz
+-   Content listing: project_name.lst
+-   Content md5 hashes: project_name.md5
+-   Archive md5 hash: project_name.tar.md5
+-   Compressed archive hash: project_name.tar.lz.md5
+
 ## Testing
 
 ```
 # run in project root
 python3 -m pytest tests/ -s
 ```
-
-## Issues
-
-Tar archive has inconsistent relative paths that are dependent on where the script will be executed from
