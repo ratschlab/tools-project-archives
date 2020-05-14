@@ -2,6 +2,7 @@ import sys
 import os
 import hashlib
 from pathlib import Path
+import subprocess
 
 
 def terminate_if_path_nonexistent(path):
@@ -94,3 +95,16 @@ def hash_listing_for_files_in_folder(source_path):
             hashes_list.append([reative_path_to_file_string, file_hash])
 
     return hashes_list
+
+
+def get_uncompressed_archive_size_in_bytes(archive_file_path):
+    try:
+        output = subprocess.check_output(["plzip", "-l", archive_file_path])
+        return int(output.decode("utf-8").splitlines()[-1].lstrip().split(' ', 1)[0])
+    except:
+        terminate_with_message("Failed to fetch uncompressed archive size.")
+
+
+def get_device_available_capacity_from_path(path):
+    fs_stats = os.statvfs(path)
+    return fs_stats.f_frsize * fs_stats.f_bavail
