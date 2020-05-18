@@ -108,3 +108,16 @@ def get_uncompressed_archive_size_in_bytes(archive_file_path):
 def get_device_available_capacity_from_path(path):
     fs_stats = os.statvfs(path)
     return fs_stats.f_frsize * fs_stats.f_bavail
+
+
+def get_size_of_path(path):
+    if path.is_dir():
+        return sum(f.stat().st_size for f in path.glob('**/*') if f.is_file())
+
+    return path.stat().st_size
+
+
+def get_sorted_listing(directory_path, sort_order):
+    dir_listing = os.listdir(directory_path)
+
+    return sorted(dir_listing, key=lambda e: get_size_of_path(directory_path.joinpath(e)), reverse=sort_order)

@@ -4,9 +4,13 @@ import hashlib
 from pathlib import Path
 
 from . import helpers
+from .splitter import Splitter
 
 
-def create_archive(source_path, destination_path, threads=None, compression=6):
+def create_archive(source_path, destination_path, threads=None, compression=6, splitting=None):
+    # Set compression to 6 if None value is provided
+    compression = compression if compression else 6
+
     # Argparse already checks if arguments are present, so only argument format needs to be validated
     helpers.terminate_if_path_nonexistent(source_path)
 
@@ -22,20 +26,41 @@ def create_archive(source_path, destination_path, threads=None, compression=6):
     print(f"Start creating archive for: {helpers.get_absolute_path_string(source_path)}")
 
     destination_path.mkdir()
+
     create_file_listing_hash(source_path, destination_path, source_name)
-    create_tar_archive(source_path, destination_path, source_name)
-    create_and_write_archive_hash(destination_path, source_name)
-    create_archive_listing(destination_path, source_name)
 
-    print("Starting compression...")
+    if splitting:
+        create_splitted_archives(source_path, destination_path, source_name, int(splitting))
+    else:
+        create_tar_archive(source_path, destination_path, source_name)
+        create_and_write_archive_hash(destination_path, source_name)
+        create_archive_listing(destination_path, source_name)
 
-    compress_using_lzip(destination_path, source_name, threads, compression)
-    create_and_write_compressed_archive_hash(destination_path, source_name)
+        print("Starting compression...")
+        compress_using_lzip(destination_path, source_name, threads, compression)
+        create_and_write_compressed_archive_hash(destination_path, source_name)
 
     print(f"Archive created: {helpers.get_absolute_path_string(destination_path)}")
 
 
+def create_splitted_archives(source_path, destination_path, source_name, splitting):
+    splitter = Splitter(1000 * 1000 * splitting)
+    splitted_archives = splitter.split_directory(source_path)
+
+    for index, archive in enumerate(splitted_archives):
+        destination_file_path = destination_path.joinpath(f"{source_name}.tar.part{index + 1}")
+
+        files_string_list = " ".join(map(lambda path: path.as_posix(), archive))
+        print(files_string_list)
+
+        # -C flag necessary to get relative path in tar archive
+        # Temporary workaround with shell=true
+        # TODO: Implement properly without directly running on the shell
+        subprocess.run([f"tar -cf {destination_file_path} -C {source_path.parent} {files_string_list}"], shell=True)
+
+
 # TODO: parallelization
+
 def create_file_listing_hash(source_path, destination_path, source_name):
     hashes = helpers.hash_listing_for_files_in_folder(source_path)
     file_path = destination_path.joinpath(source_name + ".md5")
@@ -69,6 +94,9 @@ def compress_using_lzip(destination_path, source_name, threads, compression):
         additional_arguments.extend(["--threads", str(threads)])
 
     subprocess.run(["plzip", path, f"-{compression}"] + additional_arguments)
+
+
+# def split_archive(archive_path):
 
 
 def create_and_write_archive_hash(destination_path, source_name):
