@@ -30,7 +30,7 @@ def create_archive(source_path, destination_path, threads=None, compression=6, s
     create_file_listing_hash(source_path, destination_path, source_name)
 
     if splitting:
-        create_splitted_archives(source_path, destination_path, source_name, int(splitting))
+        create_splitted_archives(source_path, destination_path, source_name, int(splitting), threads, compression)
     else:
         create_tar_archive(source_path, destination_path, source_name)
         create_and_write_archive_hash(destination_path, source_name)
@@ -43,23 +43,21 @@ def create_archive(source_path, destination_path, threads=None, compression=6, s
     print(f"Archive created: {helpers.get_absolute_path_string(destination_path)}")
 
 
-def create_splitted_archives(source_path, destination_path, source_name, splitting):
+def create_splitted_archives(source_path, destination_path, source_name, splitting, threads, compression):
     splitter = Splitter(1000 * 1000 * splitting)
     splitted_archives = splitter.split_directory(source_path)
 
     for index, archive in enumerate(splitted_archives):
-        destination_file_path = destination_path.joinpath(f"{source_name}.tar.part{index + 1}")
+        source_part_name = f"{source_name}.part{index + 1}"
 
-        files_string_list = " ".join(map(lambda path: path.as_posix(), archive))
-        print(files_string_list)
+        create_tar_archive(source_path, destination_path, source_part_name, archive)
+        create_and_write_archive_hash(destination_path, source_part_name)
+        create_archive_listing(destination_path, source_part_name)
 
-        # -C flag necessary to get relative path in tar archive
-        # Temporary workaround with shell=true
-        # TODO: Implement properly without directly running on the shell
-        subprocess.run([f"tar -cf {destination_file_path} -C {source_path.parent} {files_string_list}"], shell=True)
+        print(f"Starting compression of part {index + 1}")
+        compress_using_lzip(destination_path, source_part_name, threads, compression)
+        create_and_write_compressed_archive_hash(destination_path, source_part_name)
 
-
-# TODO: parallelization
 
 def create_file_listing_hash(source_path, destination_path, source_name):
     hashes = helpers.hash_listing_for_files_in_folder(source_path)
@@ -70,10 +68,17 @@ def create_file_listing_hash(source_path, destination_path, source_name):
             hash_file.write(hash[1] + " " + hash[0] + "\n")
 
 
-def create_tar_archive(source_path, destination_path, source_name):
+def create_tar_archive(source_path, destination_path, source_name, archive_list=None):
     destination_file_path = destination_path.joinpath(source_name + ".tar")
 
-    # -C flag necessary to get relative path in tar archive
+    # -C flag on tar necessary to get relative path in tar archive
+    # Temporary workaround with shell=true
+    # TODO: Implement properly without directly running on the shell
+    if archive_list:
+        files_string_list = " ".join(map(lambda path: path.as_posix(), archive_list))
+        subprocess.run([f"tar -cf {destination_file_path} -C {source_path.parent} {files_string_list}"], shell=True)
+        return
+
     subprocess.run(["tar", "-cf", destination_file_path, "-C", source_path.parent, source_path.stem])
 
 
