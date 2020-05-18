@@ -86,7 +86,11 @@ def compare_archive_listing_hashes(hash_result, expected_hash_listing):
         file_string = file.read().rstrip()
 
     for line in hash_result:
-        search_content = line[1] + " " + line[0]
+        file_path = line[0]
+        file_hash = line[1]
+
+        search_content = f"{file_hash} {file_path}"
+
         if search_content not in file_string:
             return False
 
@@ -95,11 +99,10 @@ def compare_archive_listing_hashes(hash_result, expected_hash_listing):
 
 def compare_hashes_from_files(archive_file_path, archive_hash_file_path):
     # Generate hash of .tar.lz
-    with open(archive_file_path, "rb") as file:
-        archive_hash = hashlib.md5(file.read()).hexdigest()
+    archive_hash = helpers.get_file_hash_from_path(archive_file_path)
 
     # Read hash of .tar.lz.md5
     with open(archive_hash_file_path, "r") as file:
         hash_file_content = file.read()
 
-    return archive_hash == hash_file_content
+        return archive_hash == hash_file_content

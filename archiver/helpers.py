@@ -4,6 +4,8 @@ import hashlib
 from pathlib import Path
 import subprocess
 
+READ_CHUNK_BYTE_SIZE = 1000 * 1000 * 100
+
 
 def terminate_if_path_nonexistent(path):
     if not path.exists():
@@ -51,7 +53,7 @@ def get_file_with_type_in_directory_or_terminate(directory, file_type):
     if len(archives_in_directory) > 1:
         terminate_with_message(f"Multiple files of type {file_type} found, please specify file path")
 
-    if len(archives_in_directory) == 0:
+    if not archives_in_directory:
         terminate_with_message(f"No archive found in directory: {get_absolute_path_string(directory)}")
 
     return archives_in_directory[0]
@@ -68,17 +70,17 @@ def terminate_with_message(message):
 def create_and_write_file_hash(file_path):
     """ Will save the file in same directory """
 
-    hash_output = file_hash_from_path(file_path)
+    hash_output = get_file_hash_from_path(file_path)
 
     hash_file = open(file_path.as_posix() + ".md5", "w")
     hash_file.write(hash_output)
 
 
-def file_hash_from_path(file_path):
+def get_file_hash_from_path(file_path):
     hasher = hashlib.md5()
 
     with open(file_path, "rb") as file:
-        for chunk in iter(lambda: file.read(4096), b""):
+        for chunk in iter(lambda: file.read(READ_CHUNK_BYTE_SIZE), b""):
             hasher.update(chunk)
 
     return hasher.hexdigest()
@@ -90,7 +92,7 @@ def hash_listing_for_files_in_folder(source_path):
         for file in files:
             reative_path_to_file_string = Path(root).relative_to(source_path.parent).joinpath(file).as_posix()
             # TODO: Switch to Pathlib
-            file_hash = file_hash_from_path(os.path.join(root, file))
+            file_hash = get_file_hash_from_path(os.path.join(root, file))
 
             hashes_list.append([reative_path_to_file_string, file_hash])
 

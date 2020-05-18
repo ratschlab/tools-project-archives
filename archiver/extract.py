@@ -41,6 +41,7 @@ def uncompress_and_extract(source_file_path, destination_directory_path, threads
     subprocess.Popen(["tar", "-x", "-C", destination_directory_path], stdin=ps.stdout)
     ps.stdout.close()
     ps.wait()
+    # terminate (with)
 
     source_file_path_string = helpers.get_absolute_path_string(source_file_path)
     destination_directory_path_string = helpers.get_absolute_path_string(destination_directory_path)

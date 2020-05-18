@@ -2,14 +2,13 @@ import pytest
 import os
 from pathlib import Path
 
-from archiver.splitter import Splitter
+from archiver.splitter import split_directory
 
 
 def test_split_archive(directory_for_splitting):
     MAX_ARCHIVE_SIZE = 1000 * 1000 * 50
 
-    splitter = Splitter(MAX_ARCHIVE_SIZE)
-    splitted_archive = splitter.split_directory(directory_for_splitting)
+    splitted_archive = split_directory(directory_for_splitting, MAX_ARCHIVE_SIZE)
     splitted_archive_relative_paths = splitted_archive_to_realtive_string_paths(splitted_archive, directory_for_splitting.parent)
 
     expected_result = [['large-test-folder/subfolder-large/folder_b'], ['large-test-folder/subfolder-large/folder_a',
@@ -20,16 +19,16 @@ def test_split_archive(directory_for_splitting):
 
 def test_split_archive_invalid_inputs(directory_for_splitting):
     with pytest.raises(ValueError):
-        Splitter(1000 * 1000 * -75).split_directory(directory_for_splitting)
+        split_directory(directory_for_splitting, 1000 * 1000 * -75)
 
     with pytest.raises(TypeError):
-        Splitter("some string").split_directory(directory_for_splitting)
+        split_directory(directory_for_splitting, "some string")
 
-    with pytest.raises(FileNotFoundError):
-        Splitter(1000 * 1000 * 50).split_directory(directory_for_splitting.joinpath("XVofbeco3D9IT"))
+    # with pytest.raises(FileNotFoundError):
+    #     split_directory(directory_for_splitting.joinpath("XVofbeco3D9IT"), 1000 * 1000 * 50)
 
     with pytest.raises(TypeError):
-        Splitter(1000 * 1000 * 50).split_directory()
+        split_directory()
 
 
 # MARK: Test helpers
