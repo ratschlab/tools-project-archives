@@ -9,6 +9,7 @@ from .archive import create_archive
 from .extract import extract_archive
 from .listing import create_listing
 from .integrity import check_integrity
+from . import helpers
 
 
 def main():
@@ -31,7 +32,7 @@ def parse_arguments(args):
     parser_archive.add_argument("archive_dir", type=str, help="Path to directory which will be created")
     parser_archive.add_argument("-n", "--threads", type=int, help="Set the number of worker threads, overriding the system's default")
     parser_archive.add_argument("-c", "--compression", type=int, help="Compression level between 0 (fastest) to 9 (slowest), default is 6")
-    parser_archive.add_argument("-b", "--bytes", type=str, help="Enable splitting of archive into multiple parts (currently in MB)")
+    parser_archive.add_argument("-b", "--bytes", type=str, help="Enable splitting of archive into multiple parts, specify file size")
     parser_archive.set_defaults(func=handle_archive)
 
     # Extraction parser
@@ -64,7 +65,14 @@ def handle_archive(args):
     # Path to a directory which will be created (if it does yet exist)
     destination_path = Path(args.archive_dir)
 
-    create_archive(source_path, destination_path, args.threads, args.compression, args.bytes)
+    if args.bytes:
+        try:
+            bytes_splitting = helpers.get_bytes_in_string_with_unit(args.bytes)
+            create_archive(source_path, destination_path, args.threads, args.compression, bytes_splitting)
+        except Exception as e:
+            helpers.terminate_with_exception(e)
+
+    create_archive(source_path, destination_path, args.threads, args.compression)
 
 
 def handle_extract(args):

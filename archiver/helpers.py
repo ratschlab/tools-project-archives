@@ -64,6 +64,10 @@ def get_absolute_path_string(path):
     return path.absolute().as_posix()
 
 
+def terminate_with_exception(exception):
+    terminate_with_message(str(exception))
+
+
 def terminate_with_message(message):
     sys.exit(message)
 
@@ -158,4 +162,4 @@ def get_bytes_in_string_with_unit(size_string):
         number, unit = [string.strip() for string in size.split()]
         return int(float(number)*units[unit])
     except:
-        raise ValueError("Unable to parse provided string" + size_string)
+        raise ValueError("Unable to parse provided size string: " + size_string)
