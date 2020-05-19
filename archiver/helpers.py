@@ -1,3 +1,4 @@
+import re
 import sys
 import os
 import hashlib
@@ -112,14 +113,49 @@ def get_device_available_capacity_from_path(path):
     return fs_stats.f_frsize * fs_stats.f_bavail
 
 
-def get_size_of_path(path):
-    if path.is_dir():
-        return sum(f.stat().st_size for f in path.glob('**/*') if f.is_file())
-
-    return path.stat().st_size
-
-
 def get_sorted_listing(directory_path, sort_order):
     dir_listing = os.listdir(directory_path)
 
     return sorted(dir_listing, key=lambda e: get_size_of_path(directory_path.joinpath(e)), reverse=sort_order)
+
+
+def get_size_of_path(path):
+    if path.is_dir():
+        return get_size_of_directory(path)
+
+    return path.stat().st_size
+
+
+def get_size_of_directory(path, deep=False):
+    if deep:
+        return sum(f.stat().st_size for f in path.glob('**/*') if f.is_file())
+
+    try:
+        command = ["du", "-shb", path] if plattform_is_linux() else ["du", "-sh", path]
+        parsed_output = subprocess.check_output(command).decode("utf-8")
+
+        dir_size = re.split(r'\t+', parsed_output.lstrip())[0]
+
+        return int(dir_size)
+    except:
+        return get_bytes_in_string_with_unit(dir_size)
+
+
+def plattform_is_linux():
+    return sys.platform == "linux" or sys.platform == "linux2"
+
+
+units = {"B": 1, "KB": 2**10, "K": 2**10, "MB": 2**20, "M": 2**20, "GB": 2**30, "G": 2**30, "TB": 2**40, "T": 2**40}
+
+
+def get_bytes_in_string_with_unit(size_string):
+    size = size_string.upper()
+
+    try:
+        if not re.match(r' ', size):
+            size = re.sub(r'([KMGT]?B|[KMGT])', r' \1', size)
+
+        number, unit = [string.strip() for string in size.split()]
+        return int(float(number)*units[unit])
+    except:
+        raise ValueError("Unable to parse provided string" + size_string)

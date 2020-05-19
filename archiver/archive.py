@@ -4,7 +4,8 @@ import hashlib
 from pathlib import Path
 
 from . import helpers
-from .splitter import Splitter
+# from .splitter import Splitter
+from . import splitter
 
 
 def create_archive(source_path, destination_path, threads=None, compression=6, splitting=None):
@@ -25,9 +26,9 @@ def create_archive(source_path, destination_path, threads=None, compression=6, s
 
     print(f"Start creating archive for: {helpers.get_absolute_path_string(source_path)}")
 
-    destination_path.mkdir()
+    # destination_path.mkdir()
 
-    create_file_listing_hash(source_path, destination_path, source_name)
+    # create_file_listing_hash(source_path, destination_path, source_name)
 
     if splitting:
         create_splitted_archives(source_path, destination_path, source_name, int(splitting), threads, compression)
@@ -44,19 +45,23 @@ def create_archive(source_path, destination_path, threads=None, compression=6, s
 
 
 def create_splitted_archives(source_path, destination_path, source_name, splitting, threads, compression):
-    splitter = Splitter(1000 * 1000 * splitting)
-    splitted_archives = splitter.split_directory(source_path)
+    result = splitter.split_directory(source_path, 1000 * 1000 * splitting)
+    for el in result:
+        print("-------")
+        print(el)
+    # splitter = Splitter(1000 * 1000 * splitting)
+    # splitted_archives = splitter.split_directory(source_path)
 
-    for index, archive in enumerate(splitted_archives):
-        source_part_name = f"{source_name}.part{index + 1}"
+    # for index, archive in enumerate(splitted_archives):
+    #     source_part_name = f"{source_name}.part{index + 1}"
 
-        create_tar_archive(source_path, destination_path, source_part_name, archive)
-        create_and_write_archive_hash(destination_path, source_part_name)
-        create_archive_listing(destination_path, source_part_name)
+    #     create_tar_archive(source_path, destination_path, source_part_name, archive)
+    #     create_and_write_archive_hash(destination_path, source_part_name)
+    #     create_archive_listing(destination_path, source_part_name)
 
-        print(f"Starting compression of part {index + 1}")
-        compress_using_lzip(destination_path, source_part_name, threads, compression)
-        create_and_write_compressed_archive_hash(destination_path, source_part_name)
+    #     print(f"Starting compression of part {index + 1}")
+    #     compress_using_lzip(destination_path, source_part_name, threads, compression)
+    #     create_and_write_compressed_archive_hash(destination_path, source_part_name)
 
 
 def create_file_listing_hash(source_path, destination_path, source_name):
@@ -102,7 +107,6 @@ def compress_using_lzip(destination_path, source_name, threads, compression):
 
 
 # def split_archive(archive_path):
-
 
 def create_and_write_archive_hash(destination_path, source_name):
     path = destination_path.joinpath(source_name + ".tar").absolute()
