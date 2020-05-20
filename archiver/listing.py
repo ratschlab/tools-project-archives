@@ -2,9 +2,7 @@ import subprocess
 from pathlib import Path
 
 from . import helpers
-
-LISTING_SUFFIX = ".tar.lst"
-COMPRESSED_ARCHIVE_SUFFIX = ".tar.lz"
+from .constants import LISTING_SUFFIX, COMPRESSED_ARCHIVE_SUFFIX
 
 
 def create_listing(source_path, subdir_path=None, deep=False):

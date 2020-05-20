@@ -5,7 +5,7 @@ import hashlib
 from pathlib import Path
 import subprocess
 
-READ_CHUNK_BYTE_SIZE = 1000 * 1000 * 100
+from .constants import READ_CHUNK_BYTE_SIZE
 
 
 def terminate_if_path_nonexistent(path):

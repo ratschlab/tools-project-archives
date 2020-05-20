@@ -7,14 +7,13 @@ import time
 
 from . import helpers
 from .extract import extract_archive
-
-REQUIRED_SPACE_MULTIPLIER = 1.1
+from .constants import REQUIRED_SPACE_MULTIPLIER, COMPRESSED_ARCHIVE_SUFFIX, COMPRESSED_ARCHIVE_HASH_SUFFIX
 
 
 def check_integrity(source_path, deep_flag=False):
     if source_path.is_dir():
-        archive_file_path = helpers.get_file_with_type_in_directory_or_terminate(source_path, ".tar.lz")
-        archive_hash_file_path = helpers.get_file_with_type_in_directory_or_terminate(source_path, ".tar.lz.md5")
+        archive_file_path = helpers.get_file_with_type_in_directory_or_terminate(source_path, COMPRESSED_ARCHIVE_SUFFIX)
+        archive_hash_file_path = helpers.get_file_with_type_in_directory_or_terminate(source_path, COMPRESSED_ARCHIVE_HASH_SUFFIX)
     else:
         helpers.terminate_if_path_not_file_of_type(source_path, ".tar.lz")
         archive_file_path = source_path
