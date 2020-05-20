@@ -71,8 +71,8 @@ def handle_archive(args):
             create_archive(source_path, destination_path, args.threads, args.compression, bytes_splitting)
         except Exception as e:
             helpers.terminate_with_exception(e)
-
-    create_archive(source_path, destination_path, args.threads, args.compression)
+    else:
+        create_archive(source_path, destination_path, args.threads, args.compression)
 
 
 def handle_extract(args):
