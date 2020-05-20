@@ -17,12 +17,8 @@ def terminate_if_path_not_file_of_type(path, file_type):
     if not path.is_file():
         terminate_with_message(f"No such file: {get_absolute_path_string(path)}")
 
-    # Combine all suffixes to one string
-    suffix_list = path.suffixes
-    complete_suffix_string = "".join(suffix_list)
-
-    if not complete_suffix_string == file_type:
-        terminate_with_message(f"File does not have suffix {file_type}: {get_absolute_path_string(path)}")
+    # return path
+    return path.as_posix().endswith(file_type)
 
 
 def terminate_if_parent_directory_nonexistent(path):
@@ -43,21 +39,39 @@ def terminate_if_path_exists(path):
         terminate_with_message(f"Path must not exist: {get_absolute_path_string(path)}")
 
 
+def get_all_files_with_type_in_directory_or_terminate(directory, file_type):
+    files = get_files_with_type_in_directory(directory, file_type)
+
+    if not files:
+        terminate_with_message(f"Multiple files of type {file_type} found, please specify file path")
+        return 1
+
+    return files
+
+
 def get_file_with_type_in_directory_or_terminate(directory, file_type):
-    archives_in_directory = []
+    files = get_files_with_type_in_directory(directory, file_type)
+
+    if len(files) > 1:
+        terminate_with_message(f"Multiple files of type {file_type} found, please specify file path")
+        return 1
+
+    if not files:
+        terminate_with_message(f"No file of type {file_type} found in directory: {get_absolute_path_string(directory)}")
+        return 1
+
+    return files[0]
+
+
+def get_files_with_type_in_directory(directory, file_type):
+    files = []
 
     for file in os.listdir(directory):
         if file.endswith(file_type):
             path = directory.joinpath(file).absolute()
-            archives_in_directory.append(path)
+            files.append(path)
 
-    if len(archives_in_directory) > 1:
-        terminate_with_message(f"Multiple files of type {file_type} found, please specify file path")
-
-    if not archives_in_directory:
-        terminate_with_message(f"No archive found in directory: {get_absolute_path_string(directory)}")
-
-    return archives_in_directory[0]
+    return files
 
 
 def get_absolute_path_string(path):

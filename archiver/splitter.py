@@ -14,6 +14,7 @@ def split_directory(directory_path, max_package_size):
 
     for root, dirs, files in os.walk(directory_path):
         for index, dir in enumerate(dirs):
+            # if the folder fits into an archive package, the content of the folder not be looked at
             dir_path = Path(root).joinpath(dir)
             dir_size = helpers.get_size_of_path(dir_path)
 
