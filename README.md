@@ -10,7 +10,7 @@ Simple and easy command line tool a researcher can use to archive files at the e
 ## Usage
 
 ```
-$ archiver archive [src] [archive_dir] [-n --threads] [-c --compression] [-b --bytes] # Create a new archive
+$ archiver archive [src] [archive_dir] [-p --part <maximum size of each archive part>] [-n --threads] [-c --compression] # Create a new archive
 $ archiver extract [archive_dir] [dest] [--subdir <path in archive>] [-n --threads] # Extract archive
 $ archiver list [archive_dir] [<subdir>] [-d --deep] # List content of archive
 $ archiver check [archive_dir] [-d --deep] # Check integrity of archive
