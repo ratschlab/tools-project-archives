@@ -28,7 +28,7 @@ def create_archive(source_path, destination_path, threads=None, compression=6, s
 
     destination_path.mkdir()
 
-    create_file_listing_hash(source_path, destination_path, source_name)
+    # create_file_listing_hash(source_path, destination_path, source_name)
 
     if splitting:
         create_splitted_archives(source_path, destination_path, source_name, int(splitting), threads, compression)
@@ -50,6 +50,8 @@ def create_splitted_archives(source_path, destination_path, source_name, splitti
     for index, archive in enumerate(splitted_archives):
         source_part_name = f"{source_name}.part{index + 1}"
 
+        create_file_listing_hash(source_path, destination_path, source_part_name, archive)
+
         create_tar_archive(source_path, destination_path, source_part_name, archive)
         create_and_write_archive_hash(destination_path, source_part_name)
         create_archive_listing(destination_path, source_part_name)
@@ -59,13 +61,30 @@ def create_splitted_archives(source_path, destination_path, source_name, splitti
         create_and_write_compressed_archive_hash(destination_path, source_part_name)
 
 
-def create_file_listing_hash(source_path, destination_path, source_name):
-    hashes = helpers.hash_listing_for_files_in_folder(source_path)
+def create_file_listing_hash(source_path, destination_path, source_name, archive=None):
+    hashes = hashes_for_path_list(archive, source_path)
     file_path = destination_path.joinpath(source_name + ".md5")
 
     with open(file_path, "a") as hash_file:
-        for hash in hashes:
-            hash_file.write(hash[1] + " " + hash[0] + "\n")
+        for line in hashes:
+            file_path = line[0]
+            file_hash = line[1]
+
+            hash_file.write(f"{file_hash} {file_path}\n")
+
+
+def hashes_for_path_list(path_list, parent_path):
+    hash_list = []
+
+    for path in path_list:
+        if path.is_dir():
+            hashes = helpers.hash_listing_for_files_in_folder(path, parent_path)
+            hash_list = hash_list + hashes
+        else:
+            file_hash = helpers.get_file_hash_from_path(path)
+            hash_list.append([path, file_hash])
+
+    return hash_list
 
 
 def create_tar_archive(source_path, destination_path, source_name, archive_list=None):
