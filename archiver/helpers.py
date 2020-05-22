@@ -15,7 +15,7 @@ def terminate_if_path_nonexistent(path):
 
 def terminate_if_path_not_file_of_type(path, file_type):
     if not path.is_file():
-        terminate_with_message(f"No such file: {get_absolute_path_string(path)}")
+        terminate_with_message(f"Must of be of type {file_type}: {get_absolute_path_string(path)}")
 
     # return path
     return path.as_posix().endswith(file_type)
@@ -105,11 +105,14 @@ def get_file_hash_from_path(file_path):
     return hasher.hexdigest()
 
 
-def hash_listing_for_files_in_folder(source_path):
+def hash_listing_for_files_in_folder(source_path, relative_to_path=None):
+    if not relative_to_path:
+        relative_to_path = source_path.parent
+
     hashes_list = []
     for root, _, files in os.walk(source_path):
         for file in files:
-            reative_path_to_file_string = Path(root).relative_to(source_path.parent).joinpath(file).as_posix()
+            reative_path_to_file_string = Path(root).relative_to(relative_to_path).joinpath(file).as_posix()
             # TODO: Switch to Pathlib
             file_hash = get_file_hash_from_path(os.path.join(root, file))
 
