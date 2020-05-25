@@ -4,12 +4,13 @@ import time
 from pathlib import Path
 
 from archiver.extract import extract_archive
+from . import helpers
 
 
 def test_extract_archive(tmp_path):
     # access existing archive dir
-    archive_path = get_archive_path()
-    folder_path = get_folder_path()
+    archive_path = helpers.get_archive_path()
+    folder_path = helpers.get_folder_path()
     extraction_path = tmp_path
 
     # wait until this aciton has completed
@@ -24,15 +25,3 @@ def test_extract_archive(tmp_path):
 
     # assert content of extracted file
     assert filecmp.cmp(folder_path.joinpath("folder-in-archive/file2.txt"), tmp_path.joinpath("test-folder/folder-in-archive/file2.txt"))
-
-
-def get_archive_path():
-    """Get path of archive used for tests"""
-    dir_path = Path(os.path.dirname(os.path.realpath(__file__)))
-    return dir_path.parent.joinpath("test-ressources/test-archive")
-
-
-def get_folder_path():
-    """Get path of archive used for tests"""
-    dir_path = Path(os.path.dirname(os.path.realpath(__file__)))
-    return dir_path.parent.joinpath("test-ressources/test-folder")

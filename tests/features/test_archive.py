@@ -3,11 +3,12 @@ import re
 from pathlib import Path
 
 from archiver.archive import create_archive
+from . import helpers
 
 
 def test_create_archive(tmp_path):
-    folder_path = get_folder_path()
-    archive_path = get_archive_path()
+    folder_path = helpers.get_folder_path()
+    archive_path = helpers.get_archive_path()
 
     tmp_path = tmp_path.joinpath("go-here")
 
@@ -17,7 +18,7 @@ def test_create_archive(tmp_path):
 
     # Test if all files exist
     expected_listing = ['test-folder.tar.lst', 'test-folder.tar.lz.md5', 'test-folder.md5', 'test-folder.tar.lz', 'test-folder.tar.md5']
-    assert compare_array_content_ignoring_order(dir_listing, expected_listing)
+    assert helpers.compare_array_content_ignoring_order(dir_listing, expected_listing)
 
     # Test listing of tar
     assert compare_listing_files(archive_path.joinpath("test-folder.tar.lst"), tmp_path.joinpath("test-folder.tar.lst"))
@@ -52,7 +53,7 @@ def compare_listing_text(listing_a, listing_b):
     listing_a_path_array = get_array_of_last_multiline_text_parts(listing_a)
     listing_b_path_array = get_array_of_last_multiline_text_parts(listing_b)
 
-    return compare_array_content_ignoring_order(listing_a_path_array, listing_b_path_array)
+    return helpers.compare_array_content_ignoring_order(listing_a_path_array, listing_b_path_array)
 
 
 def get_array_of_last_multiline_text_parts(multiline_text):
@@ -69,11 +70,6 @@ def get_array_of_last_multiline_text_parts(multiline_text):
     return parts_array
 
 
-def compare_array_content_ignoring_order(array_a, array_b):
-    """Works for arrays that can be sorted"""
-    return sorted(array_a) == sorted(array_b)
-
-
 def valid_md5_hash_in_file(hash_file_path):
     """Returns true if file contains valid md5 hash"""
     try:
@@ -85,15 +81,3 @@ def valid_md5_hash_in_file(hash_file_path):
             return False
     except:
         return False
-
-
-def get_archive_path():
-    """Get path of archive used for tests"""
-    dir_path = Path(os.path.dirname(os.path.realpath(__file__)))
-    return dir_path.parent.joinpath("test-ressources/test-archive")
-
-
-def get_folder_path():
-    """Get path of archive used for tests"""
-    dir_path = Path(os.path.dirname(os.path.realpath(__file__)))
-    return dir_path.parent.joinpath("test-ressources/test-folder")

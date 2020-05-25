@@ -2,6 +2,7 @@ from pathlib import Path
 import os
 
 from archiver.integrity import check_integrity
+from . import helpers
 
 # shallow
 # on splitted archive
@@ -11,7 +12,7 @@ from archiver.integrity import check_integrity
 
 
 def test_integrity_check_on_archive(capsys):
-    archive_dir = get_archive_path()
+    archive_dir = helpers.get_archive_path()
     archive_file = archive_dir.joinpath("test-folder.tar.lz")
 
     check_integrity(archive_file)
@@ -22,7 +23,7 @@ def test_integrity_check_on_archive(capsys):
 
 
 def test_integrity_check_on_directory(capsys):
-    archive_dir = get_archive_path()
+    archive_dir = helpers.get_archive_path()
 
     check_integrity(archive_dir)
 
@@ -32,7 +33,7 @@ def test_integrity_check_on_directory(capsys):
 
 
 def test_integrity_check_corrupted(capsys):
-    archive_dir = get_corrupted_archive_path()
+    archive_dir = helpers.get_corrupted_archive_path()
     archive_file = archive_dir.joinpath("test-folder.tar.lz")
 
     check_integrity(archive_file)
@@ -45,7 +46,7 @@ def test_integrity_check_corrupted(capsys):
 
 
 def test_integrity_check_deep(capsys):
-    archive_dir = get_archive_path()
+    archive_dir = helpers.get_archive_path()
     archive_file = archive_dir.joinpath("test-folder.tar.lz")
 
     check_integrity(archive_file, True)
@@ -57,7 +58,7 @@ def test_integrity_check_deep(capsys):
 
 def test_integrity_check_deep_corrupted(capsys):
     CORRUPTED_DEEP = True
-    archive_dir = get_corrupted_archive_path(CORRUPTED_DEEP)
+    archive_dir = helpers.get_corrupted_archive_path(CORRUPTED_DEEP)
 
     check_integrity(archive_dir, True)
 
@@ -66,25 +67,3 @@ def test_integrity_check_deep_corrupted(capsys):
     assert "Starting integrity check..." in captured_std_out
     assert "Signature of test-folder/file1.txt has changed." in captured_std_out
     assert "Deep integrity check unsuccessful. Archive has been changed since creation." in captured_std_out
-
-
-def get_archive_path():
-    """Get path of archive used for tests"""
-    dir_path = Path(os.path.dirname(os.path.realpath(__file__)))
-    return dir_path.parent.joinpath("test-ressources/test-archive")
-
-
-def get_corrupted_archive_path(deep=False):
-    """Get path of archive used for tests"""
-    dir_path = Path(os.path.dirname(os.path.realpath(__file__)))
-
-    if deep:
-        return dir_path.parent.joinpath("test-ressources/test-archive-corrupted-deep")
-
-    return dir_path.parent.joinpath("test-ressources/test-archive-corrupted")
-
-
-def get_test_ressources_path():
-    """Get path of test directory"""
-    dir_path = Path(os.path.dirname(os.path.realpath(__file__)))
-    return dir_path.parent.joinpath("test-ressources")
