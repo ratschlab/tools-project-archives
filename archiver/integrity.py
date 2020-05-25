@@ -51,7 +51,7 @@ def shallow_integrity_check(archives_with_hashes):
         archive_hash_file_path = archive[1]
 
         if not compare_hashes_from_files(archive_file_path, archive_hash_file_path):
-            print(f"Signature of file {archive_file_path.as_posix()} has changed.")
+            print(f"Signature of file {archive_file_path.name} has changed.")
             return False
 
     return True

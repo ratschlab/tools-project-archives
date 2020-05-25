@@ -28,11 +28,10 @@ def create_archive(source_path, destination_path, threads=None, compression=6, s
 
     destination_path.mkdir()
 
-    # create_file_listing_hash(source_path, destination_path, source_name)
-
     if splitting:
         create_splitted_archives(source_path, destination_path, source_name, int(splitting), threads, compression)
     else:
+        create_file_listing_hash(source_path, destination_path, source_name)
         create_tar_archive(source_path, destination_path, source_name)
         create_and_write_archive_hash(destination_path, source_name)
         create_archive_listing(destination_path, source_name)
@@ -61,8 +60,13 @@ def create_splitted_archives(source_path, destination_path, source_name, splitti
         create_and_write_compressed_archive_hash(destination_path, source_part_name)
 
 
-def create_file_listing_hash(source_path, destination_path, source_name, archive=None):
-    hashes = hashes_for_path_list(archive, source_path)
+def create_file_listing_hash(source_path, destination_path, source_name, archive_list=None):
+    if archive_list:
+        paths_to_hash_list = archive_list
+    else:
+        paths_to_hash_list = [source_path]
+
+    hashes = hashes_for_path_list(paths_to_hash_list, source_path.parent)
     file_path = destination_path.joinpath(source_name + ".md5")
 
     with open(file_path, "a") as hash_file:
@@ -73,6 +77,7 @@ def create_file_listing_hash(source_path, destination_path, source_name, archive
             hash_file.write(f"{file_hash} {file_path}\n")
 
 
+# TODO: Needs refactoring
 def hashes_for_path_list(path_list, parent_path):
     hash_list = []
 
@@ -82,7 +87,8 @@ def hashes_for_path_list(path_list, parent_path):
             hash_list = hash_list + hashes
         else:
             file_hash = helpers.get_file_hash_from_path(path)
-            hash_list.append([path, file_hash])
+            realtive_file_path_string = path.relative_to(parent_path).as_posix()
+            hash_list.append([realtive_file_path_string, file_hash])
 
     return hash_list
 

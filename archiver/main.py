@@ -65,7 +65,7 @@ def handle_archive(args):
     # Path to a directory which will be created (if it does yet exist)
     destination_path = Path(args.archive_dir)
 
-    if args.bytes:
+    if args.part:
         try:
             bytes_splitting = helpers.get_bytes_in_string_with_unit(args.part)
             create_archive(source_path, destination_path, args.threads, args.compression, bytes_splitting)

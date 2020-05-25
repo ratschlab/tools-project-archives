@@ -15,7 +15,7 @@ def test_split_archive(directory_for_splitting):
     expected_result = [['large-test-folder/subfolder-large/folder_b'], ['large-test-folder/subfolder-large/folder_a',
                                                                         'large-test-folder/file_b.pdf', 'large-test-folder/file_a.txt', 'large-test-folder/subfolder-small']]
 
-    assert splitted_archive_relative_paths == expected_result
+    assert sorted(splitted_archive_relative_paths) == sorted(expected_result)
 
 
 def test_split_archive_invalid_inputs(directory_for_splitting):
