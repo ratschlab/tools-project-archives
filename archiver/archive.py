@@ -50,7 +50,6 @@ def create_splitted_archives(source_path, destination_path, source_name, splitti
         source_part_name = f"{source_name}.part{index + 1}"
 
         create_file_listing_hash(source_path, destination_path, source_part_name, archive)
-
         create_tar_archive(source_path, destination_path, source_part_name, archive)
         create_and_write_archive_hash(destination_path, source_part_name)
         create_archive_listing(destination_path, source_part_name)
@@ -101,12 +100,16 @@ def create_tar_archive(source_path, destination_path, source_name, archive_list=
     # TODO: Implement properly without directly running on the shell
     # TODO: Excape file names -> will be done automatically by no directly executing with shell=True
 
+    source_path_parent = source_path.absolute().parent
+
     if archive_list:
-        files_string_list = " ".join(map(lambda path: path.as_posix(), archive_list))
-        subprocess.run([f"tar -cf {destination_file_path} -C {source_path.absolute().parent} {files_string_list}"], shell=True)
+        relative_archive_list = map(lambda path: path.absolute().relative_to(source_path.absolute().parent), archive_list)
+        files_string_list = " ".join(map(lambda path: path.as_posix(), relative_archive_list))
+
+        subprocess.run([f"tar -cf {destination_file_path} -C {source_path_parent} {files_string_list}"], shell=True)
         return
 
-    subprocess.run(["tar", "-cf", destination_file_path, "-C", source_path.absolute().parent, source_path.stem])
+    subprocess.run(["tar", "-cf", destination_file_path, "-C", source_path_parent, source_path.stem])
 
 
 def create_archive_listing(destination_path, source_name):

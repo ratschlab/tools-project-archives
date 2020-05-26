@@ -1,0 +1,8 @@
+drwxr-xr-x  0 fnoah  staff       0 May 26 12:22 large-test-folder/subfolder-small/
+-rw-r--r--  0 fnoah  staff 1000000 May 26 12:22 large-test-folder/subfolder-small/file_a.txt
+-rw-r--r--  0 fnoah  staff 5000000 May 26 12:22 large-test-folder/file_a.txt
+-rw-r--r--  0 fnoah  staff 7000000 May 26 12:22 large-test-folder/file_b.pdf
+drwxr-xr-x  0 fnoah  staff       0 May 26 12:22 large-test-folder/subfolder-large/folder_a/
+-rw-r--r--  0 fnoah  staff 9000000 May 26 12:22 large-test-folder/subfolder-large/folder_a/file_b.txt
+-rw-r--r--  0 fnoah  staff 17000000 May 26 12:22 large-test-folder/subfolder-large/folder_a/file_a.pdf
+-rw-r--r--  0 fnoah  staff  9000000 May 26 12:22 large-test-folder/subfolder-large/folder_b/file_b.txt

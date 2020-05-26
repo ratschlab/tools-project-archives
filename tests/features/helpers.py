@@ -4,15 +4,30 @@ import os
 
 # Get paths for directories
 
-def get_archive_path():
+def get_archive_path(splitted=False):
     """Get path of archive used for tests"""
     dir_path = Path(os.path.dirname(os.path.realpath(__file__)))
+
+    if splitted:
+        return dir_path.parent.joinpath("test-ressources/large-archive")
+
     return dir_path.parent.joinpath("test-ressources/test-archive")
 
 
-def get_folder_path():
+def get_splitted_ressources():
+    """Ressources that are used for unit tests with splitted archives"""
+    dir_path = Path(os.path.dirname(os.path.realpath(__file__)))
+
+    return dir_path.parent.joinpath("test-ressources/splitted-archive")
+
+
+def get_folder_path(splitted=False):
     """Get path of archive used for tests"""
     dir_path = Path(os.path.dirname(os.path.realpath(__file__)))
+
+    if splitted:
+        return dir_path.parent.joinpath("test-ressources/large-folder")
+
     return dir_path.parent.joinpath("test-ressources/test-folder")
 
 
@@ -24,6 +39,13 @@ def get_corrupted_archive_path(deep=False):
         return dir_path.parent.joinpath("test-ressources/test-archive-corrupted-deep")
 
     return dir_path.parent.joinpath("test-ressources/test-archive-corrupted")
+
+
+def get_corrupted_split_archive_path():
+    """Get path of split archive used for tests"""
+
+    dir_path = Path(os.path.dirname(os.path.realpath(__file__)))
+    return dir_path.parent.joinpath("test-ressources/large-archive-corrupted")
 
 
 def get_test_ressources_path():
