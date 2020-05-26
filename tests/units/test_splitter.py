@@ -4,6 +4,7 @@ from pathlib import Path
 
 from archiver.splitter import split_directory
 from tests.generate_folder import directory_for_splitting
+from . import helpers
 
 
 def test_split_archive(directory_for_splitting):
@@ -16,7 +17,7 @@ def test_split_archive(directory_for_splitting):
                         'large-test-folder/subfolder-large/folder_b/file_b.txt'], ['large-test-folder/subfolder-large/folder_b/file_c.txt', 'large-test-folder/subfolder-large/folder_b/file_a.pdf']]
 
     assert len(splitted_archive_relative_paths) == 2
-    assert sorted(splitted_archive_relative_paths) == sorted(expected_result)
+    assert helpers.compare_nested_array_content_ignoring_order(splitted_archive_relative_paths, expected_result)
 
 
 def test_split_archive_large(directory_for_splitting):
@@ -29,7 +30,7 @@ def test_split_archive_large(directory_for_splitting):
                         'large-test-folder/subfolder-large/folder_b', 'large-test-folder/subfolder-large/folder_a/file_b.txt', 'large-test-folder/subfolder-large/folder_a/file_a.pdf']]
 
     assert len(splitted_archive_relative_paths) == 1
-    assert sorted(splitted_archive_relative_paths) == sorted(expected_result)
+    assert helpers.compare_nested_array_content_ignoring_order(splitted_archive_relative_paths, expected_result)
 
 
 def test_split_archive_invalid_inputs(directory_for_splitting):
