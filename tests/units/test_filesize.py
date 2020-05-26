@@ -2,6 +2,7 @@ import pytest
 from pathlib import Path
 
 from archiver.helpers import get_bytes_in_string_with_unit, get_size_of_path
+from .helpers import create_file_with_size
 
 K_BASE = 1024
 M_BASE = 2**20
@@ -38,26 +39,26 @@ def test_bytes_in_size_string():
         get_bytes_in_string_with_unit()
 
 
-@pytest.mark.skip(reason="Not yet working due to artificial file sizes")
 def test_size_of_path(tmp_path):
     test_path = tmp_path.joinpath("test-folder")
     test_path.mkdir()
-    empty_path = tmp_path.joinpath("empty-path")
-    empty_path.mkdir()
 
     small_test_file = test_path.joinpath("small-testfile.txt")
     small_file_size = K_BASE * 7
     create_file_with_size(small_test_file, small_file_size)
 
     large_test_file = test_path.joinpath("large-testfile.psd")
-    large_file_size = M_BASE * 122
+    large_file_size = M_BASE * 5
     create_file_with_size(large_test_file, large_file_size)
 
-    assert get_size_of_path(test_path) == small_file_size + large_file_size
+    # du -h returns block size, which may differ from actual file size
+    BLOCK_SIZE_TOLERANCE = K_BASE * 8
+    expected_size = small_file_size + large_file_size
+    expected_size_high = expected_size + BLOCK_SIZE_TOLERANCE
+    expected_size_low = expected_size - BLOCK_SIZE_TOLERANCE
 
+    assert expected_size_low <= get_size_of_path(test_path) <= expected_size_high
 
-def create_file_with_size(path, byte_size):
-    with open(path, "wb") as file:
-        # sparse file that doesn't actually take up that amount of space on disk
-        file.seek(int(round(byte_size)))
-        file.write(b"\0")
+    # du isn't used for file sizes, so block size is irrelevant
+    assert get_size_of_path(large_test_file) == large_file_size
+    assert get_size_of_path(small_test_file) == small_file_size
