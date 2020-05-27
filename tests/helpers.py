@@ -1,9 +1,11 @@
 import pytest
 from pathlib import Path
+import os
 
 
 @ pytest.fixture(scope="session")
-def directory_for_splitting(tmpdir_factory):
+def generate_splitting_directory(tmpdir_factory):
+    """Programmatically generate folder for splitting"""
     tmp_path = tmpdir_factory.mktemp("directory_for_splitting")
     test_path = Path(tmp_path).joinpath("large-test-folder")
     test_path.mkdir()
@@ -48,6 +50,55 @@ def directory_for_splitting(tmpdir_factory):
 
 def create_file_with_size(path, byte_size):
     with open(path, "wb") as file:
-        # sparse file that doesn't actually take up that amount of space on disk
         multiplier = int(round(byte_size))
         file.write(b"\0" * multiplier)
+
+
+def compare_nested_array_content_ignoring_order(array_a, array_b):
+    """Works for arrays that can be sorted"""
+    array_a_sorted_inner = map(lambda element: sorted(element), array_a)
+    array_b_sorted_inner = map(lambda element: sorted(element), array_b)
+
+    return sorted(array_a_sorted_inner) == sorted(array_b_sorted_inner)
+
+
+def compare_array_content_ignoring_order(array_a, array_b):
+    """Works for arrays that can be sorted"""
+    return sorted(array_a) == sorted(array_b)
+
+
+# MARK: Test ressources helpers
+
+RESSOURCES_NAME = "test-ressources"
+
+
+def get_test_ressources_path():
+    """Get path of test ressources directory"""
+    current_dir_path = get_current_directory()
+    return current_dir_path.joinpath(RESSOURCES_NAME)
+
+
+def get_directory_with_name(dir_name):
+    """Get directory for tests by name"""
+    current_dir_path = get_current_directory()
+    ressource_dir_path = current_dir_path.joinpath(f"{RESSOURCES_NAME}/{dir_name}")
+
+    if not ressource_dir_path.is_dir():
+        raise NotADirectoryError(f"Could not locate listing file with name: {dir_name}")
+
+    return ressource_dir_path
+
+
+def get_listing_with_name(listing_name):
+    """Get an expected listing by name"""
+    current_dir_path = get_current_directory()
+    file_path = current_dir_path.joinpath(f"{RESSOURCES_NAME}/listings/{listing_name}")
+
+    if not file_path.is_file():
+        raise FileNotFoundError(f"Could not locate listing file with name: {listing_name}")
+
+    return file_path
+
+
+def get_current_directory():
+    return Path(os.path.dirname(os.path.realpath(__file__)))

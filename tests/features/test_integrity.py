@@ -2,17 +2,11 @@ from pathlib import Path
 import os
 
 from archiver.integrity import check_integrity
-from . import helpers
-
-# shallow
-# on splitted archive
-
-# deep
-# on splitted archive
+from tests import helpers
 
 
 def test_integrity_check_on_archive(capsys):
-    archive_dir = helpers.get_archive_path()
+    archive_dir = helpers.get_directory_with_name("normal-archive")
     archive_file = archive_dir.joinpath("test-folder.tar.lz")
 
     check_integrity(archive_file)
@@ -23,7 +17,7 @@ def test_integrity_check_on_archive(capsys):
 
 
 def test_integrity_check_on_directory(capsys):
-    archive_dir = helpers.get_archive_path()
+    archive_dir = helpers.get_directory_with_name("normal-archive")
 
     check_integrity(archive_dir)
 
@@ -33,8 +27,7 @@ def test_integrity_check_on_directory(capsys):
 
 
 def test_integrity_check_on_splitted_archive(capsys):
-    SPLITTED = True
-    archive_dir = helpers.get_archive_path(SPLITTED)
+    archive_dir = helpers.get_directory_with_name("split-archive")
 
     check_integrity(archive_dir)
 
@@ -44,7 +37,7 @@ def test_integrity_check_on_splitted_archive(capsys):
 
 
 def test_integrity_check_corrupted(capsys):
-    archive_dir = helpers.get_corrupted_archive_path()
+    archive_dir = helpers.get_directory_with_name("normal-archive-corrupted")
     archive_file = archive_dir.joinpath("test-folder.tar.lz")
 
     check_integrity(archive_file)
@@ -59,7 +52,7 @@ def test_integrity_check_corrupted(capsys):
 def test_integrity_check_corrupted_on_splitted_archive(capsys):
     CORRUPTED_FILE_NAME = "large-folder.part1.tar.lz"
 
-    archive_dir = helpers.get_corrupted_split_archive_path()
+    archive_dir = helpers.get_directory_with_name("split-archive-corrupted")
 
     check_integrity(archive_dir)
 
@@ -71,7 +64,7 @@ def test_integrity_check_corrupted_on_splitted_archive(capsys):
 
 
 def test_integrity_check_deep(capsys):
-    archive_dir = helpers.get_archive_path()
+    archive_dir = helpers.get_directory_with_name("normal-archive")
     archive_file = archive_dir.joinpath("test-folder.tar.lz")
 
     check_integrity(archive_file, True)
@@ -82,10 +75,9 @@ def test_integrity_check_deep(capsys):
 
 
 def test_integrity_check_deep_on_splitted_archive(capsys):
-    SPLITTED = True
     DEEP = True
 
-    archive_dir = helpers.get_archive_path(SPLITTED)
+    archive_dir = helpers.get_directory_with_name("split-archive")
     archive_file = archive_dir.joinpath("large-folder.part1.tar.lz")
 
     check_integrity(archive_file, DEEP)
@@ -96,8 +88,7 @@ def test_integrity_check_deep_on_splitted_archive(capsys):
 
 
 def test_integrity_check_deep_corrupted(capsys):
-    CORRUPTED_DEEP = True
-    archive_dir = helpers.get_corrupted_archive_path(CORRUPTED_DEEP)
+    archive_dir = helpers.get_directory_with_name("normal-archive-corrupted-deep")
 
     check_integrity(archive_dir, True)
 

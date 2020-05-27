@@ -4,13 +4,13 @@ import time
 from pathlib import Path
 
 from archiver.extract import extract_archive
-from . import helpers
+from tests import helpers
 
 
 def test_extract_archive(tmp_path):
     # access existing archive dir
-    archive_path = helpers.get_archive_path()
-    folder_path = helpers.get_folder_path()
+    archive_path = helpers.get_directory_with_name("normal-archive")
+    folder_path = helpers.get_directory_with_name("test-folder")
     extraction_path = tmp_path
 
     # wait until this aciton has completed
@@ -29,12 +29,11 @@ def test_extract_archive(tmp_path):
 
 
 def test_extract_splitted(tmp_path):
-    SPLITTED = True
     FOLDER_NAME = "large-folder"
 
     # access existing archive dir
-    archive_path = helpers.get_archive_path(SPLITTED)
-    folder_path = helpers.get_folder_path(SPLITTED)
+    archive_path = helpers.get_directory_with_name("split-archive")
+    folder_path = helpers.get_directory_with_name(FOLDER_NAME)
     extraction_path = tmp_path
 
     # wait until this aciton has completed

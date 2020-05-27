@@ -3,14 +3,14 @@ import re
 from pathlib import Path
 
 from archiver.archive import create_archive
-from tests.generate_folder import directory_for_splitting
-from . import helpers
+from tests import helpers
+from tests.helpers import generate_splitting_directory
 
 
 def test_create_archive(tmp_path):
     FOLDER_NAME = "test-folder"
-    folder_path = helpers.get_folder_path()
-    archive_path = helpers.get_archive_path()
+    folder_path = helpers.get_directory_with_name("test-folder")
+    archive_path = helpers.get_directory_with_name("normal-archive")
 
     tmp_path = tmp_path.joinpath("archive-normal")
 
@@ -35,14 +35,14 @@ def test_create_archive(tmp_path):
     assert compare_text_file(archive_path.joinpath(FOLDER_NAME + ".md5"), tmp_path.joinpath(FOLDER_NAME + ".md5"))
 
 
-def test_create_archive_splitted(tmp_path, directory_for_splitting):
+def test_create_archive_splitted(tmp_path, generate_splitting_directory):
     MAX_ARCHIVE_BYTE_SIZE = 1000 * 1000 * 50
     FOLDER_NAME = "large-test-folder"
 
     tmp_path = tmp_path.joinpath("archive-splitted")
-    archive_path = helpers.get_splitted_ressources()
+    archive_path = helpers.get_directory_with_name("split-archive-ressources")
 
-    create_archive(directory_for_splitting, tmp_path, None, 5, MAX_ARCHIVE_BYTE_SIZE)
+    create_archive(generate_splitting_directory, tmp_path, None, 5, MAX_ARCHIVE_BYTE_SIZE)
 
     dir_listing = os.listdir(tmp_path)
 

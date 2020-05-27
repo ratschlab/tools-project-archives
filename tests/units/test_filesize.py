@@ -2,7 +2,7 @@ import pytest
 from pathlib import Path
 
 from archiver.helpers import get_bytes_in_string_with_unit, get_size_of_path
-from .helpers import create_file_with_size
+from tests.helpers import create_file_with_size
 
 K_BASE = 1024
 M_BASE = 2**20
