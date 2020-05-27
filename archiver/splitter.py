@@ -10,7 +10,7 @@ def split_directory(directory_path, max_package_size):
     archive_size = 0
 
     for root, dirs, files in os.walk(directory_path):
-        # "del" for directory index will exclude directory content from os.walk
+        # removing path for directory index will exclude directory content from os.walk
         # See: https://docs.python.org/3/library/os.html#os.walk
         excluded_dirs = []
 
@@ -27,7 +27,7 @@ def split_directory(directory_path, max_package_size):
             # for creating new package for directory that doesn't fit in current directory
             # See commit: #22d5fb7
 
-        dirs[:] = [d for d in dirs if d not in excluded_dirs]
+        dirs[:] = [dir_path for dir_path in dirs if dir_path not in excluded_dirs]
 
         for file in files:
             file_path = Path(root).joinpath(file)

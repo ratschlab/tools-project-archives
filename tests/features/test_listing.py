@@ -6,7 +6,6 @@ from archiver.listing import create_listing
 from tests import helpers
 
 # Constants
-SPLIT = True
 DEEP = True
 
 
