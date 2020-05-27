@@ -26,8 +26,7 @@ def test_split_archive_large(directory_for_splitting):
     splitted_archive = split_directory(directory_for_splitting, MAX_ARCHIVE_SIZE)
     splitted_archive_relative_paths = splitted_archive_to_realtive_string_paths(splitted_archive, directory_for_splitting.parent)
 
-    expected_result = [['large-test-folder/subfolder-small', 'large-test-folder/file_a.txt', 'large-test-folder/file_b.pdf',
-                        'large-test-folder/subfolder-large/folder_b', 'large-test-folder/subfolder-large/folder_a/file_b.txt', 'large-test-folder/subfolder-large/folder_a/file_a.pdf']]
+    expected_result = [['large-test-folder/subfolder-small', 'large-test-folder/file_a.txt', 'large-test-folder/file_b.pdf', 'large-test-folder/subfolder-large']]
 
     assert len(splitted_archive_relative_paths) == 1
     assert helpers.compare_nested_array_content_ignoring_order(splitted_archive_relative_paths, expected_result)
