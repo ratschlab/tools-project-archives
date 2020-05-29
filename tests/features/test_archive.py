@@ -1,6 +1,7 @@
 import os
 import re
 from pathlib import Path
+import pytest
 
 from archiver.archive import create_archive
 from tests import helpers
@@ -26,7 +27,7 @@ def test_create_archive(tmp_path):
     helpers.compare_array_content_ignoring_order(dir_listing, expected_named_listing)
 
     # Test listing of tar
-    compare_listing_files(archive_path.joinpath(FOLDER_NAME + ".tar.lst"), tmp_path.joinpath(FOLDER_NAME + ".tar.lst"))
+    assert compare_listing_files(archive_path.joinpath(FOLDER_NAME + ".tar.lst"), tmp_path.joinpath(FOLDER_NAME + ".tar.lst"))
 
     # Test hash validity
     assert valid_md5_hash_in_file(tmp_path.joinpath(FOLDER_NAME + ".tar.md5"))
@@ -57,8 +58,9 @@ def test_create_archive_splitted(tmp_path, generate_splitting_directory):
     helpers.compare_array_content_ignoring_order(dir_listing, expected_named_listing)
 
     # Tar listings
-    compare_listing_files(archive_path.joinpath(FOLDER_NAME + ".part1.tar.lst"), tmp_path.joinpath(FOLDER_NAME + ".part1.tar.lst"))
-    compare_listing_files(archive_path.joinpath(FOLDER_NAME + ".part2.tar.lst"), tmp_path.joinpath(FOLDER_NAME + ".part2.tar.lst"))
+    expected_listing_file_paths = [archive_path.joinpath(FOLDER_NAME + ".part1.tar.lst"), archive_path.joinpath(FOLDER_NAME + ".part2.tar.lst")]
+    actual_listing_file_paths = [tmp_path.joinpath(FOLDER_NAME + ".part1.tar.lst"), tmp_path.joinpath(FOLDER_NAME + ".part2.tar.lst")]
+    compare_files_ignoring_order(expected_listing_file_paths, actual_listing_file_paths, compare_listing_files)
 
     # Test hashes
     assert valid_md5_hash_in_file(tmp_path.joinpath(FOLDER_NAME + ".part1.tar.md5"))
@@ -67,9 +69,9 @@ def test_create_archive_splitted(tmp_path, generate_splitting_directory):
     assert valid_md5_hash_in_file(tmp_path.joinpath(FOLDER_NAME + ".part2.tar.lz.md5"))
 
     # Test md5 of archive content
-    # CI issue
-    # assert compare_text_file(archive_path.joinpath(FOLDER_NAME + ".part1.md5"), tmp_path.joinpath(FOLDER_NAME + ".part1.md5"))
-    # assert compare_text_file(archive_path.joinpath(FOLDER_NAME + ".part2.md5"), tmp_path.joinpath(FOLDER_NAME + ".part2.md5"))
+    expected_hash_file_paths = [archive_path.joinpath(FOLDER_NAME + ".part1.md5"), archive_path.joinpath(FOLDER_NAME + ".part1.md5")]
+    actual_hash_file_paths = [tmp_path.joinpath(FOLDER_NAME + ".part1.md5"), tmp_path.joinpath(FOLDER_NAME + ".part2.md5")]
+    compare_files_ignoring_order(expected_hash_file_paths, actual_hash_file_paths, compare_text_file)
 
 
 # MARK: Test helpers
@@ -86,12 +88,31 @@ def compare_text_file(file_a_path, file_b_path):
         return False
 
 
-def compare_listing_files(listing_file_path_a, listing_file_path_b):
+def compare_files_ignoring_order(expected_path_list, actual_path_list, compare):
+    for expected_path in expected_path_list:
+        match = False
+
+        for actual_path in actual_path_list:
+            if compare(expected_path, actual_path):
+                match = True
+                break
+
+        if not match:
+            assert False
+
+    assert True
+
+
+def compare_listing_files(file_path_a, file_path_b):
     try:
-        with open(listing_file_path_a, "r") as file1, open(listing_file_path_b, "r") as file2:
-            compare_listing_text(file1.read(), file2.read())
+        with open(file_path_a, "r") as file1, open(file_path_b, "r") as file2:
+            # compare_listing_text(file1.read(), file2.read())
+            listing_a_path_array = get_array_of_last_multiline_text_parts(file1.read())
+            listing_b_path_array = get_array_of_last_multiline_text_parts(file2.read())
+
+            return sorted(listing_a_path_array) == sorted(listing_b_path_array)
     except:
-        assert False
+        return False
 
 
 def compare_listing_text(listing_a, listing_b):
