@@ -37,7 +37,7 @@ def test_create_archive(tmp_path):
     assert compare_text_file(archive_path.joinpath(FOLDER_NAME + ".md5"), tmp_path.joinpath(FOLDER_NAME + ".md5"))
 
 
-def test_create_archive_splitted(tmp_path, generate_splitting_directory):
+def test_create_archive_split(tmp_path, generate_splitting_directory):
     MAX_ARCHIVE_BYTE_SIZE = 1000 * 1000 * 50
     FOLDER_NAME = "large-test-folder"
 
@@ -69,7 +69,7 @@ def test_create_archive_splitted(tmp_path, generate_splitting_directory):
     assert valid_md5_hash_in_file(tmp_path.joinpath(FOLDER_NAME + ".part2.tar.lz.md5"))
 
     # Test md5 of archive content
-    expected_hash_file_paths = [archive_path.joinpath(FOLDER_NAME + ".part1.md5"), archive_path.joinpath(FOLDER_NAME + ".part1.md5")]
+    expected_hash_file_paths = [archive_path.joinpath(FOLDER_NAME + ".part1.md5"), archive_path.joinpath(FOLDER_NAME + ".part2.md5")]
     actual_hash_file_paths = [tmp_path.joinpath(FOLDER_NAME + ".part1.md5"), tmp_path.joinpath(FOLDER_NAME + ".part2.md5")]
     compare_files_ignoring_order(expected_hash_file_paths, actual_hash_file_paths, compare_text_file)
 
