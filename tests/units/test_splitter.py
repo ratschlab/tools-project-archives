@@ -16,7 +16,8 @@ def test_split_archive(generate_splitting_directory):
                         'large-test-folder/subfolder-large/folder_b/file_b.txt'], ['large-test-folder/subfolder-large/folder_b/file_c.txt', 'large-test-folder/subfolder-large/folder_b/file_a.pdf']]
 
     assert len(split_archive_relative_paths) == 2
-    assert compare_nested_array_content_ignoring_order(split_archive_relative_paths, expected_result)
+    # Assertion helper
+    compare_nested_array_content_ignoring_order(split_archive_relative_paths, expected_result)
 
 
 def test_split_archive_large(generate_splitting_directory):
@@ -28,7 +29,8 @@ def test_split_archive_large(generate_splitting_directory):
     expected_result = [['large-test-folder/subfolder-small', 'large-test-folder/file_a.txt', 'large-test-folder/file_b.pdf', 'large-test-folder/subfolder-large']]
 
     assert len(split_archive_relative_paths) == 1
-    assert compare_nested_array_content_ignoring_order(split_archive_relative_paths, expected_result)
+    # Assertion helper
+    compare_nested_array_content_ignoring_order(split_archive_relative_paths, expected_result)
 
 
 def test_split_archive_invalid_inputs(generate_splitting_directory):

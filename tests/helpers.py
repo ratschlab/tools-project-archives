@@ -59,12 +59,12 @@ def compare_nested_array_content_ignoring_order(array_a, array_b):
     array_a_sorted_inner = map(lambda element: sorted(element), array_a)
     array_b_sorted_inner = map(lambda element: sorted(element), array_b)
 
-    return sorted(array_a_sorted_inner) == sorted(array_b_sorted_inner)
+    assert sorted(array_a_sorted_inner) == sorted(array_b_sorted_inner)
 
 
 def compare_array_content_ignoring_order(array_a, array_b):
     """Works for arrays that can be sorted"""
-    return sorted(array_a) == sorted(array_b)
+    assert sorted(array_a) == sorted(array_b)
 
 
 # MARK: Test ressources helpers

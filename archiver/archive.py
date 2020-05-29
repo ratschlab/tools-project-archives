@@ -9,9 +9,6 @@ from . import splitter
 
 
 def create_archive(source_path, destination_path, threads=None, compression=6, splitting=None):
-    # Set compression to 6 if None value is provided
-    compression = compression if compression else 6
-
     # Argparse already checks if arguments are present, so only argument format needs to be validated
     helpers.terminate_if_path_nonexistent(source_path)
 
@@ -44,9 +41,10 @@ def create_archive(source_path, destination_path, threads=None, compression=6, s
 
 
 def create_splitted_archives(source_path, destination_path, source_name, splitting, threads, compression):
-    splitted_archives = splitter.split_directory(source_path, splitting)
+    split_archives = splitter.split_directory(source_path, splitting)
+    # number_of_archives = len(list(split_archives))
 
-    for index, archive in enumerate(splitted_archives):
+    for index, archive in enumerate(split_archives):
         source_part_name = f"{source_name}.part{index + 1}"
 
         create_file_listing_hash(source_path, destination_path, source_part_name, archive)

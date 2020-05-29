@@ -18,7 +18,7 @@ def test_list_archive_content_on_directory(capsys):
     captured_std_out = capsys.readouterr().out
 
     with open(archive_dir.joinpath(expected_listing), "r") as file:
-        assert compare_listing_text(captured_std_out, file.read())
+        compare_listing_text(captured_std_out, file.read())
 
 
 def test_list_archive_content_on_split_directory(capsys):
@@ -30,7 +30,7 @@ def test_list_archive_content_on_split_directory(capsys):
     captured_std_out = capsys.readouterr().out
 
     with open(archive_dir.joinpath(expected_listing), "r") as file:
-        assert compare_listing_text(captured_std_out, file.read())
+        compare_listing_text(captured_std_out, file.read())
 
 
 def test_list_archive_content_on_archive(capsys):
@@ -43,7 +43,7 @@ def test_list_archive_content_on_archive(capsys):
     captured_std_out = capsys.readouterr().out
 
     with open(archive_dir.joinpath(expected_listing), "r") as file:
-        assert compare_listing_text(captured_std_out, file.read())
+        compare_listing_text(captured_std_out, file.read())
 
 
 def test_list_archive_content_on_split_archive(capsys):
@@ -56,7 +56,7 @@ def test_list_archive_content_on_split_archive(capsys):
     captured_std_out = capsys.readouterr().out
 
     with open(archive_dir.joinpath(expected_listing), "r") as file:
-        assert compare_listing_text(captured_std_out, file.read())
+        compare_listing_text(captured_std_out, file.read())
 
 
 def test_list_archive_content_subpath(capsys):
@@ -68,7 +68,7 @@ def test_list_archive_content_subpath(capsys):
     captured_std_out = capsys.readouterr().out
 
     with open(expected_listing, "r") as file:
-        assert compare_listing_text(captured_std_out, file.read())
+        compare_listing_text(captured_std_out, file.read())
 
 
 def test_list_archive_content_subpath_split(capsys):
@@ -80,7 +80,7 @@ def test_list_archive_content_subpath_split(capsys):
     captured_std_out = capsys.readouterr().out
 
     with open(expected_listing, "r") as file:
-        assert compare_listing_text(captured_std_out, file.read())
+        compare_listing_text(captured_std_out, file.read())
 
 
 def test_list_archive_content_deep_on_directory(capsys):
@@ -92,7 +92,7 @@ def test_list_archive_content_deep_on_directory(capsys):
     captured_std_out = capsys.readouterr().out
 
     with open(expected_listing, "r") as file:
-        assert compare_listing_text(captured_std_out, file.read())
+        compare_listing_text(captured_std_out, file.read())
 
 
 def test_list_archive_content_deep_on_split_directory(capsys):
@@ -104,7 +104,7 @@ def test_list_archive_content_deep_on_split_directory(capsys):
     captured_std_out = capsys.readouterr().out
 
     with open(expected_listing, "r") as file:
-        assert compare_listing_text(captured_std_out, file.read())
+        compare_listing_text(captured_std_out, file.read())
 
 
 def test_list_archive_content_deep_on_archive(capsys):
@@ -117,7 +117,7 @@ def test_list_archive_content_deep_on_archive(capsys):
     captured_std_out = capsys.readouterr().out
 
     with open(expected_listing, "r") as file:
-        assert compare_listing_text(captured_std_out, file.read())
+        compare_listing_text(captured_std_out, file.read())
 
 
 def test_list_archive_content_deep_subpath(capsys):
@@ -130,7 +130,7 @@ def test_list_archive_content_deep_subpath(capsys):
     captured_std_out = capsys.readouterr().out
 
     with open(expected_listing, "r") as file:
-        assert compare_listing_text(captured_std_out, file.read())
+        compare_listing_text(captured_std_out, file.read())
 
 
 def test_list_archive_content_deep_subpath_split(capsys):
@@ -142,7 +142,7 @@ def test_list_archive_content_deep_subpath_split(capsys):
     captured_std_out = capsys.readouterr().out
 
     with open(expected_listing, "r") as file:
-        assert compare_listing_text(captured_std_out, file.read())
+        compare_listing_text(captured_std_out, file.read())
 
 
 # MARK: Test helpers
@@ -151,7 +151,8 @@ def compare_listing_text(listing_a, listing_b):
     listing_a_path_array = get_array_of_last_multiline_text_parts(listing_a)
     listing_b_path_array = get_array_of_last_multiline_text_parts(listing_b)
 
-    return helpers.compare_array_content_ignoring_order(listing_a_path_array, listing_b_path_array)
+    # Assertion helper
+    helpers.compare_array_content_ignoring_order(listing_a_path_array, listing_b_path_array)
 
 
 def get_array_of_last_multiline_text_parts(multiline_text):

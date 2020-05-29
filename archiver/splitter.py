@@ -14,16 +14,16 @@ def split_directory(directory_path, max_package_size):
         # See: https://docs.python.org/3/library/os.html#os.walk
         excluded_dirs = []
 
-        for directroy in dirs:
+        for directory in dirs:
             # if the folder fits into an archive package, the content of the folder not be looked at
-            dir_path = Path(root).joinpath(directroy)
+            dir_path = Path(root).joinpath(directory)
             dir_size = helpers.get_size_of_path(dir_path)
 
             if archive_size + dir_size < max_package_size:
                 current_archive.append(dir_path)
                 archive_size += dir_size
 
-                excluded_dirs.append(directroy)
+                excluded_dirs.append(directory)
             # for creating new package for directory that doesn't fit in current directory
             # See commit: #22d5fb7
 
@@ -42,6 +42,6 @@ def split_directory(directory_path, max_package_size):
                 current_archive = [file_path]
                 archive_size = file_size
             else:
-                raise ValueError("Some files are larger than the maximum package size")
+                raise ValueError(f"File {file_path.as_posix()} is larger than the maximum package size")
 
     yield current_archive
