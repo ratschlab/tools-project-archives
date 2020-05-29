@@ -71,7 +71,7 @@ def test_create_archive_split(tmp_path, generate_splitting_directory):
     # Test md5 of archive content
     expected_hash_file_paths = [archive_path.joinpath(FOLDER_NAME + ".part1.md5"), archive_path.joinpath(FOLDER_NAME + ".part2.md5")]
     actual_hash_file_paths = [tmp_path.joinpath(FOLDER_NAME + ".part1.md5"), tmp_path.joinpath(FOLDER_NAME + ".part2.md5")]
-    compare_files_ignoring_order(expected_hash_file_paths, actual_hash_file_paths, compare_text_file)
+    compare_hash_files(expected_hash_file_paths, actual_hash_file_paths)
 
 
 # MARK: Test helpers
@@ -86,6 +86,23 @@ def compare_text_file(file_a_path, file_b_path):
             return file1.read().rstrip() == file2.read().rstrip()
     except:
         return False
+
+
+def compare_hash_files(expected_path_list, actual_path_list):
+    expected_hash_list = []
+    actual_hash_list = []
+
+    for path in expected_path_list:
+        with open(path, "r") as hash_file:
+            for line in hash_file:
+                expected_hash_list.append(line.rstrip())
+
+    for path in actual_path_list:
+        with open(path, "r") as hash_file:
+            for line in hash_file:
+                actual_hash_list.append(line.rstrip())
+
+    helpers.compare_array_content_ignoring_order(expected_hash_list, actual_hash_list)
 
 
 def compare_files_ignoring_order(expected_path_list, actual_path_list, compare):
