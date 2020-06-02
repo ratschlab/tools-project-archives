@@ -1,0 +1,10 @@
+Listing content of: large-folder.part1.tar.lst
+drwxr-xr-x  0 fnoah  staff       0 May 26 17:33 large-folder/subfolder/
+-rw-------  0 fnoah  staff 3145728 May 26 17:33 large-folder/subfolder/file_c.txt
+
+Listing content of: large-folder.part3.tar.lst
+-rw-------  0 fnoah  staff 3145728 May 26 17:31 large-folder/file_b.txt
+
+Listing content of: large-folder.part2.tar.lst
+-rw-------  0 fnoah  staff 2097152 May 26 17:31 large-folder/file_a.txt
+
