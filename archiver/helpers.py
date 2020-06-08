@@ -8,59 +8,13 @@ import subprocess
 from .constants import READ_CHUNK_BYTE_SIZE
 
 
-def terminate_if_path_nonexistent(path):
-    if not path.exists():
-        terminate_with_message(f"No such file or directory: {get_absolute_path_string(path)}")
-
-
-def terminate_if_path_not_file_of_type(path, file_type):
-    if not path.is_file():
-        terminate_with_message(f"Must of be of type {file_type}: {get_absolute_path_string(path)}")
-
-    # return path
-    return path.as_posix().endswith(file_type)
-
-
-def terminate_if_parent_directory_nonexistent(path):
-    # Make sure path is absolute
-    absolute_path = path.absolute()
-    parent_directory = absolute_path.parents[0]
-
-    terminate_if_directory_nonexistent(parent_directory)
-
-
-def terminate_if_directory_nonexistent(path):
-    if not path.is_dir():
-        terminate_with_message(f"No such directory: {get_absolute_path_string(path)}")
-
-
-def terminate_if_path_exists(path):
-    if path.exists():
-        terminate_with_message(f"Path must not exist: {get_absolute_path_string(path)}")
-
-
-def get_all_files_with_type_in_directory_or_terminate(directory, file_type):
+def get_all_files_with_type_in_directory(directory, file_type):
     files = get_files_with_type_in_directory(directory, file_type)
 
     if not files:
-        terminate_with_message(f"Multiple files of type {file_type} found, please specify file path")
-        return 1
+        raise LookupError(f"Multiple files of type {file_type} found, please specify file path")
 
     return files
-
-
-def get_file_with_type_in_directory_or_terminate(directory, file_type):
-    files = get_files_with_type_in_directory(directory, file_type)
-
-    if len(files) > 1:
-        terminate_with_message(f"Multiple files of type {file_type} found, please specify file path")
-        return 1
-
-    if not files:
-        terminate_with_message(f"No file of type {file_type} found in directory: {get_absolute_path_string(directory)}")
-        return 1
-
-    return files[0]
 
 
 def get_files_with_type_in_directory(directory, file_type):
@@ -76,14 +30,6 @@ def get_files_with_type_in_directory(directory, file_type):
 
 def get_absolute_path_string(path):
     return path.absolute().as_posix()
-
-
-def terminate_with_exception(exception):
-    terminate_with_message(str(exception))
-
-
-def terminate_with_message(message):
-    sys.exit(message)
 
 
 def create_and_write_file_hash(file_path):
@@ -111,10 +57,10 @@ def hash_listing_for_files_in_folder(source_path, relative_to_path=None):
 
     hashes_list = []
     for root, _, files in os.walk(source_path):
+        root_path = Path(root)
         for file in files:
-            reative_path_to_file_string = Path(root).relative_to(relative_to_path).joinpath(file).as_posix()
-            # TODO: Switch to Pathlib
-            file_hash = get_file_hash_from_path(os.path.join(root, file))
+            reative_path_to_file_string = root_path.relative_to(relative_to_path).joinpath(file).as_posix()
+            file_hash = get_file_hash_from_path(root_path.joinpath(file))
 
             hashes_list.append([reative_path_to_file_string, file_hash])
 
@@ -180,3 +126,41 @@ def get_bytes_in_string_with_unit(size_string):
         return int(float(number)*units[unit])
     except:
         raise ValueError("Unable to parse provided size string: " + size_string)
+
+
+# MARK: Termination helpers
+
+def terminate_if_parent_directory_nonexistent(path):
+    # Make sure path is absolute
+    absolute_path = path.absolute()
+    parent_directory = absolute_path.parents[0]
+
+    terminate_if_directory_nonexistent(parent_directory)
+
+
+def terminate_if_path_not_file_of_type(path, file_type):
+    if not path.is_file():
+        terminate_with_message(f"Must of be of type {file_type}: {get_absolute_path_string(path)}")
+
+
+def terminate_if_path_nonexistent(path):
+    if not path.exists():
+        terminate_with_message(f"No such file or directory: {get_absolute_path_string(path)}")
+
+
+def terminate_if_directory_nonexistent(path):
+    if not path.is_dir():
+        terminate_with_message(f"No such directory: {get_absolute_path_string(path)}")
+
+
+def terminate_if_path_exists(path):
+    if path.exists():
+        terminate_with_message(f"Path must not exist: {get_absolute_path_string(path)}")
+
+
+def terminate_with_exception(exception):
+    terminate_with_message(str(exception))
+
+
+def terminate_with_message(message):
+    sys.exit(message)

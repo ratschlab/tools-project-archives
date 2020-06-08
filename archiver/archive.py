@@ -42,7 +42,6 @@ def create_archive(source_path, destination_path, threads=None, compression=6, s
 
 def create_splitted_archives(source_path, destination_path, source_name, splitting, threads, compression):
     split_archives = splitter.split_directory(source_path, splitting)
-    # number_of_archives = len(list(split_archives))
 
     for index, archive in enumerate(split_archives):
         source_part_name = f"{source_name}.part{index + 1}"

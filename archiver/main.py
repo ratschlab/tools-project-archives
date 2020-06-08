@@ -71,8 +71,8 @@ def handle_archive(args):
         try:
             bytes_splitting = helpers.get_bytes_in_string_with_unit(args.part)
             create_archive(source_path, destination_path, args.threads, compression, bytes_splitting)
-        except Exception as e:
-            helpers.terminate_with_exception(e)
+        except Exception as error:
+            helpers.terminate_with_exception(error)
     else:
         create_archive(source_path, destination_path, args.threads, compression)
 

@@ -17,7 +17,10 @@ def extract_archive(source_path, destination_directory_path, partial_extraction_
     helpers.terminate_if_directory_nonexistent(destination_directory_path)
 
     if source_path.is_dir():
-        archive_files = helpers.get_all_files_with_type_in_directory_or_terminate(source_path, COMPRESSED_ARCHIVE_SUFFIX)
+        try:
+            archive_files = helpers.get_all_files_with_type_in_directory(source_path, COMPRESSED_ARCHIVE_SUFFIX)
+        except LookupError as error:
+            helpers.terminate_with_exception(error)
     else:
         helpers.terminate_if_path_not_file_of_type(source_path, COMPRESSED_ARCHIVE_SUFFIX)
 

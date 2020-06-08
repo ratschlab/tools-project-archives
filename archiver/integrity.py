@@ -134,7 +134,11 @@ def compare_hashes_from_files(archive_file_path, archive_hash_file_path):
 
 
 def get_archives_with_hashes(source_path):
-    archives = helpers.get_all_files_with_type_in_directory_or_terminate(source_path, COMPRESSED_ARCHIVE_SUFFIX)
+    try:
+        archives = helpers.get_all_files_with_type_in_directory(source_path, COMPRESSED_ARCHIVE_SUFFIX)
+    except LookupError as error:
+        helpers.terminate_with_exception(error)
+
     archives_with_hashes = []
 
     for archive in archives:

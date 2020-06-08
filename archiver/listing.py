@@ -16,8 +16,10 @@ def listing_from_file(source_path, subdir_path):
     listing_files = []
 
     if source_path.is_dir():
-        # listing_file_path = helpers.get_file_with_type_in_directory_or_terminate(source_path, LISTING_SUFFIX)
-        listing_files = helpers.get_all_files_with_type_in_directory_or_terminate(source_path, LISTING_SUFFIX)
+        try:
+            listing_files = helpers.get_all_files_with_type_in_directory(source_path, LISTING_SUFFIX)
+        except LookupError as error:
+            helpers.terminate_with_exception(error)
     else:
         # If specific file is used, maybe not all results of search path will be shown (since they could be in different file)
         helpers.terminate_if_path_not_file_of_type(source_path, COMPRESSED_ARCHIVE_SUFFIX)
@@ -43,7 +45,10 @@ def listing_from_archive(source_path, subdir_path):
     # if dir list all parts of archive
     # if specific file, only list content of file
     if source_path.is_dir():
-        archives = helpers.get_all_files_with_type_in_directory_or_terminate(source_path, COMPRESSED_ARCHIVE_SUFFIX)
+        try:
+            archives = helpers.get_all_files_with_type_in_directory(source_path, COMPRESSED_ARCHIVE_SUFFIX)
+        except LookupError as error:
+            helpers.terminate_with_exception(error)
     else:
         helpers.terminate_if_path_not_file_of_type(source_path, COMPRESSED_ARCHIVE_SUFFIX)
         archives = [source_path]
