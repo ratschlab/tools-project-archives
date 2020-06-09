@@ -76,7 +76,7 @@ def hash_listing_for_files_in_folder(source_path, relative_to_path=None):
 
                 hashes_list.append([reative_path_to_file_string, file_hash])
             except FileNotFoundError:
-                print("WARNING: Broken symlink found, only symlink but no linked files will be added to archive: " + reative_path_to_file_string)
+                print(f"WARNING: Could not read file {reative_path_to_file_string}. Will be added to archive but not to integrity listing.")
 
     return hashes_list
 
