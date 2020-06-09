@@ -31,7 +31,11 @@ def split_directory(directory_path, max_package_size):
 
         for file in files:
             file_path = Path(root).joinpath(file)
-            file_size = file_path.stat().st_size
+            file_size = 0
+
+            # Handle broken symlinks by not calculating file sizes for them
+            if file_path.exists():
+                file_size = file_path.stat().st_size
 
             if archive_size + file_size < max_package_size:
                 current_archive.append(file_path)

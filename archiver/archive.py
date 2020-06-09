@@ -26,7 +26,7 @@ def create_archive(source_path, destination_path, threads=None, compression=6, s
     destination_path.mkdir()
 
     if splitting:
-        create_splitted_archives(source_path, destination_path, source_name, int(splitting), threads, compression)
+        create_split_archive(source_path, destination_path, source_name, int(splitting), threads, compression)
     else:
         create_file_listing_hash(source_path, destination_path, source_name)
         create_tar_archive(source_path, destination_path, source_name)
@@ -40,7 +40,7 @@ def create_archive(source_path, destination_path, threads=None, compression=6, s
     print(f"Archive created: {helpers.get_absolute_path_string(destination_path)}")
 
 
-def create_splitted_archives(source_path, destination_path, source_name, splitting, threads, compression):
+def create_split_archive(source_path, destination_path, source_name, splitting, threads, compression):
     split_archives = splitter.split_directory(source_path, splitting)
 
     for index, archive in enumerate(split_archives):
@@ -73,7 +73,6 @@ def create_file_listing_hash(source_path, destination_path, source_name, archive
             hash_file.write(f"{file_hash} {file_path}\n")
 
 
-# TODO: Needs refactoring
 def hashes_for_path_list(path_list, parent_path):
     hash_list = []
 
@@ -82,9 +81,12 @@ def hashes_for_path_list(path_list, parent_path):
             hashes = helpers.hash_listing_for_files_in_folder(path, parent_path)
             hash_list = hash_list + hashes
         else:
-            file_hash = helpers.get_file_hash_from_path(path)
             realtive_file_path_string = path.relative_to(parent_path).as_posix()
-            hash_list.append([realtive_file_path_string, file_hash])
+            try:
+                file_hash = helpers.get_file_hash_from_path(path)
+                hash_list.append([realtive_file_path_string, file_hash])
+            except:
+                print("WARNING: Broken symlink found, only symlink but no linked files will be added to archive: " + realtive_file_path_string)
 
     return hash_list
 

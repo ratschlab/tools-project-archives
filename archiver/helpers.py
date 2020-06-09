@@ -42,11 +42,22 @@ def create_and_write_file_hash(file_path):
 
 
 def get_file_hash_from_path(file_path):
+    if file_path.is_symlink():
+        return get_symlink_path_hash(file_path)
+
     hasher = hashlib.md5()
 
     with open(file_path, "rb") as file:
         for chunk in iter(lambda: file.read(READ_CHUNK_BYTE_SIZE), b""):
             hasher.update(chunk)
+
+    return hasher.hexdigest()
+
+
+def get_symlink_path_hash(symlink_path):
+    hasher = hashlib.md5()
+    encoded_text_symlink = os.readlink(symlink_path).encode("utf-8")
+    hasher.update(encoded_text_symlink)
 
     return hasher.hexdigest()
 
@@ -59,10 +70,13 @@ def hash_listing_for_files_in_folder(source_path, relative_to_path=None):
     for root, _, files in os.walk(source_path):
         root_path = Path(root)
         for file in files:
-            reative_path_to_file_string = root_path.relative_to(relative_to_path).joinpath(file).as_posix()
-            file_hash = get_file_hash_from_path(root_path.joinpath(file))
+            try:
+                reative_path_to_file_string = root_path.relative_to(relative_to_path).joinpath(file).as_posix()
+                file_hash = get_file_hash_from_path(root_path.joinpath(file))
 
-            hashes_list.append([reative_path_to_file_string, file_hash])
+                hashes_list.append([reative_path_to_file_string, file_hash])
+            except FileNotFoundError:
+                print("WARNING: Broken symlink found, only symlink but no linked files will be added to archive: " + reative_path_to_file_string)
 
     return hashes_list
 
