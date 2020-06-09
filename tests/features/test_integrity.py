@@ -97,3 +97,25 @@ def test_integrity_check_deep_corrupted(capsys):
     assert "Starting integrity check..." in captured_std_out
     assert "Signature of test-folder/file1.txt has changed." in captured_std_out
     assert "Deep integrity check unsuccessful. Archive has been changed since creation." in captured_std_out
+
+
+def test_integrity_check_symlink(capsys):
+    archive_dir = helpers.get_directory_with_name("symlink-archive")
+    archive_file = archive_dir.joinpath("symlink-folder.tar.lz")
+
+    check_integrity(archive_file)
+
+    captured_std_out = capsys.readouterr().out
+
+    assert captured_std_out == "Starting integrity check...\nIntegrity check successful\n"
+
+
+def test_integrity_check_deep_symlink(capsys):
+    archive_dir = helpers.get_directory_with_name("symlink-archive")
+    archive_file = archive_dir.joinpath("symlink-folder.tar.lz")
+
+    check_integrity(archive_file, True)
+
+    captured_std_out = capsys.readouterr().out
+
+    assert captured_std_out.startswith("Starting integrity check...") and captured_std_out.endswith("Deep integrity check successful\n")

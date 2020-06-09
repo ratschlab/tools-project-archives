@@ -17,8 +17,7 @@ def test_list_archive_content_on_directory(capsys):
 
     captured_std_out = capsys.readouterr().out
 
-    with open(archive_dir.joinpath(expected_listing), "r") as file:
-        compare_listing_text(captured_std_out, file.read())
+    compare_listing_path_to_output(expected_listing, captured_std_out)
 
 
 def test_list_archive_content_on_split_directory(capsys):
@@ -29,8 +28,7 @@ def test_list_archive_content_on_split_directory(capsys):
 
     captured_std_out = capsys.readouterr().out
 
-    with open(archive_dir.joinpath(expected_listing), "r") as file:
-        compare_listing_text(captured_std_out, file.read())
+    compare_listing_path_to_output(expected_listing, captured_std_out)
 
 
 def test_list_archive_content_on_archive(capsys):
@@ -42,8 +40,7 @@ def test_list_archive_content_on_archive(capsys):
 
     captured_std_out = capsys.readouterr().out
 
-    with open(archive_dir.joinpath(expected_listing), "r") as file:
-        compare_listing_text(captured_std_out, file.read())
+    compare_listing_path_to_output(expected_listing, captured_std_out)
 
 
 def test_list_archive_content_on_split_archive(capsys):
@@ -55,8 +52,7 @@ def test_list_archive_content_on_split_archive(capsys):
 
     captured_std_out = capsys.readouterr().out
 
-    with open(archive_dir.joinpath(expected_listing), "r") as file:
-        compare_listing_text(captured_std_out, file.read())
+    compare_listing_path_to_output(expected_listing, captured_std_out)
 
 
 def test_list_archive_content_subpath(capsys):
@@ -67,8 +63,7 @@ def test_list_archive_content_subpath(capsys):
 
     captured_std_out = capsys.readouterr().out
 
-    with open(expected_listing, "r") as file:
-        compare_listing_text(captured_std_out, file.read())
+    compare_listing_path_to_output(expected_listing, captured_std_out)
 
 
 def test_list_archive_content_subpath_split(capsys):
@@ -79,8 +74,7 @@ def test_list_archive_content_subpath_split(capsys):
 
     captured_std_out = capsys.readouterr().out
 
-    with open(expected_listing, "r") as file:
-        compare_listing_text(captured_std_out, file.read())
+    compare_listing_path_to_output(expected_listing, captured_std_out)
 
 
 def test_list_archive_content_deep_on_directory(capsys):
@@ -91,8 +85,7 @@ def test_list_archive_content_deep_on_directory(capsys):
 
     captured_std_out = capsys.readouterr().out
 
-    with open(expected_listing, "r") as file:
-        compare_listing_text(captured_std_out, file.read())
+    compare_listing_path_to_output(expected_listing, captured_std_out)
 
 
 def test_list_archive_content_deep_on_split_directory(capsys):
@@ -103,8 +96,7 @@ def test_list_archive_content_deep_on_split_directory(capsys):
 
     captured_std_out = capsys.readouterr().out
 
-    with open(expected_listing, "r") as file:
-        compare_listing_text(captured_std_out, file.read())
+    compare_listing_path_to_output(expected_listing, captured_std_out)
 
 
 def test_list_archive_content_deep_on_archive(capsys):
@@ -116,8 +108,7 @@ def test_list_archive_content_deep_on_archive(capsys):
 
     captured_std_out = capsys.readouterr().out
 
-    with open(expected_listing, "r") as file:
-        compare_listing_text(captured_std_out, file.read())
+    compare_listing_path_to_output(expected_listing, captured_std_out)
 
 
 def test_list_archive_content_deep_subpath(capsys):
@@ -129,8 +120,7 @@ def test_list_archive_content_deep_subpath(capsys):
 
     captured_std_out = capsys.readouterr().out
 
-    with open(expected_listing, "r") as file:
-        compare_listing_text(captured_std_out, file.read())
+    compare_listing_path_to_output(expected_listing, captured_std_out)
 
 
 def test_list_archive_content_deep_subpath_split(capsys):
@@ -141,11 +131,37 @@ def test_list_archive_content_deep_subpath_split(capsys):
 
     captured_std_out = capsys.readouterr().out
 
-    with open(expected_listing, "r") as file:
-        compare_listing_text(captured_std_out, file.read())
+    compare_listing_path_to_output(expected_listing, captured_std_out)
+
+
+def test_list_archive_content_symlink(capsys):
+    archive_dir = helpers.get_directory_with_name("symlink-archive")
+    expected_listing = helpers.get_listing_with_name("listing-symlink.lst")
+
+    create_listing(archive_dir)
+
+    captured_std_out = capsys.readouterr().out
+
+    compare_listing_path_to_output(expected_listing, captured_std_out)
+
+
+def test_list_archive_content_symlink_deep(capsys):
+    archive_dir = helpers.get_directory_with_name("symlink-archive")
+    expected_listing = helpers.get_listing_with_name("listing-symlink-deep.lst")
+
+    create_listing(archive_dir, None, DEEP)
+
+    captured_std_out = capsys.readouterr().out
+
+    compare_listing_path_to_output(expected_listing, captured_std_out)
 
 
 # MARK: Test helpers
+
+def compare_listing_path_to_output(listing_path, output):
+    with open(listing_path, "r") as file:
+        compare_listing_text(output, file.read())
+
 
 def compare_listing_text(listing_a, listing_b):
     listing_a_path_array = get_array_of_last_multiline_text_parts(listing_a)

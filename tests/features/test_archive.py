@@ -10,7 +10,7 @@ from tests.helpers import generate_splitting_directory
 
 def test_create_archive(tmp_path):
     FOLDER_NAME = "test-folder"
-    folder_path = helpers.get_directory_with_name("test-folder")
+    folder_path = helpers.get_directory_with_name(FOLDER_NAME)
     archive_path = helpers.get_directory_with_name("normal-archive")
 
     tmp_path = tmp_path.joinpath("archive-normal")
@@ -72,6 +72,41 @@ def test_create_archive_split(tmp_path, generate_splitting_directory):
     expected_hash_file_paths = [archive_path.joinpath(FOLDER_NAME + ".part1.md5"), archive_path.joinpath(FOLDER_NAME + ".part2.md5")]
     actual_hash_file_paths = [tmp_path.joinpath(FOLDER_NAME + ".part1.md5"), tmp_path.joinpath(FOLDER_NAME + ".part2.md5")]
     compare_hash_files(expected_hash_file_paths, actual_hash_file_paths)
+
+
+def test_create_symlink_archive(tmp_path, capsys):
+    FOLDER_NAME = "symlink-folder"
+    folder_path = helpers.get_directory_with_name(FOLDER_NAME)
+    archive_path = helpers.get_directory_with_name("symlink-archive")
+
+    tmp_path = tmp_path.joinpath("archive-symlink")
+
+    create_archive(folder_path, tmp_path, None, 2)
+
+    dir_listing = os.listdir(tmp_path)
+
+    captured_std_out = capsys.readouterr().out
+
+    expected_warning = "WARNING: Symlink link.txt found. The link itself will be archived and hashed but not the files that it points to."
+
+    assert expected_warning in captured_std_out
+
+    # Test if all files exist
+    expected_listing = ['.tar.lst', '.tar.lz.md5', '.md5', '.tar.lz', '.tar.md5']
+    expected_named_listing = add_prefix_to_list_elements(expected_listing, FOLDER_NAME)
+
+    # Directory listings
+    helpers.compare_array_content_ignoring_order(dir_listing, expected_named_listing)
+
+    # Test listing of tar
+    compare_listing_files([archive_path.joinpath(FOLDER_NAME + ".tar.lst")], [tmp_path.joinpath(FOLDER_NAME + ".tar.lst")])
+
+    # Test hash validity
+    assert valid_md5_hash_in_file(tmp_path.joinpath(FOLDER_NAME + ".tar.md5"))
+    assert valid_md5_hash_in_file(tmp_path.joinpath(FOLDER_NAME + ".tar.lz.md5"))
+
+    # Test md5 of archive content
+    assert compare_text_file(archive_path.joinpath(FOLDER_NAME + ".md5"), tmp_path.joinpath(FOLDER_NAME + ".md5"))
 
 
 # MARK: Test helpers
