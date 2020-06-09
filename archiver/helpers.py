@@ -43,7 +43,7 @@ def create_and_write_file_hash(file_path):
 
 def get_file_hash_from_path(file_path):
     if file_path.is_symlink():
-        print(f"WARNING: Symlink {file_path} found. The link itself will be archived and hashed but not the files that it points to.")
+        print(f"WARNING: Symlink {file_path.name} found. The link itself will be archived and hashed but not the files that it points to.")
         return get_symlink_path_hash(file_path)
 
     hasher = hashlib.md5()
