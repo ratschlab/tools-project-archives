@@ -82,11 +82,8 @@ def hashes_for_path_list(path_list, parent_path):
             hash_list = hash_list + hashes
         else:
             realtive_file_path_string = path.relative_to(parent_path).as_posix()
-            try:
-                file_hash = helpers.get_file_hash_from_path(path)
-                hash_list.append([realtive_file_path_string, file_hash])
-            except:
-                print("WARNING: Broken symlink found, only symlink but no linked files will be added to archive: " + realtive_file_path_string)
+            file_hash = helpers.get_file_hash_from_path(path)
+            hash_list.append([realtive_file_path_string, file_hash])
 
     return hash_list
 

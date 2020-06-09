@@ -43,6 +43,7 @@ def create_and_write_file_hash(file_path):
 
 def get_file_hash_from_path(file_path):
     if file_path.is_symlink():
+        print(f"WARNING: Symlink {file_path} found. The link itself will be archived and hashed but not the files that it points to.")
         return get_symlink_path_hash(file_path)
 
     hasher = hashlib.md5()
@@ -70,13 +71,10 @@ def hash_listing_for_files_in_folder(source_path, relative_to_path=None):
     for root, _, files in os.walk(source_path):
         root_path = Path(root)
         for file in files:
-            try:
-                reative_path_to_file_string = root_path.relative_to(relative_to_path).joinpath(file).as_posix()
-                file_hash = get_file_hash_from_path(root_path.joinpath(file))
+            reative_path_to_file_string = root_path.relative_to(relative_to_path).joinpath(file).as_posix()
+            file_hash = get_file_hash_from_path(root_path.joinpath(file))
 
-                hashes_list.append([reative_path_to_file_string, file_hash])
-            except FileNotFoundError:
-                print(f"WARNING: Could not read file {reative_path_to_file_string}. Will be added to archive but not to integrity listing.")
+            hashes_list.append([reative_path_to_file_string, file_hash])
 
     return hashes_list
 
