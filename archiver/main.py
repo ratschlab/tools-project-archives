@@ -35,7 +35,7 @@ def parse_arguments(args):
     parser_archive.add_argument("archive_dir", type=str, help="Path to directory which will be created")
     parser_archive.add_argument("-n", "--threads", type=int, help="Set the number of worker threads, overriding the system's default")
     parser_archive.add_argument("-c", "--compression", type=int, help="Compression level between 0 (fastest) to 9 (slowest), default is 6")
-    parser_archive.add_argument("-p", "--part", type=str, help="Enable splitting of archive into multiple parts by specifying the size of each part")
+    parser_archive.add_argument("-p", "--part", type=str, help="Split archive into parts by specifying the size of each part. Example: 5G for 5 gigibytes (2^30 bytes).")
     parser_archive.set_defaults(func=handle_archive)
 
     # Extraction parser
