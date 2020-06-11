@@ -2,6 +2,7 @@ import subprocess
 import os
 import sys
 from pathlib import Path
+import logging
 
 from . import helpers
 from .constants import COMPRESSED_ARCHIVE_SUFFIX
@@ -31,11 +32,11 @@ def extract_archive(source_path, destination_directory_path, partial_extraction_
     else:
         uncompress_and_extract(archive_files, destination_directory_path, threads)
 
-    print("Archive extracted to: " + helpers.get_absolute_path_string(destination_directory_path))
+    logging.info("Archive extracted to: " + helpers.get_absolute_path_string(destination_directory_path))
 
 
 def uncompress_and_extract(archive_file_paths, destination_directory_path, threads):
-    print(f"Starting complete archive extraction...")
+    logging.info(f"Starting complete archive extraction...")
 
     for archive_path in archive_file_paths:
         additional_arguments = []
@@ -51,15 +52,13 @@ def uncompress_and_extract(archive_file_paths, destination_directory_path, threa
 
         destination_directory_path_string = helpers.get_absolute_path_string(destination_directory_path)
 
-        print(f"Extracted archive {archive_path.stem} to {destination_directory_path_string}")
+        logging.info(f"Extracted archive {archive_path.stem} to {destination_directory_path_string}")
 
 
 def partial_extraction(archive_file_paths, destination_directory_path, partial_extraction_path):
-    print(f"Start extracting {partial_extraction_path} from archive...")
+    logging.info(f"Start extracting {partial_extraction_path} from archive...")
 
     for archive_path in archive_file_paths:
-        print(archive_path)
-
         subprocess.run(["tar", "-xvf", archive_path, "-C", destination_directory_path, partial_extraction_path])
 
-        print(f"Extracted {partial_extraction_path} from {archive_path.stem}")
+        logging.info(f"Extracted {partial_extraction_path} from {archive_path.stem}")

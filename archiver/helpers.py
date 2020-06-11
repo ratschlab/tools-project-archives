@@ -4,6 +4,7 @@ import os
 import hashlib
 from pathlib import Path
 import subprocess
+import logging
 
 from .constants import READ_CHUNK_BYTE_SIZE
 
@@ -33,7 +34,7 @@ def get_absolute_path_string(path):
 
 
 def create_and_write_file_hash(file_path):
-    """ Will save the file in same directory """
+    """Will save the file in same directory"""
 
     hash_output = get_file_hash_from_path(file_path)
 
@@ -43,7 +44,7 @@ def create_and_write_file_hash(file_path):
 
 def get_file_hash_from_path(file_path):
     if file_path.is_symlink():
-        print(f"WARNING: Symlink {file_path.name} found. The link itself will be archived and hashed but not the files that it points to.")
+        logging.warning(f"Symlink {file_path.name} found. The link itself will be archived and hashed but not the files that it points to.")
         return get_symlink_path_hash(file_path)
 
     hasher = hashlib.md5()
@@ -175,4 +176,5 @@ def terminate_with_exception(exception):
 
 
 def terminate_with_message(message):
+    logging.error(message)
     sys.exit(message)

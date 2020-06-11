@@ -1,5 +1,6 @@
 import subprocess
 from pathlib import Path
+import logging
 
 from . import helpers
 from .constants import LISTING_SUFFIX, COMPRESSED_ARCHIVE_SUFFIX
@@ -29,6 +30,8 @@ def listing_from_file(source_path, subdir_path):
     # TODO: Smarter dir-based search, not just filtering for string in path
     # only match actiual path instead of "contains" search
     for listing_file_path in listing_files:
+        # Both log and print, since listing information is relevant to the user
+        logging.info(f"Listing content of: {listing_file_path.name}")
         print(f"Listing content of: {listing_file_path.name}")
         with open(listing_file_path, "r") as file:
             for line in file:
@@ -54,6 +57,8 @@ def listing_from_archive(source_path, subdir_path):
         archives = [source_path]
 
     for archive in archives:
+        # Both log and print, since listing information is relevant to the user
+        logging.info(f"Listing content of: {archive.name}")
         print(f"Listing content of: {archive.name}")
         if subdir_path:
             result = subprocess.run(["tar", "-tvf", archive, subdir_path], stdout=subprocess.PIPE)

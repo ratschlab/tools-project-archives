@@ -2,6 +2,7 @@ import os
 import subprocess
 import hashlib
 from pathlib import Path
+import logging
 
 from . import helpers
 # from .splitter import Splitter
@@ -21,37 +22,44 @@ def create_archive(source_path, destination_path, threads=None, compression=6, s
     # TODO: Validate threads is a valid number (if argparse doesn't do this)
     # TODO: Make sure compression level is number between 0 and 9
 
-    print(f"Start creating archive for: {helpers.get_absolute_path_string(source_path)}")
+    logging.info(f"Start creating archive for: {helpers.get_absolute_path_string(source_path)}")
 
     destination_path.mkdir()
 
     if splitting:
         create_split_archive(source_path, destination_path, source_name, int(splitting), threads, compression)
     else:
+        logging.info("Create and write hash list...")
         create_file_listing_hash(source_path, destination_path, source_name)
+
+        logging.info("Create tar archive...")
         create_tar_archive(source_path, destination_path, source_name)
         create_and_write_archive_hash(destination_path, source_name)
         create_archive_listing(destination_path, source_name)
 
-        print("Starting compression...")
+        logging.info("Starting compression...")
         compress_using_lzip(destination_path, source_name, threads, compression)
         create_and_write_compressed_archive_hash(destination_path, source_name)
 
-    print(f"Archive created: {helpers.get_absolute_path_string(destination_path)}")
+    logging.info(f"Archive created: {helpers.get_absolute_path_string(destination_path)}")
 
 
 def create_split_archive(source_path, destination_path, source_name, splitting, threads, compression):
+    logging.info("Start creation of split archive")
     split_archives = splitter.split_directory(source_path, splitting)
 
     for index, archive in enumerate(split_archives):
         source_part_name = f"{source_name}.part{index + 1}"
 
+        logging.info(f"Create and write hash list of part {index + 1}...")
         create_file_listing_hash(source_path, destination_path, source_part_name, archive)
+
+        logging.info(f"Create tar archive part {index + 1}...")
         create_tar_archive(source_path, destination_path, source_part_name, archive)
         create_and_write_archive_hash(destination_path, source_part_name)
         create_archive_listing(destination_path, source_part_name)
 
-        print(f"Starting compression of part {index + 1}")
+        logging.info(f"Starting compression of part {index + 1}...")
         compress_using_lzip(destination_path, source_part_name, threads, compression)
         create_and_write_compressed_archive_hash(destination_path, source_part_name)
 
@@ -122,6 +130,7 @@ def compress_using_lzip(destination_path, source_name, threads, compression):
     additional_arguments = []
 
     if threads:
+        logging.debug(f"Plzip compression extra argument: --threads " + str(threads))
         additional_arguments.extend(["--threads", str(threads)])
 
     subprocess.run(["plzip", path, f"-{compression}"] + additional_arguments)

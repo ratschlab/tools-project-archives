@@ -3,13 +3,16 @@
 import argparse
 import sys
 from pathlib import Path
+import logging
 
-# from archiver.archive import create_archive
 from .archive import create_archive
 from .extract import extract_archive
 from .listing import create_listing
 from .integrity import check_integrity
 from . import helpers
+
+# Configure logger
+logging.basicConfig(format='%(asctime)s - %(levelname)s: %(message)s', level=logging.INFO)
 
 
 def main():

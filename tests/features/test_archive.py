@@ -34,7 +34,7 @@ def test_create_archive(tmp_path):
     assert valid_md5_hash_in_file(tmp_path.joinpath(FOLDER_NAME + ".tar.lz.md5"))
 
     # Test md5 of archive content
-    assert compare_text_file(archive_path.joinpath(FOLDER_NAME + ".md5"), tmp_path.joinpath(FOLDER_NAME + ".md5"))
+    compare_text_file(archive_path.joinpath(FOLDER_NAME + ".md5"), tmp_path.joinpath(FOLDER_NAME + ".md5"))
 
 
 def test_create_archive_split(tmp_path, generate_splitting_directory):
@@ -74,7 +74,7 @@ def test_create_archive_split(tmp_path, generate_splitting_directory):
     compare_hash_files(expected_hash_file_paths, actual_hash_file_paths)
 
 
-def test_create_symlink_archive(tmp_path, capsys):
+def test_create_symlink_archive(tmp_path, caplog):
     FOLDER_NAME = "symlink-folder"
     folder_path = helpers.get_directory_with_name(FOLDER_NAME)
     archive_path = helpers.get_directory_with_name("symlink-archive")
@@ -85,11 +85,9 @@ def test_create_symlink_archive(tmp_path, capsys):
 
     dir_listing = os.listdir(tmp_path)
 
-    captured_std_out = capsys.readouterr().out
+    expected_warning = "Symlink link.txt found. The link itself will be archived and hashed but not the files that it points to."
 
-    expected_warning = "WARNING: Symlink link.txt found. The link itself will be archived and hashed but not the files that it points to."
-
-    assert expected_warning in captured_std_out
+    assert expected_warning in caplog.text
 
     # Test if all files exist
     expected_listing = ['.tar.lst', '.tar.lz.md5', '.md5', '.tar.lz', '.tar.md5']
@@ -106,7 +104,7 @@ def test_create_symlink_archive(tmp_path, capsys):
     assert valid_md5_hash_in_file(tmp_path.joinpath(FOLDER_NAME + ".tar.lz.md5"))
 
     # Test md5 of archive content
-    assert compare_text_file(archive_path.joinpath(FOLDER_NAME + ".md5"), tmp_path.joinpath(FOLDER_NAME + ".md5"))
+    compare_text_file(archive_path.joinpath(FOLDER_NAME + ".md5"), tmp_path.joinpath(FOLDER_NAME + ".md5"))
 
 
 # MARK: Test helpers
@@ -116,11 +114,8 @@ def add_prefix_to_list_elements(element_list, prefix):
 
 
 def compare_text_file(file_a_path, file_b_path):
-    try:
-        with open(file_a_path, "r") as file1, open(file_b_path, "r") as file2:
-            return file1.read().rstrip() == file2.read().rstrip()
-    except:
-        return False
+    with open(file_a_path, "r") as file1, open(file_b_path, "r") as file2:
+        assert file1.read().rstrip() == file2.read().rstrip()
 
 
 def compare_hash_files(expected_path_list, actual_path_list):

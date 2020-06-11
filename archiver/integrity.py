@@ -4,6 +4,7 @@ import os
 import hashlib
 import tempfile
 import time
+import logging
 
 from . import helpers
 from .extract import extract_archive
@@ -27,20 +28,25 @@ def check_integrity(source_path, deep_flag=False):
 
         archives_with_hashes = [(archive_file_path, hash_file_path, hash_listing_path)]
 
+    logging.info("Starting integrity check on: " + source_path.as_posix())
     print("Starting integrity check...")
 
     if not shallow_integrity_check(archives_with_hashes):
+        logging.warning("Integrity check unsuccessful. Archive has been changed since creation.")
         print("Integrity check unsuccessful. Archive has been changed since creation.")
         return
 
     if deep_flag and not deep_integrity_check(archives_with_hashes):
+        logging.warning("Deep integrity check unsuccessful. Archive has been changed since creation.")
         print("Deep integrity check unsuccessful. Archive has been changed since creation.")
         return
 
     if deep_flag:
+        logging.info("Deep integrity check successful")
         print("Deep integrity check successful")
         return
 
+    logging.info("Integrity check successful")
     print("Integrity check successful")
 
 
@@ -51,6 +57,7 @@ def shallow_integrity_check(archives_with_hashes):
         archive_hash_file_path = archive[1]
 
         if not compare_hashes_from_files(archive_file_path, archive_hash_file_path):
+            logging.warning(f"Signature of file {archive_file_path.name} has changed.")
             print(f"Signature of file {archive_file_path.name} has changed.")
             return False
 
@@ -116,6 +123,7 @@ def compare_archive_listing_hashes(hash_result, expected_hash_listing_path):
         return True
 
     for path in corrupted_file_paths:
+        logging.warning(f"Signature of {path} has changed.")
         print(f"Signature of {path} has changed.")
 
     return False
