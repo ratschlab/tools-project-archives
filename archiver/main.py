@@ -5,7 +5,7 @@ import sys
 from pathlib import Path
 import logging
 
-from .archive import create_archive
+from .archive import create_archive, encrypt_existing_archive
 from .extract import extract_archive
 from .listing import create_listing
 from .integrity import check_integrity
@@ -32,11 +32,19 @@ def parse_arguments(args):
     # Archiving parser
     parser_archive = subparsers.add_parser("archive", help="Create archive")
     parser_archive.add_argument("source", type=str, help="Source input file or directory")
-    parser_archive.add_argument("archive_dir", type=str, help="Path to directory which will be created")
+    parser_archive.add_argument("archive_dir", type=str, nargs="?", help="Path to directory which will be created")
     parser_archive.add_argument("-n", "--threads", type=int, help="Set the number of worker threads, overriding the system's default")
     parser_archive.add_argument("-c", "--compression", type=int, help="Compression level between 0 (fastest) to 9 (slowest), default is 6")
     parser_archive.add_argument("-p", "--part", type=str, help="Enable splitting of archive into multiple parts by specifying the size of each part")
+    parser_archive.add_argument("-k", "--key", type=str, action="append",
+                                help="Path to public key which will be used for encryption. Archive will be encrypted when this option is used. Can be used more than once.")
     parser_archive.set_defaults(func=handle_archive)
+
+    # Encryption parser
+    parser_encrypt = subparsers.add_parser("encrypt", help="Encrypt existing archive")
+    parser_encrypt.add_argument("source", type=str, help="Existing archive directory or .tar.lz file")
+    parser_encrypt.add_argument("-k", "--key", type=str, action="append", required=True, help="Path to public key which will be used for encryptio. Can be used more than once.")
+    parser_encrypt.set_defaults(func=handle_encryption)
 
     # Extraction parser
     parser_extract = subparsers.add_parser("extract", help="Extract archive")
@@ -63,7 +71,7 @@ def parse_arguments(args):
 
 
 def handle_archive(args):
-    # Path to a file or directory which will be archives
+    # Path to a file or directory which will be archived or encrypted
     source_path = Path(args.source)
     # Path to a directory which will be created (if it does yet exist)
     destination_path = Path(args.archive_dir)
@@ -73,11 +81,17 @@ def handle_archive(args):
     if args.part:
         try:
             bytes_splitting = helpers.get_bytes_in_string_with_unit(args.part)
-            create_archive(source_path, destination_path, args.threads, compression, bytes_splitting)
+            create_archive(source_path, destination_path, args.threads, args.key, compression, bytes_splitting)
         except Exception as error:
             helpers.terminate_with_exception(error)
     else:
-        create_archive(source_path, destination_path, args.threads, compression)
+        create_archive(source_path, destination_path, args.threads, args.key, compression)
+
+
+def handle_encryption(args):
+    source_path = Path(args.source)
+
+    encrypt_existing_archive(source_path, args.key)
 
 
 def handle_extract(args):

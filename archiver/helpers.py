@@ -13,7 +13,7 @@ def get_all_files_with_type_in_directory(directory, file_type):
     files = get_files_with_type_in_directory(directory, file_type)
 
     if not files:
-        raise LookupError(f"Multiple files of type {file_type} found, please specify file path")
+        raise LookupError(f"No files of type {file_type} found.")
 
     return files
 
@@ -141,7 +141,15 @@ def get_bytes_in_string_with_unit(size_string):
         raise ValueError("Unable to parse provided size string: " + size_string)
 
 
+def file_has_type(path, file_type):
+    return path.is_file() and path.as_posix().endswith(file_type)
+
+
+def add_suffix_to_path(path, suffix):
+    return path.parent.joinpath(path.name + suffix)
+
 # MARK: Termination helpers
+
 
 def terminate_if_parent_directory_nonexistent(path):
     # Make sure path is absolute
@@ -152,7 +160,7 @@ def terminate_if_parent_directory_nonexistent(path):
 
 
 def terminate_if_path_not_file_of_type(path, file_type):
-    if not path.is_file():
+    if not file_has_type(path, file_type):
         terminate_with_message(f"Must of be of type {file_type}: {get_absolute_path_string(path)}")
 
 
@@ -164,6 +172,11 @@ def terminate_if_path_nonexistent(path):
 def terminate_if_directory_nonexistent(path):
     if not path.is_dir():
         terminate_with_message(f"No such directory: {get_absolute_path_string(path)}")
+
+
+def terminate_if_file_nonexistent(path):
+    if not path.is_file():
+        terminate_with_message(f"No such file: {get_absolute_path_string(path)}")
 
 
 def terminate_if_path_exists(path):
