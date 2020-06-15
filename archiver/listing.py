@@ -50,13 +50,13 @@ def listing_from_archive(source_path, subdir_path):
     # if dir list all parts of archive
     # if specific file, only list content of file
     if source_path.is_dir():
-        encrypted_archive_files = helpers.get_all_files_with_type_in_directory(source_path, ENCRYPTED_ARCHIVE_SUFFIX)
+        encrypted_archive_files = helpers.get_files_with_type_in_directory(source_path, ENCRYPTED_ARCHIVE_SUFFIX)
         try:
             if encrypted_archive_files:
                 is_encrypted = True
                 archives = encrypted_archive_files
             else:
-                archives = helpers.get_all_files_with_type_in_directory(source_path, COMPRESSED_ARCHIVE_SUFFIX)
+                archives = helpers.get_files_with_type_in_directory(source_path, COMPRESSED_ARCHIVE_SUFFIX)
         except LookupError as error:
             helpers.terminate_with_exception(error)
     else:

@@ -24,14 +24,14 @@ def extract_archive(source_path, destination_directory_path, partial_extraction_
     if source_path.is_dir():
         # TODO: What happens if both encrypted and unencrypted archive files?
         # Fail in case this happens
-        encrypted_archive_files = helpers.get_all_files_with_type_in_directory(source_path, ENCRYPTED_ARCHIVE_SUFFIX)
+        encrypted_archive_files = helpers.get_files_with_type_in_directory(source_path, ENCRYPTED_ARCHIVE_SUFFIX)
 
         try:
             if encrypted_archive_files:
                 is_encrypted = True
                 archive_files = encrypted_archive_files
             else:
-                archive_files = helpers.get_all_files_with_type_in_directory(source_path, COMPRESSED_ARCHIVE_SUFFIX)
+                archive_files = helpers.get_files_with_type_in_directory(source_path, COMPRESSED_ARCHIVE_SUFFIX)
         except LookupError as error:
             helpers.terminate_with_exception(error)
     else:

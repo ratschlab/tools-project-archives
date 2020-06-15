@@ -16,7 +16,7 @@ def check_integrity(source_path, deep_flag=False):
 
     # TODO: What to do with both .tar.lz and .tar.lz.gpg?
     if source_path.is_dir():
-        is_encrypted = True if helpers.get_all_files_with_type_in_directory(source_path, ENCRYPTED_ARCHIVE_SUFFIX) else False
+        is_encrypted = True if helpers.get_files_with_type_in_directory(source_path, ENCRYPTED_ARCHIVE_SUFFIX) else False
         archives_with_hashes = get_archives_with_hashes(source_path)
     else:
         is_encrypted = True if helpers.file_has_type(source_path, ENCRYPTED_ARCHIVE_SUFFIX) else False
@@ -28,7 +28,7 @@ def check_integrity(source_path, deep_flag=False):
         hash_file_path = source_path.parent / (source_path.name + ".md5")
         helpers.terminate_if_path_nonexistent(hash_file_path)
 
-        hash_listing_path = source_path.with_suffix("").with_suffix(".md5")
+        hash_listing_path = source_path.parent / (filename_without_extension(source_path) + ".md5")
         helpers.terminate_if_path_nonexistent(hash_listing_path)
 
         archives_with_hashes = [(archive_file_path, hash_file_path, hash_listing_path)]
@@ -150,13 +150,13 @@ def compare_hashes_from_files(archive_file_path, archive_hash_file_path):
 
 
 def get_archives_with_hashes(source_path):
-    encrypted_archive_files = helpers.get_all_files_with_type_in_directory(source_path, ENCRYPTED_ARCHIVE_SUFFIX)
+    encrypted_archive_files = helpers.get_files_with_type_in_directory(source_path, ENCRYPTED_ARCHIVE_SUFFIX)
 
     try:
         if encrypted_archive_files:
             archives = encrypted_archive_files
         else:
-            archives = helpers.get_all_files_with_type_in_directory(source_path, COMPRESSED_ARCHIVE_SUFFIX)
+            archives = helpers.get_files_with_type_in_directory(source_path, COMPRESSED_ARCHIVE_SUFFIX)
     except LookupError as error:
         helpers.terminate_with_exception(error)
 
@@ -166,7 +166,7 @@ def get_archives_with_hashes(source_path):
         hash_path = archive.parent / (archive.name + ".md5")
         helpers.terminate_if_path_nonexistent(hash_path)
 
-        hash_listing_path = Path(archive.parent) / (archive.stem.split('.')[0] + ".md5")
+        hash_listing_path = Path(archive.parent) / (filename_without_extension(archive) + ".md5")
         helpers.terminate_if_path_nonexistent(hash_listing_path)
 
         archive_with_hash_path = (archive, hash_path, hash_listing_path)
@@ -176,9 +176,21 @@ def get_archives_with_hashes(source_path):
     return archives_with_hashes
 
 
+def filename_without_extension(path):
+    name = path.name
+
+    if name.endswith(ENCRYPTED_ARCHIVE_SUFFIX):
+        return name[:-len(ENCRYPTED_ARCHIVE_SUFFIX)]
+
+    if name.endswith(COMPRESSED_ARCHIVE_SUFFIX):
+        return name[:-len(COMPRESSED_ARCHIVE_SUFFIX)]
+
+    raise ValueError("Unknown file extension")
+
+
 def file_is_valid_archive_or_terminate(file_path):
-    if not helpers.file_has_type(file_path, COMPRESSED_ARCHIVE_SUFFIX) or helpers.file_has_type(file_path, ENCRYPTED_ARCHIVE_SUFFIX):
-        helpers.terminate_with_message(f"File is not a valid archive of type {COMPRESSED_ARCHIVE_SUFFIX} or {ENCRYPTED_ARCHIVE_SUFFIX}")
+    if not (helpers.file_has_type(file_path, COMPRESSED_ARCHIVE_SUFFIX) or helpers.file_has_type(file_path, ENCRYPTED_ARCHIVE_SUFFIX)):
+        helpers.terminate_with_message(f"File {file_path.name} is not a valid archive of type {COMPRESSED_ARCHIVE_SUFFIX} or {ENCRYPTED_ARCHIVE_SUFFIX}")
 
 
 def decrypt_archive(archive_path, parent_dir):
