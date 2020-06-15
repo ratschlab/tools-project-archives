@@ -84,7 +84,7 @@ def get_directory_with_name(dir_name):
     ressource_dir_path = current_dir_path.joinpath(f"{RESSOURCES_NAME}/{dir_name}")
 
     if not ressource_dir_path.is_dir():
-        raise NotADirectoryError(f"Could not locate listing file with name: {dir_name}")
+        raise NotADirectoryError(f"Could not locate directory with name: {dir_name}")
 
     return ressource_dir_path
 

@@ -24,8 +24,8 @@ def listing_from_file(source_path, subdir_path):
             helpers.terminate_with_exception(error)
     else:
         # If specific file is used, maybe not all results of search path will be shown (since they could be in different file)
-        helpers.terminate_if_path_not_file_of_type(source_path, COMPRESSED_ARCHIVE_SUFFIX)
-        listing_files = [source_path.with_suffix(".lst")]
+        file_is_valid_archive_or_terminate(source_path)
+        listing_files = [source_path.parent / (filename_without_extension(source_path) + ".tar.lst")]
         helpers.terminate_if_path_nonexistent(listing_files[0])
 
     # TODO: Smarter dir-based search, not just filtering for string in path
@@ -117,5 +117,17 @@ def decrypt_archives(archive_file_paths, parent_dir):
 
 
 def file_is_valid_archive_or_terminate(file_path):
-    if not helpers.file_has_type(file_path, COMPRESSED_ARCHIVE_SUFFIX) or helpers.file_has_type(file_path, ENCRYPTED_ARCHIVE_SUFFIX):
-        helpers.terminate_with_message(f"File is not a valid archive of type {COMPRESSED_ARCHIVE_SUFFIX} or {ENCRYPTED_ARCHIVE_SUFFIX}")
+    if not (helpers.file_has_type(file_path, COMPRESSED_ARCHIVE_SUFFIX) or helpers.file_has_type(file_path, ENCRYPTED_ARCHIVE_SUFFIX)):
+        helpers.terminate_with_message(f"File {file_path.as_posix()} is not a valid archive of type {COMPRESSED_ARCHIVE_SUFFIX} or {ENCRYPTED_ARCHIVE_SUFFIX} or doesn't exist.")
+
+
+def filename_without_extension(path):
+    name = path.name
+
+    if name.endswith(ENCRYPTED_ARCHIVE_SUFFIX):
+        return name[:-len(ENCRYPTED_ARCHIVE_SUFFIX)]
+
+    if name.endswith(COMPRESSED_ARCHIVE_SUFFIX):
+        return name[:-len(COMPRESSED_ARCHIVE_SUFFIX)]
+
+    raise ValueError("Unknown file extension")
