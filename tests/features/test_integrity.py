@@ -2,13 +2,13 @@ from pathlib import Path
 import os
 
 from archiver.integrity import check_integrity
-from tests import helpers
+from tests.helpers import get_directory_with_name, gpg_homedir
 
 DEEP = True
 
 
 def test_integrity_check_on_archive(capsys):
-    archive_dir = helpers.get_directory_with_name("normal-archive")
+    archive_dir = get_directory_with_name("normal-archive")
     archive_file = archive_dir.joinpath("test-folder.tar.lz")
 
     check_integrity(archive_file)
@@ -18,8 +18,8 @@ def test_integrity_check_on_archive(capsys):
     assert captured_std_out == "Starting integrity check...\nIntegrity check successful\n"
 
 
-def test_integrity_check_on_encrypted_archive(capsys):
-    archive_dir = helpers.get_directory_with_name("encrypted-archive")
+def test_integrity_check_on_encrypted_archive(capsys, gpg_homedir):
+    archive_dir = get_directory_with_name("encrypted-archive")
     archive_file = archive_dir.joinpath("test-folder.tar.lz.gpg")
 
     check_integrity(archive_file)
@@ -30,7 +30,7 @@ def test_integrity_check_on_encrypted_archive(capsys):
 
 
 def test_integrity_check_on_directory(capsys):
-    archive_dir = helpers.get_directory_with_name("normal-archive")
+    archive_dir = get_directory_with_name("normal-archive")
 
     check_integrity(archive_dir)
 
@@ -39,8 +39,8 @@ def test_integrity_check_on_directory(capsys):
     assert captured_std_out == "Starting integrity check...\nIntegrity check successful\n"
 
 
-def test_integrity_check_on_encrypted_directory(capsys):
-    archive_dir = helpers.get_directory_with_name("encrypted-archive")
+def test_integrity_check_on_encrypted_directory(capsys, gpg_homedir):
+    archive_dir = get_directory_with_name("encrypted-archive")
 
     check_integrity(archive_dir)
 
@@ -50,7 +50,7 @@ def test_integrity_check_on_encrypted_directory(capsys):
 
 
 def test_integrity_check_on_split_archive(capsys):
-    archive_dir = helpers.get_directory_with_name("split-archive")
+    archive_dir = get_directory_with_name("split-archive")
 
     check_integrity(archive_dir)
 
@@ -60,7 +60,7 @@ def test_integrity_check_on_split_archive(capsys):
 
 
 def test_integrity_check_on_split_encrypted_archive(capsys):
-    archive_dir = helpers.get_directory_with_name("split-encrypted-archive")
+    archive_dir = get_directory_with_name("split-encrypted-archive")
 
     check_integrity(archive_dir)
 
@@ -69,8 +69,8 @@ def test_integrity_check_on_split_encrypted_archive(capsys):
     assert captured_std_out == "Starting integrity check...\nIntegrity check successful\n"
 
 
-def test_integrity_check_on_split_encrypted_file(capsys):
-    archive_dir = helpers.get_directory_with_name("split-encrypted-archive")
+def test_integrity_check_on_split_encrypted_file(capsys, gpg_homedir):
+    archive_dir = get_directory_with_name("split-encrypted-archive")
     archive_file = archive_dir.joinpath("large-folder.part1.tar.lz.gpg")
 
     check_integrity(archive_file)
@@ -81,7 +81,7 @@ def test_integrity_check_on_split_encrypted_file(capsys):
 
 
 def test_integrity_check_corrupted(capsys):
-    archive_dir = helpers.get_directory_with_name("normal-archive-corrupted")
+    archive_dir = get_directory_with_name("normal-archive-corrupted")
     archive_file = archive_dir.joinpath("test-folder.tar.lz")
 
     check_integrity(archive_file)
@@ -93,8 +93,8 @@ def test_integrity_check_corrupted(capsys):
     assert captured_std_out == expected_string
 
 
-def test_integrity_check_corrupted_encrypted(capsys):
-    archive_dir = helpers.get_directory_with_name("encrypted-archive-corrupted")
+def test_integrity_check_corrupted_encrypted(capsys, gpg_homedir):
+    archive_dir = get_directory_with_name("encrypted-archive-corrupted")
     CORRUPTED_FILE_NAME = "test-folder.tar.lz.gpg"
 
     check_integrity(archive_dir)
@@ -109,7 +109,7 @@ def test_integrity_check_corrupted_encrypted(capsys):
 def test_integrity_check_corrupted_on_split_archive(capsys):
     CORRUPTED_FILE_NAME = "large-folder.part1.tar.lz"
 
-    archive_dir = helpers.get_directory_with_name("split-archive-corrupted")
+    archive_dir = get_directory_with_name("split-archive-corrupted")
 
     check_integrity(archive_dir)
 
@@ -121,7 +121,7 @@ def test_integrity_check_corrupted_on_split_archive(capsys):
 
 
 def test_integrity_check_deep(capsys):
-    archive_dir = helpers.get_directory_with_name("normal-archive")
+    archive_dir = get_directory_with_name("normal-archive")
     archive_file = archive_dir.joinpath("test-folder.tar.lz")
 
     check_integrity(archive_file, DEEP)
@@ -131,8 +131,8 @@ def test_integrity_check_deep(capsys):
     assert captured_std_out.startswith("Starting integrity check...") and captured_std_out.endswith("Deep integrity check successful\n")
 
 
-def test_integrity_check_deep_encrypted(capsys):
-    archive_dir = helpers.get_directory_with_name("encrypted-archive")
+def test_integrity_check_deep_encrypted(capsys, gpg_homedir):
+    archive_dir = get_directory_with_name("encrypted-archive")
 
     check_integrity(archive_dir, True)
 
@@ -141,8 +141,8 @@ def test_integrity_check_deep_encrypted(capsys):
     assert captured_std_out.startswith("Starting integrity check...") and captured_std_out.endswith("Deep integrity check successful\n")
 
 
-def test_integrity_check_deep_encrypted_file(capsys):
-    archive_dir = helpers.get_directory_with_name("encrypted-archive")
+def test_integrity_check_deep_encrypted_file(capsys, gpg_homedir):
+    archive_dir = get_directory_with_name("encrypted-archive")
     archive_file = archive_dir.joinpath("test-folder.tar.lz.gpg")
 
     check_integrity(archive_file, DEEP)
@@ -153,7 +153,7 @@ def test_integrity_check_deep_encrypted_file(capsys):
 
 
 def test_integrity_check_deep_on_split_archive(capsys):
-    archive_dir = helpers.get_directory_with_name("split-archive")
+    archive_dir = get_directory_with_name("split-archive")
     archive_file = archive_dir.joinpath("large-folder.part1.tar.lz")
 
     check_integrity(archive_file, DEEP)
@@ -163,8 +163,8 @@ def test_integrity_check_deep_on_split_archive(capsys):
     assert captured_std_out.startswith("Starting integrity check...") and captured_std_out.endswith("Deep integrity check successful\n")
 
 
-def test_integrity_check_deep_on_split_encrypted_archive(capsys):
-    archive_dir = helpers.get_directory_with_name("split-encrypted-archive")
+def test_integrity_check_deep_on_split_encrypted_archive(capsys, gpg_homedir):
+    archive_dir = get_directory_with_name("split-encrypted-archive")
     archive_file = archive_dir.joinpath("large-folder.part1.tar.lz.gpg")
 
     check_integrity(archive_file, DEEP)
@@ -175,7 +175,7 @@ def test_integrity_check_deep_on_split_encrypted_archive(capsys):
 
 
 def test_integrity_check_deep_corrupted(capsys):
-    archive_dir = helpers.get_directory_with_name("normal-archive-corrupted-deep")
+    archive_dir = get_directory_with_name("normal-archive-corrupted-deep")
 
     check_integrity(archive_dir, DEEP)
 
@@ -186,8 +186,8 @@ def test_integrity_check_deep_corrupted(capsys):
     assert "Deep integrity check unsuccessful. Archive has been changed since creation." in captured_std_out
 
 
-def test_integrity_check_deep_corrupted_encrypted(capsys):
-    archive_dir = helpers.get_directory_with_name("encrypted-archive-corrupted-deep")
+def test_integrity_check_deep_corrupted_encrypted(capsys, gpg_homedir):
+    archive_dir = get_directory_with_name("encrypted-archive-corrupted-deep")
 
     check_integrity(archive_dir, DEEP)
 
@@ -199,7 +199,7 @@ def test_integrity_check_deep_corrupted_encrypted(capsys):
 
 
 def test_integrity_check_symlink(capsys):
-    archive_dir = helpers.get_directory_with_name("symlink-archive")
+    archive_dir = get_directory_with_name("symlink-archive")
     archive_file = archive_dir.joinpath("symlink-folder.tar.lz")
 
     check_integrity(archive_file)
@@ -210,7 +210,7 @@ def test_integrity_check_symlink(capsys):
 
 
 def test_integrity_check_deep_symlink(capsys):
-    archive_dir = helpers.get_directory_with_name("symlink-archive")
+    archive_dir = get_directory_with_name("symlink-archive")
     archive_file = archive_dir.joinpath("symlink-folder.tar.lz")
 
     check_integrity(archive_file, DEEP)

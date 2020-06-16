@@ -3,6 +3,12 @@ from pathlib import Path
 import os
 
 
+@pytest.fixture
+def gpg_homedir(monkeypatch):
+    current_dir_path = get_test_ressources_path() / "gpg-home"
+    monkeypatch.setenv("GNUPGHOME", current_dir_path.absolute().as_posix())
+
+
 @ pytest.fixture(scope="session")
 def generate_splitting_directory(tmpdir_factory):
     """Programmatically generate folder for splitting"""

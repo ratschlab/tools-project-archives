@@ -5,6 +5,7 @@ from pathlib import Path
 
 from archiver.extract import extract_archive
 from tests import helpers
+from tests.helpers import gpg_homedir
 
 
 def test_extract_archive(tmp_path):
@@ -80,7 +81,7 @@ def test_extract_symlink(tmp_path):
     assert filecmp.cmp(folder_path.joinpath("folder-in-archive/file2.txt"), tmp_path.joinpath(FOLDER_NAME + "/folder-in-archive/file2.txt"))
 
 
-def test_extract_encrypted_archive(tmp_path):
+def test_extract_encrypted_archive(tmp_path, gpg_homedir):
     FOLDER_NAME = "test-folder"
 
     # access existing archive dir
@@ -106,7 +107,7 @@ def test_extract_encrypted_archive(tmp_path):
     os.remove(archive_path / (FOLDER_NAME + ".tar.lz"))
 
 
-def test_extract_encrypted_split(tmp_path):
+def test_extract_encrypted_split(tmp_path, gpg_homedir):
     FOLDER_NAME = "large-folder"
 
     # access existing archive dir

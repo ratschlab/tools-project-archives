@@ -7,6 +7,9 @@ from archiver.archive import create_archive
 from tests import helpers
 from tests.helpers import generate_splitting_directory
 
+ENCRYPTION_PUBLIC_KEY_A = "public.gpg"
+ENCRYPTION_PUBLIC_KEY_B = "public_second.pub"
+
 
 def test_create_archive(tmp_path):
     FOLDER_NAME = "test-folder"
@@ -118,7 +121,7 @@ def test_create_encrypted_archive(tmp_path):
 
     # Get public keys
     key_directory = helpers.get_directory_with_name("encryption-keys")
-    encryption_keys = [key_directory / "testing-key-public.gpg", key_directory / "other-key.pub"]
+    encryption_keys = [key_directory / ENCRYPTION_PUBLIC_KEY_A, key_directory / ENCRYPTION_PUBLIC_KEY_B]
 
     create_archive(folder_path, tmp_path, None, encryption_keys, 5)
 
@@ -150,7 +153,7 @@ def test_create_archive_split_encrypted(tmp_path, generate_splitting_directory):
 
     # Get public keys
     key_directory = helpers.get_directory_with_name("encryption-keys")
-    encryption_keys = [key_directory / "testing-key-public.gpg", key_directory / "other-key.pub"]
+    encryption_keys = [key_directory / ENCRYPTION_PUBLIC_KEY_A, key_directory / ENCRYPTION_PUBLIC_KEY_B]
 
     create_archive(generate_splitting_directory, tmp_path, None, encryption_keys, 6, MAX_ARCHIVE_BYTE_SIZE)
 
