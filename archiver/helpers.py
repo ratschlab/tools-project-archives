@@ -138,7 +138,7 @@ def get_bytes_in_string_with_unit(size_string):
         number, unit = [string.strip() for string in size.split()]
         return int(float(number)*units[unit])
     except:
-        raise ValueError("Unable to parse provided size string: " + size_string)
+        raise ValueError(f"Unable to parse provided size string {size_string}. Specify file size with unit, for example: 5G for 5 gigibytes (2^30 bytes).")
 
 
 def file_has_type(path, file_type):
