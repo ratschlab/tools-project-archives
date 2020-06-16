@@ -1,12 +1,32 @@
 import pytest
 from pathlib import Path
 import os
+import subprocess
 
 
-@pytest.fixture
-def gpg_homedir(monkeypatch):
-    current_dir_path = get_test_ressources_path() / "gpg-home"
-    monkeypatch.setenv("GNUPGHOME", current_dir_path.absolute().as_posix())
+# @ pytest.fixture(scope="session")
+# def gpg_homedir(monkeypatch):
+
+
+@ pytest.fixture
+def setup_gpg(monkeypatch):
+    # Using a pytest tmp_path would be preferred, but gnupghome path needs to be short for gpg
+    # See: https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=847206
+    # Currently, the gpg-home folder will just perist (but never checked in due to .gitignore)
+
+    # Set environment variable for test
+
+    gpg_path = get_test_ressources_path() / "gpg-home"
+
+    monkeypatch.setenv("GNUPGHOME", gpg_path.absolute().as_posix())
+
+    if not gpg_path.exists():
+        gpg_path.mkdir()
+
+        archive_path = get_directory_with_name("encryption-keys")
+        secret_key = archive_path / "private.gpg"
+
+        subprocess.run(["gpg", "--import", secret_key])
 
 
 @ pytest.fixture(scope="session")

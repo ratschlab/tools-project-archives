@@ -3,7 +3,7 @@ import os
 from pathlib import Path
 
 from archiver.listing import create_listing
-from tests.helpers import get_directory_with_name, get_listing_with_name, gpg_homedir, compare_array_content_ignoring_order
+from tests.helpers import get_directory_with_name, get_listing_with_name, setup_gpg, compare_array_content_ignoring_order
 
 # Constants
 DEEP = True
@@ -20,7 +20,7 @@ def test_list_archive_content_on_directory(capsys):
     compare_listing_path_to_output(expected_listing, captured_std_out)
 
 
-def test_list_archive_content_on_encrypted_directory(capsys, gpg_homedir):
+def test_list_archive_content_on_encrypted_directory(capsys, setup_gpg):
     archive_dir = get_directory_with_name("encrypted-archive")
     expected_listing = get_listing_with_name("listing-full.lst")
 
@@ -42,7 +42,7 @@ def test_list_archive_content_on_split_directory(capsys):
     compare_listing_path_to_output(expected_listing, captured_std_out)
 
 
-def test_list_archive_content_on_split_encrypted_directory(capsys, gpg_homedir):
+def test_list_archive_content_on_split_encrypted_directory(capsys, setup_gpg):
     archive_dir = get_directory_with_name("split-encrypted-archive")
     expected_listing = get_listing_with_name("listing-full-split.lst")
 
@@ -65,7 +65,7 @@ def test_list_archive_content_on_archive(capsys):
     compare_listing_path_to_output(expected_listing, captured_std_out)
 
 
-def test_list_archive_content_on_encrypted_archive(capsys, gpg_homedir):
+def test_list_archive_content_on_encrypted_archive(capsys, setup_gpg):
     archive_dir = get_directory_with_name("encrypted-archive")
     archive_file = archive_dir.joinpath("test-folder.tar.lz.gpg")
     expected_listing = get_listing_with_name("listing-full.lst")
@@ -89,7 +89,7 @@ def test_list_archive_content_on_split_archive(capsys):
     compare_listing_path_to_output(expected_listing, captured_std_out)
 
 
-def test_list_archive_content_on_split_encrypted_archive(capsys, gpg_homedir):
+def test_list_archive_content_on_split_encrypted_archive(capsys, setup_gpg):
     archive_dir = get_directory_with_name("split-encrypted-archive")
     archive_file = archive_dir.joinpath("large-folder.part3.tar.lz.gpg")
     expected_listing = get_listing_with_name("listing-split-part3.lst")
@@ -112,7 +112,7 @@ def test_list_archive_content_subpath(capsys):
     compare_listing_path_to_output(expected_listing, captured_std_out)
 
 
-def test_list_archive_content_subpath_encrypted(capsys, gpg_homedir):
+def test_list_archive_content_subpath_encrypted(capsys, setup_gpg):
     archive_dir = get_directory_with_name("encrypted-archive")
     expected_listing = get_listing_with_name("listing-partial.lst")
 
@@ -134,7 +134,7 @@ def test_list_archive_content_subpath_split(capsys):
     compare_listing_path_to_output(expected_listing, captured_std_out)
 
 
-def test_list_archive_content_subpath_split_encrypted(capsys, gpg_homedir):
+def test_list_archive_content_subpath_split_encrypted(capsys, setup_gpg):
     archive_dir = get_directory_with_name("split-encrypted-archive")
     expected_listing = get_listing_with_name("listing-split-partial.lst")
 
@@ -156,7 +156,7 @@ def test_list_archive_content_deep_on_directory(capsys):
     compare_listing_path_to_output(expected_listing, captured_std_out)
 
 
-def test_list_archive_content_deep_on_encrypted_directory(capsys, gpg_homedir):
+def test_list_archive_content_deep_on_encrypted_directory(capsys, setup_gpg):
     archive_dir = get_directory_with_name("encrypted-archive")
     expected_listing = get_listing_with_name("listing-full-deep.lst")
 
@@ -178,7 +178,7 @@ def test_list_archive_content_deep_on_split_directory(capsys):
     compare_listing_path_to_output(expected_listing, captured_std_out)
 
 
-def test_list_archive_content_deep_on_split_encrypted_directory(capsys, gpg_homedir):
+def test_list_archive_content_deep_on_split_encrypted_directory(capsys, setup_gpg):
     archive_dir = get_directory_with_name("split-encrypted-archive")
     expected_listing = get_listing_with_name("listing-split-deep.lst")
 
@@ -201,7 +201,7 @@ def test_list_archive_content_deep_on_archive(capsys):
     compare_listing_path_to_output(expected_listing, captured_std_out)
 
 
-def test_list_archive_content_deep_on_encrypted_archive(capsys, gpg_homedir):
+def test_list_archive_content_deep_on_encrypted_archive(capsys, setup_gpg):
     archive_dir = get_directory_with_name("encrypted-archive")
     archive_file = archive_dir.joinpath("test-folder.tar.lz.gpg")
     expected_listing = get_listing_with_name("listing-full-deep.lst")
@@ -225,7 +225,7 @@ def test_list_archive_content_deep_subpath(capsys):
     compare_listing_path_to_output(expected_listing, captured_std_out)
 
 
-def test_list_archive_content_deep_encrypted_subpath(capsys, gpg_homedir):
+def test_list_archive_content_deep_encrypted_subpath(capsys, setup_gpg):
     archive_dir = get_directory_with_name("encrypted-archive")
     archive_file = archive_dir.joinpath("test-folder.tar.lz.gpg")
     expected_listing = get_listing_with_name("listing-partial-deep.lst")
@@ -248,7 +248,7 @@ def test_list_archive_content_deep_subpath_split(capsys):
     compare_listing_path_to_output(expected_listing, captured_std_out)
 
 
-def test_list_archive_content_deep_subpath_encrypted_split(capsys, gpg_homedir):
+def test_list_archive_content_deep_subpath_encrypted_split(capsys, setup_gpg):
     archive_dir = get_directory_with_name("split-encrypted-archive")
     expected_listing = get_listing_with_name("listing-split-partial-deep.lst")
 

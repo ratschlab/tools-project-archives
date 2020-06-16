@@ -2,7 +2,7 @@ from pathlib import Path
 import os
 
 from archiver.integrity import check_integrity
-from tests.helpers import get_directory_with_name, gpg_homedir
+from tests.helpers import get_directory_with_name, setup_gpg
 
 DEEP = True
 
@@ -18,7 +18,7 @@ def test_integrity_check_on_archive(capsys):
     assert captured_std_out == "Starting integrity check...\nIntegrity check successful\n"
 
 
-def test_integrity_check_on_encrypted_archive(capsys, gpg_homedir):
+def test_integrity_check_on_encrypted_archive(capsys, setup_gpg):
     archive_dir = get_directory_with_name("encrypted-archive")
     archive_file = archive_dir.joinpath("test-folder.tar.lz.gpg")
 
@@ -39,7 +39,7 @@ def test_integrity_check_on_directory(capsys):
     assert captured_std_out == "Starting integrity check...\nIntegrity check successful\n"
 
 
-def test_integrity_check_on_encrypted_directory(capsys, gpg_homedir):
+def test_integrity_check_on_encrypted_directory(capsys, setup_gpg):
     archive_dir = get_directory_with_name("encrypted-archive")
 
     check_integrity(archive_dir)
@@ -69,7 +69,7 @@ def test_integrity_check_on_split_encrypted_archive(capsys):
     assert captured_std_out == "Starting integrity check...\nIntegrity check successful\n"
 
 
-def test_integrity_check_on_split_encrypted_file(capsys, gpg_homedir):
+def test_integrity_check_on_split_encrypted_file(capsys, setup_gpg):
     archive_dir = get_directory_with_name("split-encrypted-archive")
     archive_file = archive_dir.joinpath("large-folder.part1.tar.lz.gpg")
 
@@ -93,7 +93,7 @@ def test_integrity_check_corrupted(capsys):
     assert captured_std_out == expected_string
 
 
-def test_integrity_check_corrupted_encrypted(capsys, gpg_homedir):
+def test_integrity_check_corrupted_encrypted(capsys, setup_gpg):
     archive_dir = get_directory_with_name("encrypted-archive-corrupted")
     CORRUPTED_FILE_NAME = "test-folder.tar.lz.gpg"
 
@@ -131,7 +131,7 @@ def test_integrity_check_deep(capsys):
     assert captured_std_out.startswith("Starting integrity check...") and captured_std_out.endswith("Deep integrity check successful\n")
 
 
-def test_integrity_check_deep_encrypted(capsys, gpg_homedir):
+def test_integrity_check_deep_encrypted(capsys, setup_gpg):
     archive_dir = get_directory_with_name("encrypted-archive")
 
     check_integrity(archive_dir, True)
@@ -141,7 +141,7 @@ def test_integrity_check_deep_encrypted(capsys, gpg_homedir):
     assert captured_std_out.startswith("Starting integrity check...") and captured_std_out.endswith("Deep integrity check successful\n")
 
 
-def test_integrity_check_deep_encrypted_file(capsys, gpg_homedir):
+def test_integrity_check_deep_encrypted_file(capsys, setup_gpg):
     archive_dir = get_directory_with_name("encrypted-archive")
     archive_file = archive_dir.joinpath("test-folder.tar.lz.gpg")
 
@@ -163,7 +163,7 @@ def test_integrity_check_deep_on_split_archive(capsys):
     assert captured_std_out.startswith("Starting integrity check...") and captured_std_out.endswith("Deep integrity check successful\n")
 
 
-def test_integrity_check_deep_on_split_encrypted_archive(capsys, gpg_homedir):
+def test_integrity_check_deep_on_split_encrypted_archive(capsys, setup_gpg):
     archive_dir = get_directory_with_name("split-encrypted-archive")
     archive_file = archive_dir.joinpath("large-folder.part1.tar.lz.gpg")
 
@@ -186,7 +186,7 @@ def test_integrity_check_deep_corrupted(capsys):
     assert "Deep integrity check unsuccessful. Archive has been changed since creation." in captured_std_out
 
 
-def test_integrity_check_deep_corrupted_encrypted(capsys, gpg_homedir):
+def test_integrity_check_deep_corrupted_encrypted(capsys, setup_gpg):
     archive_dir = get_directory_with_name("encrypted-archive-corrupted-deep")
 
     check_integrity(archive_dir, DEEP)
