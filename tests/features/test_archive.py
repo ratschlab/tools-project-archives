@@ -37,7 +37,7 @@ def test_create_archive(tmp_path):
     assert valid_md5_hash_in_file(tmp_path.joinpath(FOLDER_NAME + ".tar.lz.md5"))
 
     # Test md5 of archive content
-    compare_text_file(archive_path.joinpath(FOLDER_NAME + ".md5"), tmp_path.joinpath(FOLDER_NAME + ".md5"))
+    compare_text_file_ignoring_order(archive_path.joinpath(FOLDER_NAME + ".md5"), tmp_path.joinpath(FOLDER_NAME + ".md5"))
 
 
 def test_create_archive_split(tmp_path, generate_splitting_directory):
@@ -107,7 +107,7 @@ def test_create_symlink_archive(tmp_path, caplog):
     assert valid_md5_hash_in_file(tmp_path.joinpath(FOLDER_NAME + ".tar.lz.md5"))
 
     # Test md5 of archive content
-    compare_text_file(archive_path.joinpath(FOLDER_NAME + ".md5"), tmp_path.joinpath(FOLDER_NAME + ".md5"))
+    compare_text_file_ignoring_order(archive_path.joinpath(FOLDER_NAME + ".md5"), tmp_path.joinpath(FOLDER_NAME + ".md5"))
 
 
 # test encrypt normal archive
@@ -140,7 +140,7 @@ def test_create_encrypted_archive(tmp_path):
     assert valid_md5_hash_in_file(tmp_path.joinpath(FOLDER_NAME + ".tar.lz.gpg.md5"))
 
     # Test md5 of archive content
-    compare_text_file(archive_path.joinpath(FOLDER_NAME + ".md5"), tmp_path.joinpath(FOLDER_NAME + ".md5"))
+    compare_text_file_ignoring_order(archive_path.joinpath(FOLDER_NAME + ".md5"), tmp_path.joinpath(FOLDER_NAME + ".md5"))
 
 
 # test encrypt with splitting
@@ -190,9 +190,9 @@ def add_prefix_to_list_elements(element_list, prefix):
     return list(map(lambda element_content: prefix + element_content, element_list))
 
 
-def compare_text_file(file_a_path, file_b_path):
+def compare_text_file_ignoring_order(file_a_path, file_b_path):
     with open(file_a_path, "r") as file1, open(file_b_path, "r") as file2:
-        assert file1.read().rstrip() == file2.read().rstrip()
+        helpers.compare_array_content_ignoring_order(file1.readlines(), file2.readlines())
 
 
 def compare_hash_files(expected_path_list, actual_path_list):
