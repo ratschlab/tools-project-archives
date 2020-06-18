@@ -16,7 +16,7 @@ def encrypt_existing_archive(archive_path, encryption_keys):
 
     if helpers.file_has_type(archive_path, COMPRESSED_ARCHIVE_SUFFIX):
         logging.info("Start encryption of existing archive " + helpers.get_absolute_path_string(archive_path))
-        encrypt_archive(archive_path.parent, archive_path.name, encryption_keys)
+        encrypt_list_of_archives([archive_path], encryption_keys)
         return
 
     if archive_path.is_dir():

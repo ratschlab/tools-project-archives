@@ -43,7 +43,7 @@ def parse_arguments(args):
     # Encryption parser
     parser_encrypt = subparsers.add_parser("encrypt", help="Encrypt existing archive")
     parser_encrypt.add_argument("source", type=str, help="Existing archive directory or .tar.lz file")
-    parser_encrypt.add_argument("-k", "--key", type=str, action="append", required=True, help="Path to public key which will be used for encryptio. Can be used more than once.")
+    parser_encrypt.add_argument("-k", "--key", type=str, action="append", required=True, help="Path to public key which will be used for encryption. Can be used more than once.")
     parser_encrypt.set_defaults(func=handle_encryption)
 
     # Extraction parser
