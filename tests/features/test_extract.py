@@ -104,6 +104,7 @@ def test_extract_encrypted_archive(tmp_path, setup_gpg):
     assert filecmp.cmp(folder_path.joinpath("folder-in-archive/file2.txt"), tmp_path.joinpath(FOLDER_NAME + "/folder-in-archive/file2.txt"))
 
     # Cleanup
+    # Required because currently encryption leaves unencrypted archives in source archive
     os.remove(archive_path / (FOLDER_NAME + ".tar.lz"))
 
 
@@ -131,6 +132,7 @@ def test_extract_encrypted_split(tmp_path, setup_gpg):
     assert filecmp.cmp(folder_path.joinpath("subfolder/file_c.txt"), tmp_path.joinpath(FOLDER_NAME + "/subfolder/file_c.txt"))
 
     # Cleanup
+    # Required because currently encryption leaves unencrypted archives in source archive
     os.remove(archive_path / (FOLDER_NAME + ".part1.tar.lz"))
     os.remove(archive_path / (FOLDER_NAME + ".part2.tar.lz"))
     os.remove(archive_path / (FOLDER_NAME + ".part3.tar.lz"))

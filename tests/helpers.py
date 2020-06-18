@@ -3,9 +3,7 @@ from pathlib import Path
 import os
 import subprocess
 
-
-# @ pytest.fixture(scope="session")
-# def gpg_homedir(monkeypatch):
+# MARK: Fixtures
 
 
 @ pytest.fixture
@@ -15,8 +13,6 @@ def setup_gpg(monkeypatch):
     # Currently, the gpg-home folder will just perist (but never checked in due to .gitignore)
     # TODO: Alternatively, it could be deleted after every session -> optimal
     # TODO: Find a way to use monkeypatch.setenv on a session fixture
-
-    # Set environment variable for test
 
     gpg_path = get_test_ressources_path() / "gpg-home"
 
@@ -34,6 +30,7 @@ def setup_gpg(monkeypatch):
 @ pytest.fixture(scope="session")
 def generate_splitting_directory(tmpdir_factory):
     """Programmatically generate folder for splitting"""
+
     tmp_path = tmpdir_factory.mktemp("directory_for_splitting")
     test_path = Path(tmp_path).joinpath("large-test-folder")
     test_path.mkdir()
@@ -75,6 +72,8 @@ def generate_splitting_directory(tmpdir_factory):
 
     return test_path
 
+
+# MARK: Helpers
 
 def create_file_with_size(path, byte_size):
     with open(path, "wb") as file:
@@ -129,4 +128,4 @@ def get_listing_with_name(listing_name):
 
 
 def get_current_directory():
-    return Path(os.path.dirname(os.path.realpath(__file__)))
+    return Path(os.path.realpath(__file__)).parent

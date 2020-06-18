@@ -8,26 +8,20 @@ from tests.helpers import generate_splitting_directory, compare_nested_array_con
 
 
 def test_split_archive(generate_splitting_directory):
-    MAX_ARCHIVE_SIZE = 1000 * 1000 * 50
+    max_size = 1000 * 1000 * 50
 
-    split_archive = split_directory(generate_splitting_directory, MAX_ARCHIVE_SIZE)
-    split_archive_list = list(split_archive)
+    expected_result = [["large-test-folder/subfolder-small", "large-test-folder/file_a.txt", "large-test-folder/file_b.pdf", "large-test-folder/subfolder-large/folder_a",
+                        "large-test-folder/subfolder-large/folder_b/file_b.txt"], ["large-test-folder/subfolder-large/folder_b/file_c.txt", "large-test-folder/subfolder-large/folder_b/file_a.pdf"]]
 
-    assert len(split_archive_list) == 2
-    assert size_of_all_parts_below_maximum(split_archive_list, MAX_ARCHIVE_SIZE)
+    assert_archiving_splitting(generate_splitting_directory, max_size, expected_result)
 
 
 def test_split_archive_large(generate_splitting_directory):
-    MAX_ARCHIVE_SIZE = 1000 * 1000 * 1000 * 1
+    max_size = 1000 * 1000 * 1000 * 1
 
-    split_archive = split_directory(generate_splitting_directory, MAX_ARCHIVE_SIZE)
-    split_archive_relative_paths = split_archive_to_realtive_string_paths(split_archive, generate_splitting_directory.parent)
+    expected_result = [["large-test-folder/subfolder-small", "large-test-folder/file_a.txt", "large-test-folder/file_b.pdf", "large-test-folder/subfolder-large"]]
 
-    expected_result = [['large-test-folder/subfolder-small', 'large-test-folder/file_a.txt', 'large-test-folder/file_b.pdf', 'large-test-folder/subfolder-large']]
-
-    assert len(split_archive_relative_paths) == 1
-    # Assertion helper
-    compare_nested_array_content_ignoring_order(split_archive_relative_paths, expected_result)
+    assert_archiving_splitting(generate_splitting_directory, max_size, expected_result)
 
 
 def test_split_archive_invalid_inputs(generate_splitting_directory):
@@ -42,26 +36,39 @@ def test_split_archive_invalid_inputs(generate_splitting_directory):
 
 
 # MARK: Test helpers
-def size_of_all_parts_below_maximum(archives, max_size):
-    for archive in archives:
-        archive_size = 0
-        for path in archive:
-            archive_size += get_size_of_path(path)
 
-        if archive_size > max_size:
+def assert_archiving_splitting(path, max_size, expected_result):
+    split_archive = split_directory(path, max_size)
+    split_archive_relative_paths = relative_strings_from_archives_list(split_archive, path.parent)
+
+    assert len(split_archive_relative_paths) == len(expected_result)
+    assert size_of_all_parts_below_maximum(split_archive, max_size)
+
+    # Assertion helper
+    compare_nested_array_content_ignoring_order(split_archive_relative_paths, expected_result)
+
+
+def relative_strings_from_archives_list(archives, relative_to_path):
+    # Return a list in order to assert length in test
+    return list(map(lambda paths: relatative_string_from_path_list(paths, relative_to_path), archives))
+
+
+def relatative_string_from_path_list(path_list, relative_to_path):
+    return map(lambda path: path.relative_to(relative_to_path).as_posix(), path_list)
+
+
+def size_of_all_parts_below_maximum(archives, max_size):
+    for archive_paths in archives:
+        if size_of_path_list(archive_paths) > max_size:
             return False
 
     return True
 
 
-def split_archive_to_realtive_string_paths(archives, tmp_path):
-    relative_archives = []
+def size_of_path_list(path_list):
+    archive_size = 0
 
-    for archive in archives:
-        relative_archive = []
-        for path in archive:
-            relative_path = path.relative_to(tmp_path).as_posix()
-            relative_archive.append(relative_path)
-        relative_archives.append(relative_archive)
+    for path in path_list:
+        archive_size += get_size_of_path(path)
 
-    return relative_archives
+    return archive_size
