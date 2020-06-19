@@ -7,7 +7,7 @@ import logging
 from . import helpers
 from . import splitter
 from .encryption import encrypt_list_of_archives
-from .constants import ENCRYPTION_ALGORITHM, COMPRESSED_ARCHIVE_SUFFIX, ENCRYPTED_ARCHIVE_SUFFIX
+from .constants import COMPRESSED_ARCHIVE_SUFFIX, ENCRYPTED_ARCHIVE_SUFFIX
 
 DELETE_UNENCRYPTED_ARCHIVE = True
 
