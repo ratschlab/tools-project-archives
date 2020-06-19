@@ -75,17 +75,18 @@ def handle_archive(args):
     source_path = Path(args.source)
     # Path to a directory which will be created (if it does yet exist)
     destination_path = Path(args.archive_dir)
-
+    # Default compression level should be 6
     compression = args.compression if args.compression else 6
+
+    bytes_splitting = None
 
     if args.part:
         try:
             bytes_splitting = helpers.get_bytes_in_string_with_unit(args.part)
-            create_archive(source_path, destination_path, args.threads, args.key, compression, bytes_splitting)
         except Exception as error:
             helpers.terminate_with_exception(error)
-    else:
-        create_archive(source_path, destination_path, args.threads, args.key, compression)
+
+    create_archive(source_path, destination_path, args.threads, args.key, compression, bytes_splitting)
 
 
 def handle_encryption(args):

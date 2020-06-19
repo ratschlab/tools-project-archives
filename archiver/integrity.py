@@ -8,33 +8,15 @@ import logging
 
 from . import helpers
 from .extract import extract_archive
+from .encryption import decrypt_archive
 from .constants import REQUIRED_SPACE_MULTIPLIER, COMPRESSED_ARCHIVE_SUFFIX, COMPRESSED_ARCHIVE_HASH_SUFFIX, ENCRYPTED_ARCHIVE_SUFFIX
 
 
 def check_integrity(source_path, deep_flag=False):
-    archives_with_hashes = []
-
-    # TODO: What to do with both .tar.lz and .tar.lz.gpg?
-    if source_path.is_dir():
-        is_encrypted = True if helpers.get_files_with_type_in_directory(source_path, ENCRYPTED_ARCHIVE_SUFFIX) else False
-        archives_with_hashes = get_archives_with_hashes(source_path)
-    else:
-        is_encrypted = True if helpers.file_has_type(source_path, ENCRYPTED_ARCHIVE_SUFFIX) else False
-
-        file_is_valid_archive_or_terminate(source_path)
-
-        archive_file_path = source_path
-
-        hash_file_path = source_path.parent / (source_path.name + ".md5")
-        helpers.terminate_if_path_nonexistent(hash_file_path)
-
-        hash_listing_path = source_path.parent / (filename_without_extension(source_path) + ".md5")
-        helpers.terminate_if_path_nonexistent(hash_listing_path)
-
-        archives_with_hashes = [(archive_file_path, hash_file_path, hash_listing_path)]
+    archives_with_hashes = get_archives_with_hashes_from_path(source_path)
+    is_encrypted = helpers.path_target_is_encrypted(source_path)
 
     logging.info("Starting integrity check on: " + source_path.as_posix())
-    print("Starting integrity check...")
 
     if not shallow_integrity_check(archives_with_hashes):
         logging.warning("Integrity check unsuccessful. Archive has been changed since creation.")
@@ -95,6 +77,8 @@ def deep_integrity_check(archives_with_hashes, is_encrypted):
             return compare_archive_listing_hashes(hash_result, expected_listing_hash_path)
 
 
+# MARK: Helpers
+
 def ensure_sufficient_disk_capacity_for_extraction(archive_file_path, extraction_path):
     archive_uncompressed_byte_size = helpers.get_uncompressed_archive_size_in_bytes(archive_file_path)
     available_bytes = helpers.get_device_available_capacity_from_path(extraction_path)
@@ -149,7 +133,28 @@ def compare_hashes_from_files(archive_file_path, archive_hash_file_path):
         return archive_hash == hash_file_content
 
 
-def get_archives_with_hashes(source_path):
+def get_archives_with_hashes_from_path(path):
+    if path.is_dir():
+        return get_archives_with_hashes_from_directory(path)
+
+    return get_hashes_for_archive(path)
+
+
+def get_hashes_for_archive(archive_path):
+    file_is_valid_archive_or_terminate(archive_path)
+
+    archive_file_path = archive_path
+
+    hash_file_path = archive_path.parent / (archive_path.name + ".md5")
+    helpers.terminate_if_path_nonexistent(hash_file_path)
+
+    hash_listing_path = archive_path.parent / (filename_without_extension(archive_path) + ".md5")
+    helpers.terminate_if_path_nonexistent(hash_listing_path)
+
+    return [(archive_file_path, hash_file_path, hash_listing_path)]
+
+
+def get_archives_with_hashes_from_directory(source_path):
     encrypted_archive_files = helpers.get_files_with_type_in_directory(source_path, ENCRYPTED_ARCHIVE_SUFFIX)
 
     try:
@@ -193,11 +198,16 @@ def file_is_valid_archive_or_terminate(file_path):
         helpers.terminate_with_message(f"File {file_path.name} is not a valid archive of type {COMPRESSED_ARCHIVE_SUFFIX} or {ENCRYPTED_ARCHIVE_SUFFIX}")
 
 
-def decrypt_archive(archive_path, parent_dir):
-    logging.info("Decrypting archive: " + helpers.get_absolute_path_string(archive_path))
+def path_target_is_encrypted(path):
+    if path.is_dir():
+        return archive_is_encrypted(path)
 
-    output_path = parent_dir / archive_path.with_suffix("").name
-    try:
-        subprocess.check_output(["gpg", "--output", output_path, "--decrypt", archive_path.absolute()])
-    except subprocess.CalledProcessError:
-        helpers.terminate_with_message("Decryption of archive failed. Make sure the necessary private key added to GPG.")
+    return helpers.file_has_type(path, ENCRYPTED_ARCHIVE_SUFFIX)
+
+
+def archive_is_encrypted(archive_path):
+    # We'll assume archive is encrypted if there are any encrypted files
+    if helpers.get_files_with_type_in_directory(archive_path, ENCRYPTED_ARCHIVE_SUFFIX):
+        return True
+
+    return False

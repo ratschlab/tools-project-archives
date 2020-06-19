@@ -6,14 +6,15 @@ from pathlib import Path
 import subprocess
 import logging
 
-from .constants import READ_CHUNK_BYTE_SIZE
+from .constants import READ_CHUNK_BYTE_SIZE, COMPRESSED_ARCHIVE_SUFFIX, ENCRYPTED_ARCHIVE_SUFFIX
 
 
-def get_all_files_with_type_in_directory(directory, file_type):
+def get_files_with_type_in_directory_or_terminate(directory, file_type):
     files = get_files_with_type_in_directory(directory, file_type)
 
     if not files:
-        raise LookupError(f"No files of type {file_type} found.")
+        error = LookupError(f"No files of type {file_type} found.")
+        terminate_with_exception(error)
 
     return files
 
@@ -146,7 +147,41 @@ def file_has_type(path, file_type):
 
 
 def add_suffix_to_path(path, suffix):
-    return path.parent.joinpath(path.name + suffix)
+    return path.parent / (path.name + suffix)
+
+
+def replace_suffix_of_path(path, new_suffix):
+    return path.parent / (path.stem.split('.')[0] + new_suffix)
+
+
+def path_target_is_encrypted(path):
+    if path.is_dir():
+        return archive_is_encrypted(path)
+
+    return file_has_type(path, ENCRYPTED_ARCHIVE_SUFFIX)
+
+
+def archive_is_encrypted(archive_path):
+    # We'll assume archive is encrypted if there are any encrypted files
+    if get_files_with_type_in_directory(archive_path, ENCRYPTED_ARCHIVE_SUFFIX):
+        return True
+
+    return False
+
+
+def get_archives_from_path(path, is_encrypted):
+    if path.is_dir():
+        archive_suffix = ENCRYPTED_ARCHIVE_SUFFIX if is_encrypted else COMPRESSED_ARCHIVE_SUFFIX
+        return get_files_with_type_in_directory(path, archive_suffix)
+
+    file_is_valid_archive_or_terminate(path)
+    return [path]
+
+
+def file_is_valid_archive_or_terminate(file_path):
+    if not (file_has_type(file_path, COMPRESSED_ARCHIVE_SUFFIX) or file_has_type(file_path, ENCRYPTED_ARCHIVE_SUFFIX)):
+        terminate_with_message(f"File {file_path.as_posix()} is not a valid archive of type {COMPRESSED_ARCHIVE_SUFFIX} or {ENCRYPTED_ARCHIVE_SUFFIX} or doesn't exist.")
+
 
 # MARK: Termination helpers
 
