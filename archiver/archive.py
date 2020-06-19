@@ -6,13 +6,14 @@ import logging
 
 from . import helpers
 from . import splitter
+from .encryption import encrypt_list_of_archives
 from .constants import ENCRYPTION_ALGORITHM, COMPRESSED_ARCHIVE_SUFFIX, ENCRYPTED_ARCHIVE_SUFFIX
 
 DELETE_UNENCRYPTED_ARCHIVE = True
 
 
 def encrypt_existing_archive(archive_path, encryption_keys):
-    encryption_keys_must_exist(encryption_keys)
+    helpers.encryption_keys_must_exist(encryption_keys)
 
     if archive_path.is_dir():
         if helpers.get_files_with_type_in_directory(archive_path, ENCRYPTED_ARCHIVE_SUFFIX):
@@ -37,7 +38,7 @@ def create_archive(source_path, destination_path, threads=None, encryption_keys=
     helpers.terminate_if_path_exists(destination_path)
 
     if encryption_keys:
-        encryption_keys_must_exist(encryption_keys)
+        helpers.encryption_keys_must_exist(encryption_keys)
 
     source_name = source_path.name
 
@@ -175,40 +176,3 @@ def create_and_write_compressed_archive_hash(destination_path, source_name):
     path = destination_path.joinpath(source_name + ".tar.lz").absolute()
 
     helpers.create_and_write_file_hash(path)
-
-
-# Encryption
-
-def encrypt_list_of_archives(archive_list, encryption_keys, delete=False):
-    for archive_path in archive_list:
-        output_path = helpers.add_suffix_to_path(archive_path, ".gpg")
-        encrypt_archive(archive_path, output_path, encryption_keys, delete)
-        helpers.create_and_write_file_hash(output_path)
-
-
-def encrypt_archive(archive_path, output_path, encryption_keys, delete=False):
-    logging.info("Encrypting archive: " + helpers.get_absolute_path_string(archive_path))
-
-    argument_encryption_list = []
-
-    for key_path_string in encryption_keys:
-        key_path = Path(key_path_string).absolute().as_posix()
-
-        argument_encryption_list.append("--recipient-file")
-        argument_encryption_list.append(key_path)
-
-    try:
-        subprocess.check_output(["gpg", "--cipher-algo", ENCRYPTION_ALGORITHM, "--batch", "--output", output_path, "--encrypt"] + argument_encryption_list + [archive_path])
-        # Is there a way to overwrite the .tar.lz file instead of creating a new encrypted archive before deleting the old one? Eg. by directly piping
-        if delete:
-            logging.debug("Deleting unencrypted archive: " + helpers.get_absolute_path_string(archive_path))
-            os.remove(archive_path)
-    except subprocess.CalledProcessError:
-        helpers.terminate_with_message(f"Encryption of archive {archive_path} failed.")
-
-    logging.info(f"Encryption of archive {archive_path} complete.")
-
-
-def encryption_keys_must_exist(key_list):
-    for key in key_list:
-        helpers.terminate_if_file_nonexistent(Path(key))

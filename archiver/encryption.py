@@ -1,7 +1,40 @@
 import logging
 import subprocess
+from pathlib import Path
+import os
+
 from . import helpers
-from .constants import REQUIRED_SPACE_MULTIPLIER, COMPRESSED_ARCHIVE_SUFFIX
+from .constants import REQUIRED_SPACE_MULTIPLIER, COMPRESSED_ARCHIVE_SUFFIX, ENCRYPTION_ALGORITHM
+
+
+def encrypt_list_of_archives(archive_list, encryption_keys, delete=False):
+    for archive_path in archive_list:
+        output_path = helpers.add_suffix_to_path(archive_path, ".gpg")
+        encrypt_archive(archive_path, output_path, encryption_keys, delete)
+        helpers.create_and_write_file_hash(output_path)
+
+
+def encrypt_archive(archive_path, output_path, encryption_keys, delete=False):
+    logging.info("Encrypting archive: " + helpers.get_absolute_path_string(archive_path))
+
+    argument_encryption_list = []
+
+    for key_path_string in encryption_keys:
+        key_path = Path(key_path_string).absolute().as_posix()
+
+        argument_encryption_list.append("--recipient-file")
+        argument_encryption_list.append(key_path)
+
+    try:
+        subprocess.check_output(["gpg", "--cipher-algo", ENCRYPTION_ALGORITHM, "--batch", "--output", output_path, "--encrypt"] + argument_encryption_list + [archive_path])
+        # Is there a way to overwrite the .tar.lz file instead of creating a new encrypted archive before deleting the old one? Eg. by directly piping
+        if delete:
+            logging.debug("Deleting unencrypted archive: " + helpers.get_absolute_path_string(archive_path))
+            os.remove(archive_path)
+    except subprocess.CalledProcessError:
+        helpers.terminate_with_message(f"Encryption of archive {archive_path} failed.")
+
+    logging.info(f"Encryption of archive {archive_path} complete.")
 
 
 def decrypt_list_of_archives(archives, target_directory=None):

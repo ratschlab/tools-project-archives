@@ -226,3 +226,8 @@ def terminate_with_exception(exception):
 def terminate_with_message(message):
     logging.error(message)
     sys.exit(message)
+
+
+def encryption_keys_must_exist(key_list):
+    for key in key_list:
+        terminate_if_file_nonexistent(Path(key))
