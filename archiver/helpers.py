@@ -163,10 +163,7 @@ def path_target_is_encrypted(path):
 
 def archive_is_encrypted(archive_path):
     # We'll assume archive is encrypted if there are any encrypted files
-    if get_files_with_type_in_directory(archive_path, ENCRYPTED_ARCHIVE_SUFFIX):
-        return True
-
-    return False
+    return get_files_with_type_in_directory(archive_path, ENCRYPTED_ARCHIVE_SUFFIX)
 
 
 def get_archives_from_path(path, is_encrypted):
@@ -181,6 +178,18 @@ def get_archives_from_path(path, is_encrypted):
 def file_is_valid_archive_or_terminate(file_path):
     if not (file_has_type(file_path, COMPRESSED_ARCHIVE_SUFFIX) or file_has_type(file_path, ENCRYPTED_ARCHIVE_SUFFIX)):
         terminate_with_message(f"File {file_path.as_posix()} is not a valid archive of type {COMPRESSED_ARCHIVE_SUFFIX} or {ENCRYPTED_ARCHIVE_SUFFIX} or doesn't exist.")
+
+
+def filename_without_extension(path):
+    name = path.name
+
+    if name.endswith(ENCRYPTED_ARCHIVE_SUFFIX):
+        return name[:-len(ENCRYPTED_ARCHIVE_SUFFIX)]
+
+    if name.endswith(COMPRESSED_ARCHIVE_SUFFIX):
+        return name[:-len(COMPRESSED_ARCHIVE_SUFFIX)]
+
+    raise ValueError("Unknown file extension")
 
 
 # MARK: Termination helpers

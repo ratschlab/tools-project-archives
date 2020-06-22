@@ -79,19 +79,7 @@ def get_listing_files_for_path(path):
 
      # If specific file is used, maybe not all results of search path will be shown (since they could be in different file)
     helpers.file_is_valid_archive_or_terminate(path)
-    listing_path = path.parent / (filename_without_extension(path) + ".tar.lst")
+    listing_path = path.parent / (helpers.filename_without_extension(path) + ".tar.lst")
     helpers.terminate_if_path_nonexistent(path)
 
     return [listing_path]
-
-
-def filename_without_extension(path):
-    name = path.name
-
-    if name.endswith(ENCRYPTED_ARCHIVE_SUFFIX):
-        return name[:-len(ENCRYPTED_ARCHIVE_SUFFIX)]
-
-    if name.endswith(COMPRESSED_ARCHIVE_SUFFIX):
-        return name[:-len(COMPRESSED_ARCHIVE_SUFFIX)]
-
-    raise ValueError("Unknown file extension")

@@ -124,7 +124,7 @@ def test_create_encrypted_archive(tmp_path):
     key_directory = helpers.get_directory_with_name("encryption-keys")
     encryption_keys = [key_directory / ENCRYPTION_PUBLIC_KEY_A, key_directory / ENCRYPTION_PUBLIC_KEY_B]
 
-    create_archive(folder_path, tmp_path, None, encryption_keys, 5)
+    create_archive(folder_path, tmp_path, None, encryption_keys, 5, None, True)
 
     # Test if all files exist
     dir_listing = os.listdir(tmp_path)
@@ -156,7 +156,7 @@ def test_create_archive_split_encrypted(tmp_path, generate_splitting_directory):
     key_directory = helpers.get_directory_with_name("encryption-keys")
     encryption_keys = [key_directory / ENCRYPTION_PUBLIC_KEY_A, key_directory / ENCRYPTION_PUBLIC_KEY_B]
 
-    create_archive(generate_splitting_directory, tmp_path, None, encryption_keys, 6, MAX_ARCHIVE_BYTE_SIZE)
+    create_archive(generate_splitting_directory, tmp_path, None, encryption_keys, 6, MAX_ARCHIVE_BYTE_SIZE, True)
 
     # Test if all files exist
     dir_listing = os.listdir(tmp_path)

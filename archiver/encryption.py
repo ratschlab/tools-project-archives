@@ -26,7 +26,7 @@ def encrypt_archive(archive_path, output_path, encryption_keys, delete=False):
         argument_encryption_list.append(key_path)
 
     try:
-        subprocess.check_output(["gpg", "--cipher-algo", ENCRYPTION_ALGORITHM, "--batch", "--output", output_path, "--encrypt"] + argument_encryption_list + [archive_path])
+        subprocess.check_output(["gpg", "--cipher-algo", ENCRYPTION_ALGORITHM, "-z", "0", "--batch", "--output", output_path, "--encrypt"] + argument_encryption_list + [archive_path])
         # Is there a way to overwrite the .tar.lz file instead of creating a new encrypted archive before deleting the old one? Eg. by directly piping
         if delete:
             logging.debug("Deleting unencrypted archive: " + helpers.get_absolute_path_string(archive_path))

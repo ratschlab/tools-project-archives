@@ -148,7 +148,7 @@ def get_hashes_for_archive(archive_path):
     hash_file_path = archive_path.parent / (archive_path.name + ".md5")
     helpers.terminate_if_path_nonexistent(hash_file_path)
 
-    hash_listing_path = archive_path.parent / (filename_without_extension(archive_path) + ".md5")
+    hash_listing_path = archive_path.parent / (helpers.filename_without_extension(archive_path) + ".md5")
     helpers.terminate_if_path_nonexistent(hash_listing_path)
 
     return [(archive_file_path, hash_file_path, hash_listing_path)]
@@ -171,7 +171,7 @@ def get_archives_with_hashes_from_directory(source_path):
         hash_path = archive.parent / (archive.name + ".md5")
         helpers.terminate_if_path_nonexistent(hash_path)
 
-        hash_listing_path = Path(archive.parent) / (filename_without_extension(archive) + ".md5")
+        hash_listing_path = Path(archive.parent) / (helpers.filename_without_extension(archive) + ".md5")
         helpers.terminate_if_path_nonexistent(hash_listing_path)
 
         archive_with_hash_path = (archive, hash_path, hash_listing_path)
@@ -179,18 +179,6 @@ def get_archives_with_hashes_from_directory(source_path):
         archives_with_hashes.append(archive_with_hash_path)
 
     return archives_with_hashes
-
-
-def filename_without_extension(path):
-    name = path.name
-
-    if name.endswith(ENCRYPTED_ARCHIVE_SUFFIX):
-        return name[:-len(ENCRYPTED_ARCHIVE_SUFFIX)]
-
-    if name.endswith(COMPRESSED_ARCHIVE_SUFFIX):
-        return name[:-len(COMPRESSED_ARCHIVE_SUFFIX)]
-
-    raise ValueError("Unknown file extension")
 
 
 def file_is_valid_archive_or_terminate(file_path):

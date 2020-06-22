@@ -9,10 +9,8 @@ from . import splitter
 from .encryption import encrypt_list_of_archives
 from .constants import COMPRESSED_ARCHIVE_SUFFIX, ENCRYPTED_ARCHIVE_SUFFIX
 
-DELETE_UNENCRYPTED_ARCHIVE = True
 
-
-def encrypt_existing_archive(archive_path, encryption_keys):
+def encrypt_existing_archive(archive_path, encryption_keys, remove_unencrypted=False):
     helpers.encryption_keys_must_exist(encryption_keys)
 
     if archive_path.is_dir():
@@ -21,16 +19,16 @@ def encrypt_existing_archive(archive_path, encryption_keys):
 
         archive_files = helpers.get_files_with_type_in_directory_or_terminate(archive_path, COMPRESSED_ARCHIVE_SUFFIX)
 
-        encrypt_list_of_archives(archive_files, encryption_keys)
+        encrypt_list_of_archives(archive_files, encryption_keys, remove_unencrypted)
         return
 
     helpers.terminate_if_path_not_file_of_type(archive_path, COMPRESSED_ARCHIVE_SUFFIX)
 
     logging.info("Start encryption of existing archive " + helpers.get_absolute_path_string(archive_path))
-    encrypt_list_of_archives([archive_path], encryption_keys)
+    encrypt_list_of_archives([archive_path], encryption_keys, remove_unencrypted)
 
 
-def create_archive(source_path, destination_path, threads=None, encryption_keys=None, compression=6, splitting=None):
+def create_archive(source_path, destination_path, threads=None, encryption_keys=None, compression=6, splitting=None, remove_unencrypted=False):
     # Argparse already checks if arguments are present, so only argument format needs to be validated
     helpers.terminate_if_path_nonexistent(source_path)
     # Check if destination parent directory exist but not actual directory
@@ -47,7 +45,7 @@ def create_archive(source_path, destination_path, threads=None, encryption_keys=
     destination_path.mkdir()
 
     if splitting:
-        create_split_archive(source_path, destination_path, source_name, int(splitting), threads, encryption_keys, compression)
+        create_split_archive(source_path, destination_path, source_name, int(splitting), threads, encryption_keys, compression, remove_unencrypted)
     else:
         logging.info("Create and write hash list...")
         create_file_listing_hash(source_path, destination_path, source_name)
@@ -64,12 +62,12 @@ def create_archive(source_path, destination_path, threads=None, encryption_keys=
         if encryption_keys:
             logging.info("Starting encryption...")
             archive_list = [destination_path.joinpath(source_name + COMPRESSED_ARCHIVE_SUFFIX)]
-            encrypt_list_of_archives(archive_list, encryption_keys, DELETE_UNENCRYPTED_ARCHIVE)
+            encrypt_list_of_archives(archive_list, encryption_keys, remove_unencrypted)
 
     logging.info(f"Archive created: {helpers.get_absolute_path_string(destination_path)}")
 
 
-def create_split_archive(source_path, destination_path, source_name, splitting, threads, encryption_keys, compression):
+def create_split_archive(source_path, destination_path, source_name, splitting, threads, encryption_keys, compression, remove_unencrypted):
     logging.info("Start creation of split archive")
     split_archives = splitter.split_directory(source_path, splitting)
 
@@ -91,7 +89,7 @@ def create_split_archive(source_path, destination_path, source_name, splitting, 
         if encryption_keys:
             logging.info(f"Starting encryption of part {index + 1}...")
             archive_list = [destination_path.joinpath(source_part_name + COMPRESSED_ARCHIVE_SUFFIX)]
-            encrypt_list_of_archives(archive_list, encryption_keys, DELETE_UNENCRYPTED_ARCHIVE)
+            encrypt_list_of_archives(archive_list, encryption_keys, remove_unencrypted)
 
 
 def create_file_listing_hash(source_path, destination_path, source_name, archive_list=None):

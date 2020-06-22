@@ -38,12 +38,14 @@ def parse_arguments(args):
     parser_archive.add_argument("-k", "--key", type=str, action="append",
                                 help="Path to public key which will be used for encryption. Archive will be encrypted when this option is used. Can be used more than once.")
     parser_archive.add_argument("-p", "--part", type=str, help="Split archive into parts by specifying the size of each part. Example: 5G for 5 gigibytes (2^30 bytes).")
+    parser_archive.add_argument("-r", "--remove", action="store_true", default=False, help="Remove unencrypted archive after encrypted archive has been created and stored.")
     parser_archive.set_defaults(func=handle_archive)
 
     # Encryption parser
     parser_encrypt = subparsers.add_parser("encrypt", help="Encrypt existing archive")
     parser_encrypt.add_argument("source", type=str, help="Existing archive directory or .tar.lz file")
     parser_encrypt.add_argument("-k", "--key", type=str, action="append", required=True, help="Path to public key which will be used for encryption. Can be used more than once.")
+    parser_encrypt.add_argument("-r", "--remove", action="store_true", default=False, help="Remove unencrypted archive after encrypted archive has been created and stored.")
     parser_encrypt.set_defaults(func=handle_encryption)
 
     # Extraction parser
@@ -86,13 +88,13 @@ def handle_archive(args):
         except Exception as error:
             helpers.terminate_with_exception(error)
 
-    create_archive(source_path, destination_path, args.threads, args.key, compression, bytes_splitting)
+    create_archive(source_path, destination_path, args.threads, args.key, compression, bytes_splitting, args.remove)
 
 
 def handle_encryption(args):
     source_path = Path(args.source)
 
-    encrypt_existing_archive(source_path, args.key)
+    encrypt_existing_archive(source_path, args.key, args.remove)
 
 
 def handle_extract(args):
