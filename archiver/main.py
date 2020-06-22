@@ -80,6 +80,8 @@ def handle_archive(args):
     # Default compression level should be 6
     compression = args.compression if args.compression else 6
 
+    threads = args.threads if args.threads else helpers.get_number_of_threads()
+
     bytes_splitting = None
 
     if args.part:
@@ -88,7 +90,7 @@ def handle_archive(args):
         except Exception as error:
             helpers.terminate_with_exception(error)
 
-    create_archive(source_path, destination_path, args.threads, args.key, compression, bytes_splitting, args.remove)
+    create_archive(source_path, destination_path, threads, args.key, compression, bytes_splitting, args.remove)
 
 
 def handle_encryption(args):
@@ -102,7 +104,9 @@ def handle_extract(args):
     source_path = Path(args.archive_dir)
     destination_directory_path = Path(args.destination)
 
-    extract_archive(source_path, destination_directory_path, args.subpath, args.threads)
+    threads = args.threads if args.threads else helpers.get_number_of_threads()
+
+    extract_archive(source_path, destination_directory_path, args.subpath, threads)
 
 
 def handle_list(args):
