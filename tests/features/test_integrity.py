@@ -2,7 +2,7 @@ from pathlib import Path
 import os
 
 from archiver.integrity import check_integrity
-from tests.helpers import get_directory_with_name, setup_gpg
+from tests.helpers import get_directory_with_name
 
 DEEP = True
 

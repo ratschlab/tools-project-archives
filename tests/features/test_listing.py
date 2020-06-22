@@ -3,7 +3,7 @@ import os
 from pathlib import Path
 
 from archiver.listing import create_listing
-from tests.helpers import get_directory_with_name, get_listing_with_name, setup_gpg, compare_array_content_ignoring_order
+from tests.helpers import get_directory_with_name, get_listing_with_name, compare_array_content_ignoring_order
 
 DEEP = True
 

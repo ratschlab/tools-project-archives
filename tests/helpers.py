@@ -1,31 +1,8 @@
 import pytest
 from pathlib import Path
 import os
-import subprocess
 
 # MARK: Fixtures
-
-
-@ pytest.fixture
-def setup_gpg(monkeypatch):
-    # Using a pytest tmp_path would be preferred, but gnupghome path needs to be short for gpg
-    # See: https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=847206
-    # Currently, the gpg-home folder will just perist (but never checked in due to .gitignore)
-    # TODO: Alternatively, it could be deleted after every session -> optimal
-    # TODO: Find a way to use monkeypatch.setenv on a session fixture
-
-    gpg_path = get_test_ressources_path() / "gpg-home"
-
-    monkeypatch.setenv("GNUPGHOME", gpg_path.absolute().as_posix())
-
-    if not gpg_path.exists():
-        gpg_path.mkdir()
-
-        archive_path = get_directory_with_name("encryption-keys")
-        secret_key = archive_path / "private.gpg"
-
-        subprocess.run(["gpg", "--import", secret_key])
-
 
 @ pytest.fixture(scope="session")
 def generate_splitting_directory(tmpdir_factory):

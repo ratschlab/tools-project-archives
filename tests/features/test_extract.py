@@ -5,7 +5,7 @@ from pathlib import Path
 
 from archiver.extract import extract_archive
 from tests import helpers
-from tests.helpers import setup_gpg
+
 
 
 def test_extract_archive(tmp_path):
