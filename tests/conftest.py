@@ -1,5 +1,6 @@
 import os
 import subprocess
+from pathlib import Path
 
 import pytest
 
@@ -11,7 +12,7 @@ def setup_gpg():
     # Using a pytest tmp_path would be preferred, but gnupghome path needs to be short for gpg
     # See: https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=847206
 
-    gpg_path = helpers.get_test_ressources_path() / "gpg-home"
+    gpg_path = Path("/tmp/archiving")
 
     os.environ["GNUPGHOME"] = gpg_path.absolute().as_posix()
 
