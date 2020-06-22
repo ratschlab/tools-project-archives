@@ -1,6 +1,7 @@
 import os
 import subprocess
 from pathlib import Path
+import shutil
 
 import pytest
 
@@ -16,8 +17,10 @@ def setup_gpg():
 
     os.environ["GNUPGHOME"] = gpg_path.absolute().as_posix()
 
-    if not gpg_path.exists():
-        gpg_path.mkdir()
+    if gpg_path.exists():
+        shutil.rmtree(gpg_path)
+
+    gpg_path.mkdir()
 
     archive_path = helpers.get_directory_with_name("encryption-keys")
     secret_key = archive_path / "private.gpg"
