@@ -5,6 +5,7 @@ import hashlib
 from pathlib import Path
 import subprocess
 import logging
+import shutil
 
 from .constants import READ_CHUNK_BYTE_SIZE, COMPRESSED_ARCHIVE_SUFFIX, ENCRYPTED_ARCHIVE_SUFFIX
 
@@ -190,6 +191,20 @@ def filename_without_extension(path):
         return name[:-len(COMPRESSED_ARCHIVE_SUFFIX)]
 
     raise ValueError("Unknown file extension")
+
+
+def handle_destination_directory_creation(destination_path, force):
+    if not destination_path.exists():
+        destination_path.mkdir()
+        return
+
+    if force:
+        logging.warning("Deleting existing directory: " + destination_path.as_posix())
+        shutil.rmtree(destination_path)
+        destination_path.mkdir(parents=True)
+        return
+
+    terminate_with_message(f"Path {destination_path.as_posix()} must not exist or use --force to overwrite")
 
 
 # MARK: Termination helpers

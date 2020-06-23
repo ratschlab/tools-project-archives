@@ -39,6 +39,7 @@ def parse_arguments(args):
                                 help="Path to public key which will be used for encryption. Archive will be encrypted when this option is used. Can be used more than once.")
     parser_archive.add_argument("-p", "--part", type=str, help="Split archive into parts by specifying the size of each part. Example: 5G for 5 gigibytes (2^30 bytes).")
     parser_archive.add_argument("-r", "--remove", action="store_true", default=False, help="Remove unencrypted archive after encrypted archive has been created and stored.")
+    parser_archive.add_argument("-f", "--force", action="store_true", default=False, help="Overwrite output directory if it already exists and create parents of folder if they don't exist.")
     parser_archive.set_defaults(func=handle_archive)
 
     # Encryption parser
@@ -54,6 +55,7 @@ def parse_arguments(args):
     parser_extract.add_argument("destination", type=str, help="Path to directory where archive will be extracted")
     parser_extract.add_argument("-s", "--subpath", type=str, help="Directory or file inside archive to extract")
     parser_extract.add_argument("-n", "--threads", type=int, help="Set the number of worker threads, overriding the system's default")
+    parser_extract.add_argument("-f", "--force", action="store_true", default=False, help="Overwrite output directory if it already exists and create parents of folder if they don't exist.")
     parser_extract.set_defaults(func=handle_extract)
 
     # List parser
@@ -88,7 +90,7 @@ def handle_archive(args):
         except Exception as error:
             helpers.terminate_with_exception(error)
 
-    create_archive(source_path, destination_path, args.threads, args.key, compression, bytes_splitting, args.remove)
+    create_archive(source_path, destination_path, args.threads, args.key, compression, bytes_splitting, args.remove, args.force)
 
 
 def handle_encryption(args):
@@ -102,7 +104,7 @@ def handle_extract(args):
     source_path = Path(args.archive_dir)
     destination_directory_path = Path(args.destination)
 
-    extract_archive(source_path, destination_directory_path, args.subpath, args.threads)
+    extract_archive(source_path, destination_directory_path, args.subpath, args.threads, args.force)
 
 
 def handle_list(args):

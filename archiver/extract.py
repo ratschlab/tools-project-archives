@@ -15,9 +15,9 @@ from .constants import COMPRESSED_ARCHIVE_SUFFIX, ENCRYPTED_ARCHIVE_SUFFIX
 # Ensure gpg key is available
 
 
-def extract_archive(source_path, destination_directory_path, partial_extraction_path=None, threads=None):
-    # Make sure destination path directory existts
-    helpers.terminate_if_directory_nonexistent(destination_directory_path)
+def extract_archive(source_path, destination_directory_path, partial_extraction_path=None, threads=None, force=False):
+    # Create destination folder if nonexistent or overwrite if --force option used
+    helpers.handle_destination_directory_creation(destination_directory_path, force)
 
     is_encrypted = helpers.path_target_is_encrypted(source_path)
     archive_files = helpers.get_archives_from_path(source_path, is_encrypted)

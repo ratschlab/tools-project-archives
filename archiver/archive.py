@@ -28,12 +28,11 @@ def encrypt_existing_archive(archive_path, encryption_keys, remove_unencrypted=F
     encrypt_list_of_archives([archive_path], encryption_keys, remove_unencrypted)
 
 
-def create_archive(source_path, destination_path, threads=None, encryption_keys=None, compression=6, splitting=None, remove_unencrypted=False):
+def create_archive(source_path, destination_path, threads=None, encryption_keys=None, compression=6, splitting=None, remove_unencrypted=False, force=False):
     # Argparse already checks if arguments are present, so only argument format needs to be validated
     helpers.terminate_if_path_nonexistent(source_path)
-    # Check if destination parent directory exist but not actual directory
-    helpers.terminate_if_parent_directory_nonexistent(destination_path)
-    helpers.terminate_if_path_exists(destination_path)
+    # Create destination folder if nonexistent or overwrite if --force option used
+    helpers.handle_destination_directory_creation(destination_path, force)
 
     if encryption_keys:
         helpers.encryption_keys_must_exist(encryption_keys)
