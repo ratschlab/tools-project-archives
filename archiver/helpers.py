@@ -82,22 +82,38 @@ def hash_listing_for_files_in_folder(source_path, relative_to_path=None):
     return hashes_list
 
 
+def get_threads_from_args_or_environment(threads_arg):
+    if threads_arg:
+        return threads_arg
+
+    threads = get_number_of_threads()
+    logging.info(f"Number of threads is not set, using {threads} threads")
+    return threads
+
+
 def get_number_of_threads():
     number_of_threads_from_env = get_number_of_threads_from_env()
 
     if not number_of_threads_from_env:
-        logging.warning(f"Environment variable {ENV_VAR_MAPPER_MAX_CPUS} doesn't contain valid threads number")
         return get_max_number_of_threads()
 
     return number_of_threads_from_env
 
 
 def get_number_of_threads_from_env():
-    try:
-        env_variable_name = os.environ.get(ENV_VAR_MAPPER_MAX_CPUS)
-        return os.environ.get(env_variable_name)
-    except TypeError:
+    env_variable_name = os.environ.get(ENV_VAR_MAPPER_MAX_CPUS)
+
+    if not env_variable_name:
+        logging.info(f"Environment variable {ENV_VAR_MAPPER_MAX_CPUS} is not set")
         return None
+
+    env_variable_threads_number = os.environ.get(env_variable_name)
+
+    if not env_variable_threads_number:
+        logging.info(f"Environment variable {env_variable_threads_number} doesn't contain a valid number of threads")
+        return
+
+    return env_variable_threads_number
 
 
 def get_max_number_of_threads():

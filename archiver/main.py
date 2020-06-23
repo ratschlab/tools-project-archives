@@ -80,7 +80,7 @@ def handle_archive(args):
     # Default compression level should be 6
     compression = args.compression if args.compression else 6
 
-    threads = args.threads if args.threads else helpers.get_number_of_threads()
+    threads = helpers.get_threads_from_args_or_environment(args.threads)
 
     bytes_splitting = None
 
@@ -104,7 +104,7 @@ def handle_extract(args):
     source_path = Path(args.archive_dir)
     destination_directory_path = Path(args.destination)
 
-    threads = args.threads if args.threads else helpers.get_number_of_threads()
+    threads = helpers.get_threads_from_args_or_environment(args.threads)
 
     extract_archive(source_path, destination_directory_path, args.subpath, threads)
 
