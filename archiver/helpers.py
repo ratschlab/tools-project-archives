@@ -6,14 +6,15 @@ from pathlib import Path
 import subprocess
 import logging
 
-from .constants import READ_CHUNK_BYTE_SIZE
+from .constants import READ_CHUNK_BYTE_SIZE, COMPRESSED_ARCHIVE_SUFFIX, ENCRYPTED_ARCHIVE_SUFFIX
 
 
-def get_all_files_with_type_in_directory(directory, file_type):
+def get_files_with_type_in_directory_or_terminate(directory, file_type):
     files = get_files_with_type_in_directory(directory, file_type)
 
     if not files:
-        raise LookupError(f"Multiple files of type {file_type} found, please specify file path")
+        error = LookupError(f"No files of type {file_type} found.")
+        terminate_with_exception(error)
 
     return files
 
@@ -141,7 +142,58 @@ def get_bytes_in_string_with_unit(size_string):
         raise ValueError(f"Unable to parse provided size string {size_string}. Specify file size with unit, for example: 5G for 5 gigibytes (2^30 bytes).")
 
 
+def file_has_type(path, file_type):
+    return path.is_file() and path.as_posix().endswith(file_type)
+
+
+def add_suffix_to_path(path, suffix):
+    return path.parent / (path.name + suffix)
+
+
+def replace_suffix_of_path(path, new_suffix):
+    return path.parent / (path.stem.split('.')[0] + new_suffix)
+
+
+def path_target_is_encrypted(path):
+    if path.is_dir():
+        return archive_is_encrypted(path)
+
+    return file_has_type(path, ENCRYPTED_ARCHIVE_SUFFIX)
+
+
+def archive_is_encrypted(archive_path):
+    # We'll assume archive is encrypted if there are any encrypted files
+    return get_files_with_type_in_directory(archive_path, ENCRYPTED_ARCHIVE_SUFFIX)
+
+
+def get_archives_from_path(path, is_encrypted):
+    if path.is_dir():
+        archive_suffix = ENCRYPTED_ARCHIVE_SUFFIX if is_encrypted else COMPRESSED_ARCHIVE_SUFFIX
+        return get_files_with_type_in_directory(path, archive_suffix)
+
+    file_is_valid_archive_or_terminate(path)
+    return [path]
+
+
+def file_is_valid_archive_or_terminate(file_path):
+    if not (file_has_type(file_path, COMPRESSED_ARCHIVE_SUFFIX) or file_has_type(file_path, ENCRYPTED_ARCHIVE_SUFFIX)):
+        terminate_with_message(f"File {file_path.as_posix()} is not a valid archive of type {COMPRESSED_ARCHIVE_SUFFIX} or {ENCRYPTED_ARCHIVE_SUFFIX} or doesn't exist.")
+
+
+def filename_without_extension(path):
+    name = path.name
+
+    if name.endswith(ENCRYPTED_ARCHIVE_SUFFIX):
+        return name[:-len(ENCRYPTED_ARCHIVE_SUFFIX)]
+
+    if name.endswith(COMPRESSED_ARCHIVE_SUFFIX):
+        return name[:-len(COMPRESSED_ARCHIVE_SUFFIX)]
+
+    raise ValueError("Unknown file extension")
+
+
 # MARK: Termination helpers
+
 
 def terminate_if_parent_directory_nonexistent(path):
     # Make sure path is absolute
@@ -152,7 +204,7 @@ def terminate_if_parent_directory_nonexistent(path):
 
 
 def terminate_if_path_not_file_of_type(path, file_type):
-    if not path.is_file():
+    if not file_has_type(path, file_type):
         terminate_with_message(f"Must of be of type {file_type}: {get_absolute_path_string(path)}")
 
 
@@ -164,6 +216,11 @@ def terminate_if_path_nonexistent(path):
 def terminate_if_directory_nonexistent(path):
     if not path.is_dir():
         terminate_with_message(f"No such directory: {get_absolute_path_string(path)}")
+
+
+def terminate_if_file_nonexistent(path):
+    if not path.is_file():
+        terminate_with_message(f"No such file: {get_absolute_path_string(path)}")
 
 
 def terminate_if_path_exists(path):
@@ -178,3 +235,8 @@ def terminate_with_exception(exception):
 def terminate_with_message(message):
     logging.error(message)
     sys.exit(message)
+
+
+def encryption_keys_must_exist(key_list):
+    for key in key_list:
+        terminate_if_file_nonexistent(Path(key))

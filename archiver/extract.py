@@ -5,27 +5,26 @@ from pathlib import Path
 import logging
 
 from . import helpers
-from .constants import COMPRESSED_ARCHIVE_SUFFIX
+from .encryption import decrypt_list_of_archives
+from .constants import COMPRESSED_ARCHIVE_SUFFIX, ENCRYPTED_ARCHIVE_SUFFIX
 
 # TODO: Handle subprocess exceptions
 # TODO: What should happen with the archive after extraction?
 
+# Should there be a flag or automatically recongnize encrypted archives?
+# Ensure gpg key is available
+
 
 def extract_archive(source_path, destination_directory_path, partial_extraction_path=None, threads=None):
-    archive_files = []
-
     # Make sure destination path directory existts
     helpers.terminate_if_directory_nonexistent(destination_directory_path)
 
-    if source_path.is_dir():
-        try:
-            archive_files = helpers.get_all_files_with_type_in_directory(source_path, COMPRESSED_ARCHIVE_SUFFIX)
-        except LookupError as error:
-            helpers.terminate_with_exception(error)
-    else:
-        helpers.terminate_if_path_not_file_of_type(source_path, COMPRESSED_ARCHIVE_SUFFIX)
+    is_encrypted = helpers.path_target_is_encrypted(source_path)
+    archive_files = helpers.get_archives_from_path(source_path, is_encrypted)
 
-        archive_files = [source_path]
+    if is_encrypted:
+        decrypt_list_of_archives(archive_files)
+        archive_files = map(lambda path: path.with_suffix(""), archive_files)
 
     if partial_extraction_path:
         partial_extraction(archive_files, destination_directory_path, partial_extraction_path)
@@ -35,10 +34,10 @@ def extract_archive(source_path, destination_directory_path, partial_extraction_
     logging.info("Archive extracted to: " + helpers.get_absolute_path_string(destination_directory_path))
 
 
-def uncompress_and_extract(archive_file_paths, destination_directory_path, threads):
-    logging.info(f"Starting complete archive extraction...")
-
+def uncompress_and_extract(archive_file_paths, destination_directory_path, threads, encrypted=False):
     for archive_path in archive_file_paths:
+        logging.info(f"Complete extraction of archive " + helpers.get_absolute_path_string(archive_path))
+
         additional_arguments = []
 
         if threads:
@@ -56,6 +55,7 @@ def uncompress_and_extract(archive_file_paths, destination_directory_path, threa
 
 
 def partial_extraction(archive_file_paths, destination_directory_path, partial_extraction_path):
+    # TODO: Make this more efficient. No need to decompress every single archive
     logging.info(f"Start extracting {partial_extraction_path} from archive...")
 
     for archive_path in archive_file_paths:

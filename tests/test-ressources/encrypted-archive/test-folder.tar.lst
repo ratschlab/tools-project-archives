@@ -1,0 +1,4 @@
+drwxr-xr-x  0 fnoah  staff       0 May 25 13:14 test-folder/
+-rw-r--r--  0 fnoah  staff      14 May 12 11:05 test-folder/file1.txt
+drwxr-xr-x  0 fnoah  staff       0 May 12 11:05 test-folder/folder-in-archive/
+-rw-r--r--  0 fnoah  staff      14 May 12 11:05 test-folder/folder-in-archive/file2.txt

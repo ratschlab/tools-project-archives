@@ -2,10 +2,12 @@ import pytest
 from pathlib import Path
 import os
 
+# MARK: Fixtures
 
 @ pytest.fixture(scope="session")
 def generate_splitting_directory(tmpdir_factory):
     """Programmatically generate folder for splitting"""
+
     tmp_path = tmpdir_factory.mktemp("directory_for_splitting")
     test_path = Path(tmp_path).joinpath("large-test-folder")
     test_path.mkdir()
@@ -48,6 +50,8 @@ def generate_splitting_directory(tmpdir_factory):
     return test_path
 
 
+# MARK: Helpers
+
 def create_file_with_size(path, byte_size):
     with open(path, "wb") as file:
         multiplier = int(round(byte_size))
@@ -84,7 +88,7 @@ def get_directory_with_name(dir_name):
     ressource_dir_path = current_dir_path.joinpath(f"{RESSOURCES_NAME}/{dir_name}")
 
     if not ressource_dir_path.is_dir():
-        raise NotADirectoryError(f"Could not locate listing file with name: {dir_name}")
+        raise NotADirectoryError(f"Could not locate directory with name: {dir_name}")
 
     return ressource_dir_path
 
@@ -101,4 +105,4 @@ def get_listing_with_name(listing_name):
 
 
 def get_current_directory():
-    return Path(os.path.dirname(os.path.realpath(__file__)))
+    return Path(os.path.realpath(__file__)).parent
