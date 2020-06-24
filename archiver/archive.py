@@ -4,7 +4,6 @@ import hashlib
 from pathlib import Path
 import logging
 import tempfile
-import shutil
 
 from . import helpers
 from . import splitter
