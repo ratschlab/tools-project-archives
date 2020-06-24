@@ -4,6 +4,7 @@ import hashlib
 from pathlib import Path
 import logging
 import tempfile
+import shutil
 
 from . import helpers
 from . import splitter
@@ -146,8 +147,7 @@ def create_tar_archive_from_list(source_path, archive_list, destination_file_pat
         tmp_file_path = Path(temp_path_string) / "paths.txt"
 
         with open(tmp_file_path, "w") as tmp_file:
-            for path_string in files_string_list:
-                tmp_file.write(path_string + "\n")
+            tmp_file.write("\n".join(files_string_list))
 
         subprocess.run(["tar", "-cf", destination_file_path, "-C", source_path_parent, "--files-from", tmp_file_path])
 
