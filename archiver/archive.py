@@ -3,6 +3,7 @@ import subprocess
 import hashlib
 from pathlib import Path
 import logging
+import tempfile
 
 from . import helpers
 from . import splitter
@@ -126,22 +127,28 @@ def hashes_for_path_list(path_list, parent_path):
 
 def create_tar_archive(source_path, destination_path, source_name, archive_list=None):
     destination_file_path = destination_path.joinpath(source_name + ".tar")
-
-    # -C flag on tar necessary to get relative path in tar archive
-    # Temporary workaround with shell=true because somehow subprocess can't handle list of files
-    # TODO: Implement properly without directly running on the shell
-    # TODO: Excape file names -> will be done automatically by no directly executing with shell=True
-
     source_path_parent = source_path.absolute().parent
 
     if archive_list:
-        relative_archive_list = map(lambda path: path.absolute().relative_to(source_path.absolute().parent), archive_list)
-        files_string_list = " ".join(map(lambda path: path.as_posix(), relative_archive_list))
-
-        subprocess.run([f"tar -cf {destination_file_path} -C {source_path_parent} {files_string_list}"], shell=True)
+        create_tar_archive_from_list(source_path, archive_list, destination_file_path, source_path_parent)
         return
 
+    # -C flag on tar necessary to get relative path in tar archive
     subprocess.run(["tar", "-cf", destination_file_path, "-C", source_path_parent, source_path.stem])
+
+
+def create_tar_archive_from_list(source_path, archive_list, destination_file_path, source_path_parent):
+    relative_archive_list = map(lambda path: path.absolute().relative_to(source_path.absolute().parent), archive_list)
+    files_string_list = map(lambda path: path.as_posix(), relative_archive_list)
+
+    # Using TemporaryDirectory instead of NamedTemporaryFile to have full control over file creation
+    with tempfile.TemporaryDirectory() as temp_path_string:
+        tmp_file_path = Path(temp_path_string) / "paths.txt"
+
+        with open(tmp_file_path, "w") as tmp_file:
+            tmp_file.write("\n".join(files_string_list))
+
+        subprocess.run(["tar", "-cf", destination_file_path, "-C", source_path_parent, "--files-from", tmp_file_path])
 
 
 def create_archive_listing(destination_path, source_name):
