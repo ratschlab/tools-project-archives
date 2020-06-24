@@ -12,7 +12,7 @@ from .encryption import decrypt_archive
 from .constants import REQUIRED_SPACE_MULTIPLIER, COMPRESSED_ARCHIVE_SUFFIX, COMPRESSED_ARCHIVE_HASH_SUFFIX, ENCRYPTED_ARCHIVE_SUFFIX
 
 
-def check_integrity(source_path, deep_flag=False):
+def check_integrity(source_path, deep_flag=False, threads=None):
     archives_with_hashes = get_archives_with_hashes_from_path(source_path)
     is_encrypted = helpers.path_target_is_encrypted(source_path)
 
@@ -23,7 +23,7 @@ def check_integrity(source_path, deep_flag=False):
         print("Integrity check unsuccessful. Archive has been changed since creation.")
         return
 
-    if deep_flag and not deep_integrity_check(archives_with_hashes, is_encrypted):
+    if deep_flag and not deep_integrity_check(archives_with_hashes, is_encrypted, threads):
         logging.warning("Deep integrity check unsuccessful. Archive has been changed since creation.")
         print("Deep integrity check unsuccessful. Archive has been changed since creation.")
         return
@@ -51,7 +51,7 @@ def shallow_integrity_check(archives_with_hashes):
     return True
 
 
-def deep_integrity_check(archives_with_hashes, is_encrypted):
+def deep_integrity_check(archives_with_hashes, is_encrypted, threads):
     # Unpack each archive separately
     for archive in archives_with_hashes:
         archive_file_path = archive[0]
@@ -67,7 +67,7 @@ def deep_integrity_check(archives_with_hashes, is_encrypted):
 
             ensure_sufficient_disk_capacity_for_extraction(archive_file_path, temp_path_string)
 
-            extract_archive(archive_file_path, temp_path)
+            extract_archive(archive_file_path, temp_path, threads)
             # TODO: Again, when extraction runs fast files are not yet readable (listdir) immediately after - fix this
             time.sleep(0.1)
 

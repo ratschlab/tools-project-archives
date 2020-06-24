@@ -110,7 +110,7 @@ def get_number_of_threads_from_env():
     env_variable_threads_number = os.environ.get(env_variable_name)
 
     if not env_variable_threads_number:
-        logging.info(f"Environment variable {env_variable_threads_number} doesn't contain a valid number of threads")
+        logging.info(f"Environment variable {env_variable_name} doesn't contain a valid number of threads")
         return
 
     return env_variable_threads_number

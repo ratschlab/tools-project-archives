@@ -67,6 +67,7 @@ def parse_arguments(args):
     parser_check = subparsers.add_parser("check", help="Check integrity of archive")
     parser_check.add_argument("archive_dir", type=str, help="Select source archive directory or .tar.lz file")
     parser_check.add_argument("-d", "--deep", action="store_true", help="Verify integrity by unpacking archive and hashing each file")
+    parser_check.add_argument("-n", "--threads", type=int, help="Set the number of worker threads, overriding the system's default")
     parser_check.set_defaults(func=handle_check)
 
     return parser.parse_args()
@@ -119,8 +120,9 @@ def handle_list(args):
 def handle_check(args):
     # Path to archive file *.tar.lz
     source_path = Path(args.archive_dir)
-    # TODO: ADD threads option for deep check with extraction
-    check_integrity(source_path, args.deep)
+    threads = helpers.get_threads_from_args_or_environment(args.threads)
+
+    check_integrity(source_path, args.deep, threads)
 
 
 if __name__ == "__main__":
