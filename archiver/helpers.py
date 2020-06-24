@@ -7,6 +7,7 @@ import subprocess
 import logging
 import shutil
 
+from . import helpers
 from .constants import READ_CHUNK_BYTE_SIZE, COMPRESSED_ARCHIVE_SUFFIX, ENCRYPTED_ARCHIVE_SUFFIX
 
 
@@ -193,18 +194,24 @@ def filename_without_extension(path):
     raise ValueError("Unknown file extension")
 
 
-def handle_destination_directory_creation(destination_path, force):
-    if not destination_path.exists():
+def handle_destination_directory_creation(destination_path, force=False):
+    if not destination_path.exists() and destination_path.parent.exists():
         destination_path.mkdir()
         return
 
-    if force:
-        logging.warning("Deleting existing directory: " + destination_path.as_posix())
+    if force and destination_path.exists():
+        logging.warning("Deleting existing directory: " + helpers.get_absolute_path_string(destination_path))
         shutil.rmtree(destination_path)
+
+    if force:
         destination_path.mkdir(parents=True)
         return
 
-    terminate_with_message(f"Path {destination_path.as_posix()} must not exist or use --force to overwrite")
+    if not destination_path.parent.exists():
+        terminate_with_message(f"Directory {helpers.get_absolute_path_string(destination_path.parent)} must exist. Use --force to automatically create missing parents")
+        return
+
+    terminate_with_message(f"Path {helpers.get_absolute_path_string(destination_path)} must not exist. Use --force to override")
 
 
 # MARK: Termination helpers

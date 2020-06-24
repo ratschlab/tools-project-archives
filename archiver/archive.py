@@ -41,8 +41,6 @@ def create_archive(source_path, destination_path, threads=None, encryption_keys=
 
     logging.info(f"Start creating archive for: {helpers.get_absolute_path_string(source_path)}")
 
-    destination_path.mkdir()
-
     if splitting:
         create_split_archive(source_path, destination_path, source_name, int(splitting), threads, encryption_keys, compression, remove_unencrypted)
     else:
