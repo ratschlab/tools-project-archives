@@ -153,8 +153,7 @@ def get_size_of_path(path):
 
 def get_size_of_file(path):
     if not path.is_file():
-        raise ValueError(f"Path {
-get_absolute_path_string(path)} must be a file.")
+        raise ValueError(f"Path {get_absolute_path_string(path)} must be a file.")
 
     return path.stat().st_size
 
