@@ -24,7 +24,7 @@ def extract_archive(source_path, destination_directory_path, partial_extraction_
 
     if is_encrypted:
         decrypt_list_of_archives(archive_files)
-        archive_files = map(lambda path: path.with_suffix(""), archive_files)
+        archive_files = [path.with_suffix("") for path in archive_files]
 
     if partial_extraction_path:
         partial_extraction(archive_files, destination_directory_path, partial_extraction_path)

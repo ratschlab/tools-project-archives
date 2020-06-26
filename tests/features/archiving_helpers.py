@@ -3,7 +3,7 @@ import re
 
 
 def add_prefix_to_list_elements(element_list, prefix):
-    return map(lambda element_content: prefix + element_content, element_list)
+    return [prefix + element_content for element_content in element_list]
 
 
 def compare_text_file_ignoring_order(file_a_path, file_b_path):

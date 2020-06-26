@@ -51,7 +51,7 @@ def decrypt_and_list(archives, subdir_path):
         temp_path = Path(temp_path_string)
 
         decrypt_list_of_archives(archives, temp_path)
-        archives_encrypted = map(lambda path: temp_path / path.with_suffix("").name, archives)
+        archives_encrypted = [temp_path / path.with_suffix("").name for path in archives]
 
         list_archives(archives_encrypted, subdir_path)
 

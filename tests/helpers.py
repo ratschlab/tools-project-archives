@@ -4,6 +4,7 @@ import os
 
 # MARK: Fixtures
 
+
 @ pytest.fixture(scope="session")
 def generate_splitting_directory(tmpdir_factory):
     """Programmatically generate folder for splitting"""
@@ -60,8 +61,8 @@ def create_file_with_size(path, byte_size):
 
 def compare_nested_array_content_ignoring_order(array_a, array_b):
     """Works for arrays that can be sorted"""
-    array_a_sorted_inner = map(lambda element: sorted(element), array_a)
-    array_b_sorted_inner = map(lambda element: sorted(element), array_b)
+    array_a_sorted_inner = [sorted(element) for element in array_a]
+    array_b_sorted_inner = [sorted(element) for element in array_b]
 
     assert sorted(array_a_sorted_inner) == sorted(array_b_sorted_inner)
 
