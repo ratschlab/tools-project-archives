@@ -106,6 +106,13 @@ def get_size_of_path(path):
     if path.is_dir():
         return get_size_of_directory(path)
 
+    return get_size_of_file(path)
+
+
+def get_size_of_file(path):
+    if not path.is_file():
+        raise ValueError(f"Path {helpers.get_absolute_path_string(path)} must be a file.")
+
     return path.stat().st_size
 
 

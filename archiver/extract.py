@@ -6,7 +6,7 @@ import logging
 
 from . import helpers
 from .encryption import decrypt_list_of_archives
-from .constants import COMPRESSED_ARCHIVE_SUFFIX, ENCRYPTED_ARCHIVE_SUFFIX
+from .constants import COMPRESSED_ARCHIVE_SUFFIX, ENCRYPTED_ARCHIVE_SUFFIX, REQUIRED_SPACE_MULTIPLIER
 
 # TODO: Handle subprocess exceptions
 # TODO: What should happen with the archive after extraction?
@@ -15,7 +15,7 @@ from .constants import COMPRESSED_ARCHIVE_SUFFIX, ENCRYPTED_ARCHIVE_SUFFIX
 # Ensure gpg key is available
 
 
-def extract_archive(source_path, destination_directory_path, partial_extraction_path=None, threads=None, force=False):
+def extract_archive(source_path, destination_directory_path, partial_extraction_path=None, threads=None, force=False, extract_at_destination=False):
     # Create destination folder if nonexistent or overwrite if --force option used
     helpers.handle_destination_directory_creation(destination_directory_path, force)
 
@@ -23,8 +23,20 @@ def extract_archive(source_path, destination_directory_path, partial_extraction_
     archive_files = helpers.get_archives_from_path(source_path, is_encrypted)
 
     if is_encrypted:
-        decrypt_list_of_archives(archive_files)
-        archive_files = map(lambda path: path.with_suffix(""), archive_files)
+        # It might make sense to check that enough space is available for:
+        # archive encryption (encrypted archive size * multiplier) AND unencrypted archive size -> hard to estimate on encrypted archive
+        # Workaround would be to require enough space for  "encrypted archive size" * 2
+        ensure_sufficient_disk_capacity_for_encryption(archive_files, destination_directory_path)
+
+        # Only pass destination path if encryption result was stored at destination
+        destination_path = destination_directory_path if extract_at_destination else None
+
+        decrypt_list_of_archives(archive_files, destination_path)
+        archive_files = get_archive_names_after_encryption(archive_files, destination_path)
+
+    # Temporary workaround until #16 is fixed
+    archive_files = list(archive_files)
+    ensure_sufficient_disk_capacity_for_extraction(archive_files, destination_directory_path)
 
     if partial_extraction_path:
         partial_extraction(archive_files, destination_directory_path, partial_extraction_path)
@@ -62,3 +74,33 @@ def partial_extraction(archive_file_paths, destination_directory_path, partial_e
         subprocess.run(["tar", "-xvf", archive_path, "-C", destination_directory_path, partial_extraction_path])
 
         logging.info(f"Extracted {partial_extraction_path} from {archive_path.stem}")
+
+
+def get_archive_names_after_encryption(archive_files, destination_path=None):
+    if destination_path:
+        return map(lambda path: destination_path / path.with_suffix("").name, archive_files)
+
+    return map(lambda path: path.with_suffix(""), archive_files)
+
+
+def ensure_sufficient_disk_capacity_for_extraction(archive_files, extraction_path):
+    archives_total_uncompressed_byte_size = 0
+    available_bytes = helpers.get_device_available_capacity_from_path(extraction_path)
+
+    for archive_path in archive_files:
+        archives_total_uncompressed_byte_size += helpers.get_uncompressed_archive_size_in_bytes(archive_path)
+
+    # multiply by REQUIRED_SPACE_MULTIPLIER for margin
+    if available_bytes < archives_total_uncompressed_byte_size * REQUIRED_SPACE_MULTIPLIER:
+        helpers.terminate_with_message("Not enough space available for archive extraction.")
+
+
+def ensure_sufficient_disk_capacity_for_encryption(archive_files, extraction_path):
+    total_archive_byte_size = 0
+    available_bytes = helpers.get_device_available_capacity_from_path(extraction_path)
+
+    for archive_path in archive_files:
+        total_archive_byte_size += helpers.get_size_of_file(archive_path)
+
+    if available_bytes < total_archive_byte_size * REQUIRED_SPACE_MULTIPLIER:
+        helpers.terminate_with_message("Not enough space available for archive encryption.")
