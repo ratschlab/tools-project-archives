@@ -147,21 +147,17 @@ def test_integrity_check_deep_symlink(capsys):
 # MARK: Helpers
 
 def assert_successful_deep_check(archive_path, capsys):
-    check_integrity(archive_path, DEEP)
-
-    output = capsys.readouterr().out
-
-    output.startswith("Starting integrity check...") and output.endswith("Deep integrity check successful\n")
+    expected_output = "Deep integrity check successful\n"
+    assert_integrity_check_with_output(archive_path, expected_output, capsys, DEEP)
 
 
 def assert_successful_shallow_check(archive_path, capsys):
     expected_output = "Integrity check successful\n"
-
     assert_integrity_check_with_output(archive_path, expected_output, capsys)
 
 
-def assert_integrity_check_with_output(archive_path, expected_output, capsys):
-    check_integrity(archive_path)
+def assert_integrity_check_with_output(archive_path, expected_output, capsys, deep=False):
+    check_integrity(archive_path, deep)
 
     assert capsys.readouterr().out == expected_output
 

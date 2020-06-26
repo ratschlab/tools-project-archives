@@ -67,7 +67,8 @@ def deep_integrity_check(archives_with_hashes, is_encrypted, threads):
 
             ensure_sufficient_disk_capacity_for_extraction(archive_file_path, temp_path_string)
 
-            extract_archive(archive_file_path, temp_path, threads)
+            extract_archive(archive_file_path, temp_path, threads=threads)
+
             # TODO: Again, when extraction runs fast files are not yet readable (listdir) immediately after - fix this
             time.sleep(0.1)
 
