@@ -47,6 +47,7 @@ def parse_arguments(args):
     parser_encrypt.add_argument("source", type=str, help="Existing archive directory or .tar.lz file")
     parser_encrypt.add_argument("-k", "--key", type=str, action="append", required=True, help="Path to public key which will be used for encryption. Can be used more than once.")
     parser_encrypt.add_argument("-r", "--remove", action="store_true", default=False, help="Remove unencrypted archive after encrypted archive has been created and stored.")
+    parser_encrypt.add_argument("-e", "--reencrypt", action="store_true", default=False, help="Reencrypt already encrypted archive with a new set of keys. Only newly specified keys will have access.")
     parser_encrypt.set_defaults(func=handle_encryption)
 
     # Decryption parser
@@ -104,8 +105,15 @@ def handle_archive(args):
 
 def handle_encryption(args):
     source_path = Path(args.source)
+    remove_unencrypted = args.remove
 
-    encrypt_existing_archive(source_path, args.key, args.remove)
+    if args.reencrypt:
+        # Always remove the unencrypted archive when --reencrypt is used since there was no unencrypted archive present
+        remove_unencrypted = True
+        # Encrypted archive will be removed in any case, since new one will be created
+        decrypt_existing_archive(source_path, remove_unencrypted)
+
+    encrypt_existing_archive(source_path, args.key, remove_unencrypted)
 
 
 def handle_decryption(args):
