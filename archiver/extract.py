@@ -35,8 +35,6 @@ def extract_archive(source_path, destination_directory_path, partial_extraction_
         decrypt_list_of_archives(archive_files, destination_path)
         archive_files = get_archive_names_after_encryption(archive_files, destination_path)
 
-    # Temporary workaround until #16 is fixed
-    archive_files = list(archive_files)
     ensure_sufficient_disk_capacity_for_extraction(archive_files, destination_directory_path)
 
     if partial_extraction_path:

@@ -135,8 +135,8 @@ def create_tar_archive(source_path, destination_path, source_name, archive_list=
 
 
 def create_tar_archive_from_list(source_path, archive_list, destination_file_path, source_path_parent):
-    relative_archive_list = map(lambda path: path.absolute().relative_to(source_path.absolute().parent), archive_list)
-    files_string_list = map(lambda path: path.as_posix(), relative_archive_list)
+    relative_archive_list = [path.absolute().relative_to(source_path.absolute().parent) for path in archive_list]
+    files_string_list = [path.as_posix() for path in relative_archive_list]
 
     # Using TemporaryDirectory instead of NamedTemporaryFile to have full control over file creation
     with tempfile.TemporaryDirectory() as temp_path_string:
