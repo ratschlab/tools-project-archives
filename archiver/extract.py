@@ -79,7 +79,7 @@ def get_archive_names_after_encryption(archive_files, destination_path=None):
     if destination_path:
         return [destination_path / path.with_suffix("").name for path in archive_files]
 
-    return map(lambda path: path.with_suffix(""), archive_files)
+    return [path.with_suffix("") for path in archive_files]
 
 
 def ensure_sufficient_disk_capacity_for_extraction(archive_files, extraction_path):
