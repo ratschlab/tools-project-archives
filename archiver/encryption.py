@@ -37,12 +37,12 @@ def encrypt_archive(archive_path, output_path, encryption_keys, delete=False):
     logging.info(f"Encryption of archive {archive_path} complete.")
 
 
-def decrypt_list_of_archives(archives, target_directory=None):
+def decrypt_list_of_archives(archives, target_directory=None, delete=False):
     for archive_path in archives:
-        decrypt_archive(archive_path, target_directory)
+        decrypt_archive(archive_path, target_directory, delete)
 
 
-def decrypt_archive(archive_path, target_directory):
+def decrypt_archive(archive_path, target_directory, delete=False):
     logging.info("Decrypting archive: " + helpers.get_absolute_path_string(archive_path))
 
     if target_directory:
@@ -54,6 +54,9 @@ def decrypt_archive(archive_path, target_directory):
 
     try:
         subprocess.check_output(["gpg", "--output", output_path, "--decrypt", archive_path.absolute()])
+        if delete:
+            logging.debug("Deleting encrypted archive: " + helpers.get_absolute_path_string(archive_path))
+            os.remove(archive_path)
     except subprocess.CalledProcessError:
         helpers.terminate_with_message("Decryption of archive failed. Make sure the necessary private key added to GPG.")
 
