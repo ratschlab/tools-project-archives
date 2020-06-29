@@ -28,7 +28,8 @@ def extract_archive(source_path, destination_directory_path, partial_extraction_
         # Workaround would be to require enough space for  "encrypted archive size" * 2
         ensure_sufficient_disk_capacity_for_encryption(archive_files, destination_directory_path)
 
-        # Only pass destination path if encryption result was stored at destination
+        # Only pass destination path if encryption output was stored at destination
+        # For example: deep integrity check should decrypt the archive in the tmp folder, in order to not touch the archive folder
         destination_path = destination_directory_path if extract_at_destination else None
 
         decrypt_list_of_archives(archive_files, destination_path)
@@ -78,7 +79,7 @@ def partial_extraction(archive_file_paths, destination_directory_path, partial_e
 
 def get_archive_names_after_encryption(archive_files, destination_path=None):
     if destination_path:
-        return map(lambda path: destination_path / path.with_suffix("").name, archive_files)
+        return [destination_path / path.with_suffix("").name for path in archive_files]
 
     return map(lambda path: path.with_suffix(""), archive_files)
 
