@@ -7,9 +7,10 @@ from . import helpers
 from .constants import REQUIRED_SPACE_MULTIPLIER, COMPRESSED_ARCHIVE_SUFFIX, ENCRYPTION_ALGORITHM
 
 
-def encrypt_list_of_archives(archive_list, encryption_keys, delete=False):
+def encrypt_list_of_archives(archive_list, encryption_keys, delete=False, output_dir=None):
     for archive_path in archive_list:
-        output_path = helpers.add_suffix_to_path(archive_path, ".gpg")
+        output_file = output_dir / archive_path.name if output_dir else archive_path
+        output_path = helpers.add_suffix_to_path(output_file, ".gpg")
         encrypt_archive(archive_path, output_path, encryption_keys, delete)
         helpers.create_and_write_file_hash(output_path)
 

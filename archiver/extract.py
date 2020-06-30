@@ -15,20 +15,23 @@ from .constants import COMPRESSED_ARCHIVE_SUFFIX, ENCRYPTED_ARCHIVE_SUFFIX, REQU
 # Ensure gpg key is available
 
 
-def decrypt_existing_archive(archive_path, remove_unencrypted=False):
+def decrypt_existing_archive(archive_path, destination_dir=None, remove_unencrypted=False, force=False):
+    if destination_dir:
+        helpers.handle_destination_directory_creation(destination_dir, force)
+
     if archive_path.is_dir():
         if helpers.get_files_with_type_in_directory(archive_path, COMPRESSED_ARCHIVE_SUFFIX):
             helpers.terminate_with_message("Unencrypted archvies present. Doing nothing.")
 
         archive_files = helpers.get_files_with_type_in_directory_or_terminate(archive_path, ENCRYPTED_ARCHIVE_SUFFIX)
 
-        decrypt_list_of_archives(archive_files, delete=remove_unencrypted)
+        decrypt_list_of_archives(archive_files, destination_dir, delete=remove_unencrypted)
         return
 
     helpers.terminate_if_path_not_file_of_type(archive_path, ENCRYPTED_ARCHIVE_SUFFIX)
 
     logging.info("Start decryption of existing archive " + helpers.get_absolute_path_string(archive_path))
-    decrypt_list_of_archives([archive_path], delete=remove_unencrypted)
+    decrypt_list_of_archives([archive_path], destination_dir, delete=remove_unencrypted)
 
 
 def extract_archive(source_path, destination_directory_path, partial_extraction_path=None, threads=None, force=False, extract_at_destination=False):
