@@ -9,7 +9,7 @@ import logging
 from . import helpers
 from .extract import extract_archive
 from .encryption import decrypt_archive
-from .constants import REQUIRED_SPACE_MULTIPLIER, COMPRESSED_ARCHIVE_SUFFIX, COMPRESSED_ARCHIVE_HASH_SUFFIX, ENCRYPTED_ARCHIVE_SUFFIX
+from .constants import COMPRESSED_ARCHIVE_SUFFIX, COMPRESSED_ARCHIVE_HASH_SUFFIX, ENCRYPTED_ARCHIVE_SUFFIX
 
 
 def check_integrity(source_path, deep_flag=False, threads=None):
@@ -59,15 +59,9 @@ def deep_integrity_check(archives_with_hashes, is_encrypted, threads):
 
         # Create temporary directory to unpack archive
         with tempfile.TemporaryDirectory() as temp_path_string:
-            temp_path = Path(temp_path_string)
+            temp_path = Path(temp_path_string) / "extraction-folder"
 
-            if is_encrypted:
-                decrypt_archive(archive_file_path, temp_path)
-                archive_file_path = temp_path / archive_file_path.with_suffix("").name
-
-            ensure_sufficient_disk_capacity_for_extraction(archive_file_path, temp_path_string)
-
-            extract_archive(archive_file_path, temp_path, threads=threads)
+            extract_archive(archive_file_path, temp_path, threads=threads, extract_at_destination=True)
 
             # TODO: Again, when extraction runs fast files are not yet readable (listdir) immediately after - fix this
             time.sleep(0.1)
@@ -79,15 +73,6 @@ def deep_integrity_check(archives_with_hashes, is_encrypted, threads):
 
 
 # MARK: Helpers
-
-def ensure_sufficient_disk_capacity_for_extraction(archive_file_path, extraction_path):
-    archive_uncompressed_byte_size = helpers.get_uncompressed_archive_size_in_bytes(archive_file_path)
-    available_bytes = helpers.get_device_available_capacity_from_path(extraction_path)
-
-    # multiply by REQUIRED_SPACE_MULTIPLIER for margin
-    if available_bytes < archive_uncompressed_byte_size * REQUIRED_SPACE_MULTIPLIER:
-        helpers.terminate_with_message("Not enough space available for deep integrity check")
-
 
 def get_extracted_archive_path_or_terminate(temp_path):
     # generate hash listing using existing method and compare with test-folder.md5

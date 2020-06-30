@@ -5,6 +5,7 @@ import hashlib
 from pathlib import Path
 import subprocess
 import logging
+import shutil
 import multiprocessing
 
 from .constants import READ_CHUNK_BYTE_SIZE, COMPRESSED_ARCHIVE_SUFFIX, ENCRYPTED_ARCHIVE_SUFFIX, MAX_NUMBER_CPUS, ENV_VAR_MAPPER_MAX_CPUS
@@ -147,6 +148,13 @@ def get_size_of_path(path):
     if path.is_dir():
         return get_size_of_directory(path)
 
+    return get_size_of_file(path)
+
+
+def get_size_of_file(path):
+    if not path.is_file():
+        raise ValueError(f"Path {get_absolute_path_string(path)} must be a file.")
+
     return path.stat().st_size
 
 
@@ -233,6 +241,26 @@ def filename_without_extension(path):
         return name[:-len(COMPRESSED_ARCHIVE_SUFFIX)]
 
     raise ValueError("Unknown file extension")
+
+
+def handle_destination_directory_creation(destination_path, force=False):
+    if not destination_path.exists() and destination_path.parent.exists():
+        destination_path.mkdir()
+        return
+
+    if force and destination_path.exists():
+        logging.warning("Deleting existing directory: " + get_absolute_path_string(destination_path))
+        shutil.rmtree(destination_path)
+
+    if force:
+        destination_path.mkdir(parents=True)
+        return
+
+    if not destination_path.parent.exists():
+        terminate_with_message(f"Directory {get_absolute_path_string(destination_path.parent)} must exist. Use --force to automatically create missing parents")
+        return
+
+    terminate_with_message(f"Path {get_absolute_path_string(destination_path)} must not exist. Use --force to override")
 
 
 # MARK: Termination helpers
