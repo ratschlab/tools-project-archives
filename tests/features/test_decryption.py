@@ -190,6 +190,8 @@ def test_decrypt_archive_split(tmp_path, setup_gpg):
     assert valid_md5_hash_in_file(copied_archive_path.joinpath(FOLDER_NAME + ".part2.tar.md5"))
     assert valid_md5_hash_in_file(copied_archive_path.joinpath(FOLDER_NAME + ".part1.tar.lz.md5"))
     assert valid_md5_hash_in_file(copied_archive_path.joinpath(FOLDER_NAME + ".part2.tar.lz.md5"))
+    assert valid_md5_hash_in_file(copied_archive_path.joinpath(FOLDER_NAME + ".part1.tar.lz.gpg.md5"))
+    assert valid_md5_hash_in_file(copied_archive_path.joinpath(FOLDER_NAME + ".part2.tar.lz.gpg.md5"))
 
     # Test md5 of archive content
     expected_hash_file_paths = [archive_path.joinpath(FOLDER_NAME + ".part1.md5"), archive_path.joinpath(FOLDER_NAME + ".part2.md5")]
