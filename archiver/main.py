@@ -6,7 +6,7 @@ from pathlib import Path
 import logging
 
 from .archive import create_archive, encrypt_existing_archive
-from .extract import extract_archive
+from .extract import extract_archive, decrypt_existing_archive
 from .listing import create_listing
 from .integrity import check_integrity
 from . import helpers
@@ -43,11 +43,22 @@ def parse_arguments(args):
     parser_archive.set_defaults(func=handle_archive)
 
     # Encryption parser
-    parser_encrypt = subparsers.add_parser("encrypt", help="Encrypt existing archive")
+    parser_encrypt = subparsers.add_parser("encrypt", help="Encrypt existing unencrypted archive")
     parser_encrypt.add_argument("source", type=str, help="Existing archive directory or .tar.lz file")
+    parser_encrypt.add_argument("destination", type=str, nargs="?", help="Specify destination where encrypted archive should be stored")
     parser_encrypt.add_argument("-k", "--key", type=str, action="append", required=True, help="Path to public key which will be used for encryption. Can be used more than once.")
     parser_encrypt.add_argument("-r", "--remove", action="store_true", default=False, help="Remove unencrypted archive after encrypted archive has been created and stored.")
+    parser_encrypt.add_argument("-e", "--reencrypt", action="store_true", default=False, help="Reencrypt already encrypted archive with a new set of keys. Only newly specified keys will have access.")
+    parser_encrypt.add_argument("-f", "--force", action="store_true", default=False, help="Overwrite output directory if it already exists and create parents of folder if they don't exist.")
     parser_encrypt.set_defaults(func=handle_encryption)
+
+    # Decryption parser
+    parser_decrypt = subparsers.add_parser("decrypt", help="Decrypt existing encrypted archive")
+    parser_decrypt.add_argument("source", type=str, help="Existing archive directory or .tar.lz file")
+    parser_decrypt.add_argument("destination", type=str, nargs="?", help="Specify destination where unencrypted archive should be stored")
+    parser_decrypt.add_argument("-r", "--remove", action="store_true", default=False, help="Remove encrypted archive after unencrypted archive has been created and stored.")
+    parser_decrypt.add_argument("-f", "--force", action="store_true", default=False, help="Overwrite output directory if it already exists and create parents of folder if they don't exist.")
+    parser_decrypt.set_defaults(func=handle_decryption)
 
     # Extraction parser
     parser_extract = subparsers.add_parser("extract", help="Extract archive")
@@ -98,8 +109,24 @@ def handle_archive(args):
 
 def handle_encryption(args):
     source_path = Path(args.source)
+    destination_path = Path(args.destination) if args.destination else None
 
-    encrypt_existing_archive(source_path, args.key, args.remove)
+    remove_unencrypted = args.remove
+
+    if args.reencrypt:
+        # Always remove the unencrypted archive when --reencrypt is used since there was no unencrypted archive present
+        remove_unencrypted = True
+        # Encrypted archive will be removed in any case, since new one will be created
+        decrypt_existing_archive(source_path, remove_unencrypted=True)
+
+    encrypt_existing_archive(source_path, args.key, destination_path, remove_unencrypted, args.force)
+
+
+def handle_decryption(args):
+    source_path = Path(args.source)
+    destination_path = Path(args.destination) if args.destination else None
+
+    decrypt_existing_archive(source_path, destination_path, args.remove, args.force)
 
 
 def handle_extract(args):

@@ -11,8 +11,11 @@ from .encryption import encrypt_list_of_archives
 from .constants import COMPRESSED_ARCHIVE_SUFFIX, ENCRYPTED_ARCHIVE_SUFFIX
 
 
-def encrypt_existing_archive(archive_path, encryption_keys, remove_unencrypted=False):
+def encrypt_existing_archive(archive_path, encryption_keys, destination_dir=None, remove_unencrypted=False, force=False):
     helpers.encryption_keys_must_exist(encryption_keys)
+
+    if destination_dir:
+        helpers.handle_destination_directory_creation(destination_dir, force)
 
     if archive_path.is_dir():
         if helpers.get_files_with_type_in_directory(archive_path, ENCRYPTED_ARCHIVE_SUFFIX):
@@ -20,13 +23,13 @@ def encrypt_existing_archive(archive_path, encryption_keys, remove_unencrypted=F
 
         archive_files = helpers.get_files_with_type_in_directory_or_terminate(archive_path, COMPRESSED_ARCHIVE_SUFFIX)
 
-        encrypt_list_of_archives(archive_files, encryption_keys, remove_unencrypted)
+        encrypt_list_of_archives(archive_files, encryption_keys, remove_unencrypted, destination_dir)
         return
 
     helpers.terminate_if_path_not_file_of_type(archive_path, COMPRESSED_ARCHIVE_SUFFIX)
 
     logging.info("Start encryption of existing archive " + helpers.get_absolute_path_string(archive_path))
-    encrypt_list_of_archives([archive_path], encryption_keys, remove_unencrypted)
+    encrypt_list_of_archives([archive_path], encryption_keys, remove_unencrypted, destination_dir)
 
 
 def create_archive(source_path, destination_path, threads=None, encryption_keys=None, compression=6, splitting=None, remove_unencrypted=False, force=False):
