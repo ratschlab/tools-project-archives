@@ -59,15 +59,18 @@ def create_file_with_size(path, byte_size):
         file.write(b"\0" * multiplier)
 
 
-def compare_nested_array_content_ignoring_order(array_a, array_b):
-    """Works for arrays that can be sorted"""
-    array_a_sorted_inner = [sorted(element) for element in array_a]
-    array_b_sorted_inner = [sorted(element) for element in array_b]
+def flatten_nested_list(nested_list):
+    # Could be written as a list nested list comprehension, but this is more readable
+    flat_list = []
 
-    assert sorted(array_a_sorted_inner) == sorted(array_b_sorted_inner)
+    for sublist in nested_list:
+        for element in sublist:
+            flat_list.append(element)
+
+    return flat_list
 
 
-def compare_array_content_ignoring_order(array_a, array_b):
+def compare_list_content_ignoring_order(array_a, array_b):
     """Works for arrays that can be sorted"""
     assert sorted(array_a) == sorted(array_b)
 

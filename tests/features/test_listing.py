@@ -3,7 +3,7 @@ import os
 from pathlib import Path
 
 from archiver.listing import create_listing
-from tests.helpers import get_directory_with_name, get_listing_with_name, compare_array_content_ignoring_order
+from tests.helpers import get_directory_with_name, get_listing_with_name, compare_list_content_ignoring_order
 
 DEEP = True
 
@@ -195,7 +195,7 @@ def compare_listing_text(listing_a, listing_b):
     listing_b_path_array = get_array_of_last_multiline_text_parts(listing_b)
 
     # Assertion helper
-    compare_array_content_ignoring_order(listing_a_path_array, listing_b_path_array)
+    compare_list_content_ignoring_order(listing_a_path_array, listing_b_path_array)
 
 
 def get_array_of_last_multiline_text_parts(multiline_text):
