@@ -117,7 +117,7 @@ def handle_encryption(args):
         # Always remove the unencrypted archive when --reencrypt is used since there was no unencrypted archive present
         remove_unencrypted = True
         # Encrypted archive will be removed in any case, since new one will be created
-        decrypt_existing_archive(source_path, remove_unencrypted)
+        decrypt_existing_archive(source_path, remove_unencrypted=True)
 
     encrypt_existing_archive(source_path, args.key, destination_path, remove_unencrypted, args.force)
 

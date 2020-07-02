@@ -56,7 +56,7 @@ def decrypt_archive(archive_path, target_directory, delete=False):
     try:
         subprocess.check_output(["gpg", "--output", output_path, "--decrypt", archive_path.absolute()])
         if delete:
-            logging.debug("Deleting encrypted archive: " + helpers.get_absolute_path_string(archive_path))
+            logging.info("Deleting encrypted archive: " + helpers.get_absolute_path_string(archive_path))
             os.remove(archive_path)
     except subprocess.CalledProcessError:
         helpers.terminate_with_message("Decryption of archive failed. Make sure the necessary private key added to GPG.")
