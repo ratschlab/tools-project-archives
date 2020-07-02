@@ -60,7 +60,7 @@ def create_file_with_size(path, byte_size):
 
 
 def flatten_nested_list(nested_list):
-    # Could be written as a list nested list comprehension, but this is more readable
+    # Could be rewritten as a nested list comprehension, but this is more readable
     flat_list = []
 
     for sublist in nested_list:
