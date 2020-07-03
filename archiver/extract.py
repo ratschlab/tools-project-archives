@@ -62,6 +62,7 @@ def extract_archive(source_path, destination_directory_path, partial_extraction_
         uncompress_and_extract(archive_files, destination_directory_path, threads)
 
     logging.info("Archive extracted to: " + helpers.get_absolute_path_string(destination_directory_path))
+    return destination_directory_path / helpers.filename_without_extensions(source_path)
 
 
 def uncompress_and_extract(archive_file_paths, destination_directory_path, threads, encrypted=False):
