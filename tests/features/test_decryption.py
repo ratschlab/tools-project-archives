@@ -26,7 +26,7 @@ def test_decrypt_regular_archive(tmp_path, setup_gpg):
     dir_listing = os.listdir(copied_archive_path)
     expected_listing = [".tar.lst", ".tar.lz.md5", ".md5", ".tar.lz.gpg", ".tar.lz", ".tar.lz.gpg.md5", ".tar.md5"]
     expected_named_listing = add_prefix_to_list_elements(expected_listing, FOLDER_NAME)
-    helpers.compare_array_content_ignoring_order(dir_listing, expected_named_listing)
+    helpers.compare_list_content_ignoring_order(dir_listing, expected_named_listing)
 
     # Test listing of tar
     compare_listing_files([archive_path.joinpath(FOLDER_NAME + ".tar.lst")], [copied_archive_path.joinpath(FOLDER_NAME + ".tar.lst")])
@@ -54,7 +54,7 @@ def test_decrypt_regular_archive_remove_unencrypted(tmp_path, setup_gpg):
     dir_listing = os.listdir(copied_archive_path)
     expected_listing = [".tar.lst", ".tar.lz.md5", ".md5", ".tar.lz", ".tar.lz.gpg.md5", ".tar.md5"]
     expected_named_listing = add_prefix_to_list_elements(expected_listing, FOLDER_NAME)
-    helpers.compare_array_content_ignoring_order(dir_listing, expected_named_listing)
+    helpers.compare_list_content_ignoring_order(dir_listing, expected_named_listing)
 
     # Test listing of tar
     compare_listing_files([archive_path.joinpath(FOLDER_NAME + ".tar.lst")], [copied_archive_path.joinpath(FOLDER_NAME + ".tar.lst")])
@@ -80,7 +80,7 @@ def test_decrypt_regular_archive_to_destination(tmp_path, setup_gpg):
     dir_listing = os.listdir(destination_path)
     expected_listing = [".tar.lz"]
     expected_named_listing = add_prefix_to_list_elements(expected_listing, FOLDER_NAME)
-    helpers.compare_array_content_ignoring_order(dir_listing, expected_named_listing)
+    helpers.compare_list_content_ignoring_order(dir_listing, expected_named_listing)
 
 
 def test_decrypt_regular_archive_error_existing(tmp_path, setup_gpg):
@@ -110,7 +110,7 @@ def test_decrypt_regular_archive_force_override_existing(tmp_path, setup_gpg):
     dir_listing = os.listdir(destination_path)
     expected_listing = [".tar.lz"]
     expected_named_listing = add_prefix_to_list_elements(expected_listing, FOLDER_NAME)
-    helpers.compare_array_content_ignoring_order(dir_listing, expected_named_listing)
+    helpers.compare_list_content_ignoring_order(dir_listing, expected_named_listing)
 
 
 def test_decrypt_regular_file(tmp_path, setup_gpg):
@@ -128,7 +128,7 @@ def test_decrypt_regular_file(tmp_path, setup_gpg):
     dir_listing = os.listdir(copied_archive_path)
     expected_listing = [".tar.lst", ".tar.lz.md5", ".md5", ".tar.lz.gpg", ".tar.lz", ".tar.lz.gpg.md5", ".tar.md5"]
     expected_named_listing = add_prefix_to_list_elements(expected_listing, FOLDER_NAME)
-    helpers.compare_array_content_ignoring_order(dir_listing, expected_named_listing)
+    helpers.compare_list_content_ignoring_order(dir_listing, expected_named_listing)
 
     # Test listing of tar
     compare_listing_files([archive_path.joinpath(FOLDER_NAME + ".tar.lst")], [copied_archive_path.joinpath(FOLDER_NAME + ".tar.lst")])
@@ -155,7 +155,7 @@ def test_decrypt_regular_file_to_destination(tmp_path, setup_gpg):
     dir_listing = os.listdir(destination_path)
     expected_listing = [".tar.lz"]
     expected_named_listing = add_prefix_to_list_elements(expected_listing, FOLDER_NAME)
-    helpers.compare_array_content_ignoring_order(dir_listing, expected_named_listing)
+    helpers.compare_list_content_ignoring_order(dir_listing, expected_named_listing)
 
 
 def test_decrypt_archive_split(tmp_path, setup_gpg):
@@ -178,7 +178,7 @@ def test_decrypt_archive_split(tmp_path, setup_gpg):
     expected_named_listing = add_prefix_to_list_elements(expected_listing, FOLDER_NAME)
 
     # Directory listings
-    helpers.compare_array_content_ignoring_order(dir_listing, expected_named_listing)
+    helpers.compare_list_content_ignoring_order(dir_listing, expected_named_listing)
 
     # Tar listings
     expected_listing_file_paths = [archive_path.joinpath(FOLDER_NAME + ".part1.tar.lst"), archive_path.joinpath(FOLDER_NAME + ".part2.tar.lst")]
@@ -219,7 +219,7 @@ def test_decrypt_archive_split_remove_unencrypted(tmp_path, setup_gpg):
     expected_named_listing = add_prefix_to_list_elements(expected_listing, FOLDER_NAME)
 
     # Directory listings
-    helpers.compare_array_content_ignoring_order(dir_listing, expected_named_listing)
+    helpers.compare_list_content_ignoring_order(dir_listing, expected_named_listing)
 
     # Tar listings
     expected_listing_file_paths = [archive_path.joinpath(FOLDER_NAME + ".part1.tar.lst"), archive_path.joinpath(FOLDER_NAME + ".part2.tar.lst")]
@@ -254,4 +254,4 @@ def test_decrypt_archive_split_to_destination(tmp_path):
     expected_named_listing = add_prefix_to_list_elements(expected_listing, FOLDER_NAME)
 
     # Directory listings
-    helpers.compare_array_content_ignoring_order(dir_listing, expected_named_listing)
+    helpers.compare_list_content_ignoring_order(dir_listing, expected_named_listing)

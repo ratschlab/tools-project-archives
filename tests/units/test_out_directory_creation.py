@@ -17,7 +17,7 @@ def test_create_target_when_nonexistent(tmp_path):
 
     dir_listing = os.listdir(tmp_path)
     expected_listing = ["target-dir", "target-dir-2"]
-    helpers.compare_array_content_ignoring_order(dir_listing, expected_listing)
+    helpers.compare_list_content_ignoring_order(dir_listing, expected_listing)
 
 
 def test_fail_on_existing_target(tmp_path):

@@ -8,7 +8,7 @@ def add_prefix_to_list_elements(element_list, prefix):
 
 def compare_text_file_ignoring_order(file_a_path, file_b_path):
     with open(file_a_path, "r") as file1, open(file_b_path, "r") as file2:
-        helpers.compare_array_content_ignoring_order(file1.readlines(), file2.readlines())
+        helpers.compare_list_content_ignoring_order(file1.readlines(), file2.readlines())
 
 
 def compare_hash_files(expected_path_list, actual_path_list):
@@ -25,7 +25,7 @@ def compare_hash_files(expected_path_list, actual_path_list):
             for line in hash_file:
                 actual_hash_list.append(line.rstrip())
 
-    helpers.compare_array_content_ignoring_order(expected_hash_list, actual_hash_list)
+    helpers.compare_list_content_ignoring_order(expected_hash_list, actual_hash_list)
 
 
 def compare_listing_files(expected_path_list, actual_path_list):
@@ -40,7 +40,7 @@ def compare_listing_files(expected_path_list, actual_path_list):
         with open(path, "r") as listing_file:
             actual_union += get_array_of_last_multiline_text_parts(listing_file.read())
 
-    helpers.compare_array_content_ignoring_order(expected_union, actual_union)
+    helpers.compare_list_content_ignoring_order(expected_union, actual_union)
 
 
 def compare_listing_text(listing_a, listing_b):
@@ -48,7 +48,7 @@ def compare_listing_text(listing_a, listing_b):
     listing_b_path_array = get_array_of_last_multiline_text_parts(listing_b)
 
     # Assertion helper
-    helpers.compare_array_content_ignoring_order(listing_a_path_array, listing_b_path_array)
+    helpers.compare_list_content_ignoring_order(listing_a_path_array, listing_b_path_array)
 
 
 def get_array_of_last_multiline_text_parts(multiline_text):

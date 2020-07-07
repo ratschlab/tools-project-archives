@@ -28,7 +28,7 @@ def test_create_archive(tmp_path):
     expected_named_listing = add_prefix_to_list_elements(expected_listing, FOLDER_NAME)
 
     # Directory listings
-    helpers.compare_array_content_ignoring_order(dir_listing, expected_named_listing)
+    helpers.compare_list_content_ignoring_order(dir_listing, expected_named_listing)
 
     # Test listing of tar
     compare_listing_files([archive_path.joinpath(FOLDER_NAME + ".tar.lst")], [destination_path.joinpath(FOLDER_NAME + ".tar.lst")])
@@ -59,7 +59,7 @@ def test_create_archive_split(tmp_path, generate_splitting_directory):
     expected_named_listing = add_prefix_to_list_elements(expected_listing, FOLDER_NAME)
 
     # Directory listings
-    helpers.compare_array_content_ignoring_order(dir_listing, expected_named_listing)
+    helpers.compare_list_content_ignoring_order(dir_listing, expected_named_listing)
 
     # Tar listings
     expected_listing_file_paths = [archive_path.joinpath(FOLDER_NAME + ".part1.tar.lst"), archive_path.joinpath(FOLDER_NAME + ".part2.tar.lst")]
@@ -98,7 +98,7 @@ def test_create_symlink_archive(tmp_path, caplog):
     expected_named_listing = add_prefix_to_list_elements(expected_listing, FOLDER_NAME)
 
     # Directory listings
-    helpers.compare_array_content_ignoring_order(dir_listing, expected_named_listing)
+    helpers.compare_list_content_ignoring_order(dir_listing, expected_named_listing)
 
     # Test listing of tar
     compare_listing_files([archive_path.joinpath(FOLDER_NAME + ".tar.lst")], [tmp_path.joinpath(FOLDER_NAME + ".tar.lst")])
@@ -130,7 +130,7 @@ def test_create_encrypted_archive(tmp_path):
     dir_listing = os.listdir(tmp_path)
     expected_listing = [".tar.lst", ".tar.lz.md5", ".md5", ".tar.lz.gpg", ".tar.lz.gpg.md5", ".tar.md5"]
     expected_named_listing = add_prefix_to_list_elements(expected_listing, FOLDER_NAME)
-    helpers.compare_array_content_ignoring_order(dir_listing, expected_named_listing)
+    helpers.compare_list_content_ignoring_order(dir_listing, expected_named_listing)
 
     # Test listing of tar
     compare_listing_files([archive_path.joinpath(FOLDER_NAME + ".tar.lst")], [tmp_path.joinpath(FOLDER_NAME + ".tar.lst")])
@@ -163,7 +163,7 @@ def test_create_archive_split_encrypted(tmp_path, generate_splitting_directory):
     expected_listing = [".part1.tar.lst", ".part1.tar.lz.md5", ".part1.md5", ".part1.tar.lz.gpg", ".part1.tar.lz.gpg.md5", ".part1.tar.md5",
                         ".part2.tar.lst", ".part2.tar.lz.md5", ".part2.md5", ".part2.tar.lz.gpg", ".part2.tar.lz.gpg.md5", ".part2.tar.md5"]
     expected_named_listing = add_prefix_to_list_elements(expected_listing, FOLDER_NAME)
-    helpers.compare_array_content_ignoring_order(dir_listing, expected_named_listing)
+    helpers.compare_list_content_ignoring_order(dir_listing, expected_named_listing)
 
     # Tar listings
     expected_listing_file_paths = [archive_path.joinpath(FOLDER_NAME + ".part1.tar.lst"), archive_path.joinpath(FOLDER_NAME + ".part2.tar.lst")]
