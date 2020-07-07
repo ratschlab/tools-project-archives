@@ -23,6 +23,12 @@ SPLIT_UNENCRYPTED_LISTINGS = ['.part1.tar.lst', '.part1.tar.lz.md5', '.part1.md5
 SPLIT_ENCRYPTED_LISTINGS = [".part1.tar.lst", ".part1.tar.lz.md5", ".part1.md5", ".part1.tar.lz.gpg", ".part1.tar.lz.gpg.md5", ".part1.tar.md5",
                             ".part2.tar.lst", ".part2.tar.lz.md5", ".part2.md5", ".part2.tar.lz.gpg", ".part2.tar.lz.gpg.md5", ".part2.tar.md5"]
 
+HASH_SUFFIX = [".md5"]
+SPLIT_HASH_SUFFIX = [".part1.md5", ".part2.md5"]
+
+CONTENT_LISTING = [".tar.lst"]
+SPLIT_CONTENT_LISTING = [".part1.tar.lst", ".part2.tar.lst"]
+
 
 def test_create_archive(tmp_path):
     folder_name = "test-folder"
@@ -44,7 +50,7 @@ def test_create_archive_split(tmp_path, generate_splitting_directory):
     destination_path = tmp_path / "name-of-destination-folder"
 
     create_archive(source_path, destination_path, compression=6, splitting=max_size)
-    assert_successful_split_archive_creation(destination_path, archive_path, folder_name)
+    assert_successful_archive_creation(destination_path, archive_path, folder_name, split=True)
 
 
 def test_create_symlink_archive(tmp_path, caplog):
@@ -83,44 +89,35 @@ def test_create_archive_split_encrypted(tmp_path, generate_splitting_directory):
     keys = get_public_key_paths()
 
     create_archive(source_path, destination_path, encryption_keys=keys, compression=6, remove_unencrypted=True, splitting=max_size)
-    assert_successful_split_archive_creation(destination_path, archive_path, folder_name, encrypted=True)
+    assert_successful_archive_creation(destination_path, archive_path, folder_name, split=True, encrypted=True)
 
 
 # MARK: Helpers
 
-def assert_successful_archive_creation(destination_path, archive_path, folder_name, encrypted=False):
-    expected_listing = ENCRYPTED_LISTING if encrypted else UNENCRYPTED_LISTING
+def assert_successful_archive_creation(destination_path, archive_path, folder_name, split=False, encrypted=False):
+    if split:
+        expected_listing = SPLIT_ENCRYPTED_LISTINGS if encrypted else SPLIT_UNENCRYPTED_LISTINGS
+        hash_filenames = SPLIT_ENCRYPTED_HASH_FILENAMES if encrypted else SPLIT_UNENCRYPTED_HASH_FILENAMES
+    else:
+        expected_listing = ENCRYPTED_LISTING if encrypted else UNENCRYPTED_LISTING
+        hash_filenames = ENCRYPTED_HASH_FILENAMES if encrypted else UNENCRYPTED_HASH_FILENAMES
 
     dir_listing = os.listdir(destination_path)
     expected_named_listing = add_prefix_to_list_elements(expected_listing, folder_name)
     helpers.compare_list_content_ignoring_order(dir_listing, expected_named_listing)
 
-    compare_listing_files([archive_path / (folder_name + ".tar.lst")], [destination_path / (folder_name + ".tar.lst")])
-
-    hash_filenames = ENCRYPTED_HASH_FILENAMES if encrypted else UNENCRYPTED_HASH_FILENAMES
-    hash_file_paths = create_full_filename_path(hash_filenames, destination_path, folder_name)
-    assert_hashes_in_file_list_valid(hash_file_paths)
-
-    compare_text_file_ignoring_order(archive_path / (folder_name + ".md5"), destination_path / (folder_name + ".md5"))
-
-
-def assert_successful_split_archive_creation(destination_path, archive_path, folder_name, encrypted=False):
-    expected_listing = SPLIT_ENCRYPTED_LISTINGS if encrypted else SPLIT_UNENCRYPTED_LISTINGS
-
-    dir_listing = os.listdir(destination_path)
-    expected_named_listing = add_prefix_to_list_elements(expected_listing, folder_name)
-    helpers.compare_list_content_ignoring_order(dir_listing, expected_named_listing)
-
-    expected_listing_file_paths = [archive_path / (folder_name + ".part1.tar.lst"), archive_path / (folder_name + ".part2.tar.lst")]
-    actual_listing_file_paths = [destination_path / (folder_name + ".part1.tar.lst"), destination_path / (folder_name + ".part2.tar.lst")]
+    listing = SPLIT_CONTENT_LISTING if split else CONTENT_LISTING
+    expected_listing_file_paths = create_full_filename_path(listing, archive_path, folder_name)
+    actual_listing_file_paths = create_full_filename_path(listing, archive_path, folder_name)
     compare_listing_files(expected_listing_file_paths, actual_listing_file_paths)
 
-    hash_filenames = SPLIT_ENCRYPTED_HASH_FILENAMES if encrypted else SPLIT_UNENCRYPTED_HASH_FILENAMES
     hash_file_paths = create_full_filename_path(hash_filenames, destination_path, folder_name)
     assert_hashes_in_file_list_valid(hash_file_paths)
 
-    expected_hash_file_paths = [archive_path / (folder_name + ".part1.md5"), archive_path / (folder_name + ".part2.md5")]
-    actual_hash_file_paths = [destination_path / (folder_name + ".part1.md5"), destination_path / (folder_name + ".part2.md5")]
+    suffix = SPLIT_HASH_SUFFIX if split else HASH_SUFFIX
+
+    expected_hash_file_paths = create_full_filename_path(suffix, archive_path, folder_name)
+    actual_hash_file_paths = create_full_filename_path(suffix, destination_path, folder_name)
     compare_hash_files(expected_hash_file_paths, actual_hash_file_paths)
 
 
