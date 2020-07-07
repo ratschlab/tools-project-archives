@@ -60,13 +60,12 @@ def deep_integrity_check(archives_with_hashes, is_encrypted, threads):
         # Create temporary directory to unpack archive
         with tempfile.TemporaryDirectory() as temp_path_string:
             temp_path = Path(temp_path_string) / "extraction-folder"
-
-            extract_archive(archive_file_path, temp_path, threads=threads, extract_at_destination=True)
+            archive_content_path = extract_archive(archive_file_path, temp_path, threads=threads, extract_at_destination=True)
 
             # TODO: Again, when extraction runs fast files are not yet readable (listdir) immediately after - fix this
             time.sleep(0.1)
 
-            archive_content_path = get_extracted_archive_path_or_terminate(temp_path)
+            terminate_if_extracted_archive_not_existing(archive_content_path)
             hash_result = helpers.hash_listing_for_files_in_folder(archive_content_path)
 
             return compare_archive_listing_hashes(hash_result, expected_listing_hash_path)
@@ -74,12 +73,9 @@ def deep_integrity_check(archives_with_hashes, is_encrypted, threads):
 
 # MARK: Helpers
 
-def get_extracted_archive_path_or_terminate(temp_path):
+def terminate_if_extracted_archive_not_existing(extracted_archive):
     # generate hash listing using existing method and compare with test-folder.md5
-    try:
-        archive_content = os.listdir(temp_path)[0]
-        return temp_path.joinpath(archive_content)
-    except:
+    if not extracted_archive.is_dir():
         helpers.terminate_with_message("Extraction of archive for deep integrity check failed")
 
 
@@ -134,7 +130,7 @@ def get_hashes_for_archive(archive_path):
     hash_file_path = archive_path.parent / (archive_path.name + ".md5")
     helpers.terminate_if_path_nonexistent(hash_file_path)
 
-    hash_listing_path = archive_path.parent / (helpers.filename_without_extension(archive_path) + ".md5")
+    hash_listing_path = archive_path.parent / (helpers.filename_without_archive_extensions(archive_path) + ".md5")
     helpers.terminate_if_path_nonexistent(hash_listing_path)
 
     return [(archive_file_path, hash_file_path, hash_listing_path)]
@@ -157,7 +153,7 @@ def get_archives_with_hashes_from_directory(source_path):
         hash_path = archive.parent / (archive.name + ".md5")
         helpers.terminate_if_path_nonexistent(hash_path)
 
-        hash_listing_path = Path(archive.parent) / (helpers.filename_without_extension(archive) + ".md5")
+        hash_listing_path = Path(archive.parent) / (helpers.filename_without_archive_extensions(archive) + ".md5")
         helpers.terminate_if_path_nonexistent(hash_listing_path)
 
         archive_with_hash_path = (archive, hash_path, hash_listing_path)
