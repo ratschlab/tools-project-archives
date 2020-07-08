@@ -17,7 +17,7 @@ def test_create_archive(tmp_path):
     destination_path = tmp_path / "name-of-destination-folder"
 
     create_archive(folder_path, destination_path, compression=5)
-    assert_successful_archive_creation(destination_path, archive_path, folder_name)
+    assert_successful_archive_creation(destination_path, archive_path, folder_name, unencrypted="all")
 
 
 def test_create_archive_split(tmp_path, generate_splitting_directory):
@@ -29,7 +29,7 @@ def test_create_archive_split(tmp_path, generate_splitting_directory):
     destination_path = tmp_path / "name-of-destination-folder"
 
     create_archive(source_path, destination_path, compression=6, splitting=max_size)
-    assert_successful_archive_creation(destination_path, archive_path, folder_name, split=2)
+    assert_successful_archive_creation(destination_path, archive_path, folder_name, split=2, unencrypted="all")
 
 
 def test_create_symlink_archive(tmp_path, caplog):
@@ -40,7 +40,7 @@ def test_create_symlink_archive(tmp_path, caplog):
     destination_path = tmp_path / "name-of-destination-folder"
 
     create_archive(folder_path, destination_path, compression=5)
-    assert_successful_archive_creation(destination_path, archive_path, folder_name)
+    assert_successful_archive_creation(destination_path, archive_path, folder_name, unencrypted="all")
 
     expected_warning = "Symlink link.txt found. The link itself will be archived and hashed but not the files that it points to."
     assert expected_warning in caplog.text
@@ -55,7 +55,7 @@ def test_create_encrypted_archive(tmp_path):
     keys = get_public_key_paths()
 
     create_archive(folder_path, destination_path, encryption_keys=keys, compression=5, remove_unencrypted=True)
-    assert_successful_archive_creation(destination_path, archive_path, folder_name, encrypted=True)
+    assert_successful_archive_creation(destination_path, archive_path, folder_name, encrypted="all")
 
 
 def test_create_archive_split_encrypted(tmp_path, generate_splitting_directory):
@@ -68,4 +68,4 @@ def test_create_archive_split_encrypted(tmp_path, generate_splitting_directory):
     keys = get_public_key_paths()
 
     create_archive(source_path, destination_path, encryption_keys=keys, compression=6, remove_unencrypted=True, splitting=max_size)
-    assert_successful_archive_creation(destination_path, archive_path, folder_name, split=2, encrypted=True)
+    assert_successful_archive_creation(destination_path, archive_path, folder_name, split=2, encrypted="all")

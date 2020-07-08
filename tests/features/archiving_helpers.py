@@ -24,21 +24,13 @@ CONTENT_LISTING = [".tar.lst"]
 SPLIT_CONTENT_LISTING = [".part1.tar.lst", ".part2.tar.lst"]
 
 
-def assert_successful_archive_creation(destination_path, archive_path, folder_name, split=None, encrypted=False, remove_unencrypted=True):
-    expected_listing = []
-
-    if split:
-        listing_suffixes = ENCRYPTED_LISTING if encrypted else UNENCRYPTED_LISTING
-        expected_listing = add_split_prefix_to_file_suffixes(listing_suffixes, split)
-        hash_suffixes = ENCRYPTED_HASH_FILENAMES if encrypted else UNENCRYPTED_HASH_FILENAMES
-        hash_filenames = add_split_prefix_to_file_suffixes(hash_suffixes, split)
-    else:
-        expected_listing = ENCRYPTED_LISTING if encrypted else UNENCRYPTED_LISTING
-        hash_filenames = ENCRYPTED_HASH_FILENAMES if encrypted else UNENCRYPTED_HASH_FILENAMES
-
-    if not remove_unencrypted:
-        # Returns a new list instead of modifying reference constant
-        expected_listing = expected_listing + add_split_prefix_to_file_suffixes([".tar.lz"], split)
+def assert_successful_archive_creation(destination_path, archive_path, folder_name, split=None, encrypted=None, unencrypted=None):
+    # Specify which files are expected in the listing
+    expected_listing_suffixes = get_required_listing_suffixes(encrypted, unencrypted)
+    # Will return unmodified given list if split is None
+    expected_listing = add_split_prefix_to_file_suffixes(expected_listing_suffixes, split)
+    # Get all hash filesnames from expected listing
+    hash_filenames = hash_filenames_from_list(expected_listing)
 
     dir_listing = os.listdir(destination_path)
     expected_named_listing = add_prefix_to_list_elements(expected_listing, folder_name)
@@ -59,13 +51,10 @@ def assert_successful_archive_creation(destination_path, archive_path, folder_na
     compare_hash_files(expected_hash_file_paths, actual_hash_file_paths)
 
 
-def assert_successful_encryption_to_destination(destination_path, archive_path, folder_name, split=None):
-    expected_listing = [".tar.lz.gpg", ".tar.lz.gpg.md5"]
-    hash_filenames = [".tar.lz.gpg.md5"]
-
-    if split:
-        expected_listing = add_split_prefix_to_file_suffixes(expected_listing, split)
-        hash_filenames = add_split_prefix_to_file_suffixes(hash_filenames, split)
+def assert_successful_action_to_destination(destination_path, archive_path, folder_name, split=None, encrypted=False):
+    expected_listing_suffixes = [".tar.lz.gpg", ".tar.lz.gpg.md5"] if encrypted else [".tar.lz"]
+    expected_listing = add_split_prefix_to_file_suffixes(expected_listing_suffixes, split)
+    hash_filenames = hash_filenames_from_list(expected_listing)
 
     dir_listing = os.listdir(destination_path)
     expected_named_listing = add_prefix_to_list_elements(expected_listing, folder_name)
@@ -73,6 +62,28 @@ def assert_successful_encryption_to_destination(destination_path, archive_path, 
 
     hash_file_paths = create_full_filename_path(hash_filenames, destination_path, folder_name)
     assert_hashes_in_file_list_valid(hash_file_paths)
+
+
+def get_required_listing_suffixes(encrypted, unencrypted):
+    expected_listing = []
+
+    if encrypted == "all":
+        expected_listing = ENCRYPTED_LISTING
+
+    if encrypted == "hash":
+        expected_listing = [".tar.lz.gpg.md5"]
+
+    if unencrypted == "all":
+        expected_listing = expected_listing + list(set(UNENCRYPTED_LISTING) - set(expected_listing))
+
+    if unencrypted == "hash":
+        expected_listing = expected_listing + list(set([".tar.lz.md5"]) - set(".tar.lz.md5"))
+
+    return expected_listing
+
+
+def hash_filenames_from_list(filenames):
+    return [element for element in filenames if element.endswith(".md5")]
 
 
 def add_split_prefix_to_file_suffixes(suffixes, number):
