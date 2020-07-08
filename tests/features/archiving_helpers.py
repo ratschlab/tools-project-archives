@@ -24,13 +24,21 @@ CONTENT_LISTING = [".tar.lst"]
 SPLIT_CONTENT_LISTING = [".part1.tar.lst", ".part2.tar.lst"]
 
 
-def assert_successful_archive_creation(destination_path, archive_path, folder_name, split=False, encrypted=False):
+def assert_successful_archive_creation(destination_path, archive_path, folder_name, split=None, encrypted=False, remove_unencrypted=True):
+    expected_listing = []
+
     if split:
-        expected_listing = SPLIT_ENCRYPTED_LISTINGS if encrypted else SPLIT_UNENCRYPTED_LISTINGS
-        hash_filenames = SPLIT_ENCRYPTED_HASH_FILENAMES if encrypted else SPLIT_UNENCRYPTED_HASH_FILENAMES
+        listing_suffixes = ENCRYPTED_LISTING if encrypted else UNENCRYPTED_LISTING
+        expected_listing = add_split_prefix_to_file_suffixes(listing_suffixes, split)
+        hash_suffixes = ENCRYPTED_HASH_FILENAMES if encrypted else UNENCRYPTED_HASH_FILENAMES
+        hash_filenames = add_split_prefix_to_file_suffixes(hash_suffixes, split)
     else:
         expected_listing = ENCRYPTED_LISTING if encrypted else UNENCRYPTED_LISTING
         hash_filenames = ENCRYPTED_HASH_FILENAMES if encrypted else UNENCRYPTED_HASH_FILENAMES
+
+    if not remove_unencrypted:
+        # Returns a new list instead of modifying reference constant
+        expected_listing = expected_listing + add_split_prefix_to_file_suffixes([".tar.lz"], split)
 
     dir_listing = os.listdir(destination_path)
     expected_named_listing = add_prefix_to_list_elements(expected_listing, folder_name)
@@ -49,6 +57,34 @@ def assert_successful_archive_creation(destination_path, archive_path, folder_na
     expected_hash_file_paths = create_full_filename_path(suffix, archive_path, folder_name)
     actual_hash_file_paths = create_full_filename_path(suffix, destination_path, folder_name)
     compare_hash_files(expected_hash_file_paths, actual_hash_file_paths)
+
+
+def assert_successful_encryption_to_destination(destination_path, archive_path, folder_name, split=None):
+    expected_listing = [".tar.lz.gpg", ".tar.lz.gpg.md5"]
+    hash_filenames = [".tar.lz.gpg.md5"]
+
+    if split:
+        expected_listing = add_split_prefix_to_file_suffixes(expected_listing, split)
+        hash_filenames = add_split_prefix_to_file_suffixes(hash_filenames, split)
+
+    dir_listing = os.listdir(destination_path)
+    expected_named_listing = add_prefix_to_list_elements(expected_listing, folder_name)
+    helpers.compare_list_content_ignoring_order(dir_listing, expected_named_listing)
+
+    hash_file_paths = create_full_filename_path(hash_filenames, destination_path, folder_name)
+    assert_hashes_in_file_list_valid(hash_file_paths)
+
+
+def add_split_prefix_to_file_suffixes(suffixes, number):
+    if not number or number <= 1:
+        return suffixes
+
+    prefixed_filenames = []
+
+    for index in range(1, number + 1):
+        prefixed_filenames += [f".part{str(index)}{suffix}" for suffix in suffixes]
+
+    return prefixed_filenames
 
 
 def assert_hashes_in_file_list_valid(hash_files):

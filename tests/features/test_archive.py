@@ -29,7 +29,7 @@ def test_create_archive_split(tmp_path, generate_splitting_directory):
     destination_path = tmp_path / "name-of-destination-folder"
 
     create_archive(source_path, destination_path, compression=6, splitting=max_size)
-    assert_successful_archive_creation(destination_path, archive_path, folder_name, split=True)
+    assert_successful_archive_creation(destination_path, archive_path, folder_name, split=2)
 
 
 def test_create_symlink_archive(tmp_path, caplog):
@@ -68,4 +68,4 @@ def test_create_archive_split_encrypted(tmp_path, generate_splitting_directory):
     keys = get_public_key_paths()
 
     create_archive(source_path, destination_path, encryption_keys=keys, compression=6, remove_unencrypted=True, splitting=max_size)
-    assert_successful_archive_creation(destination_path, archive_path, folder_name, split=True, encrypted=True)
+    assert_successful_archive_creation(destination_path, archive_path, folder_name, split=2, encrypted=True)
