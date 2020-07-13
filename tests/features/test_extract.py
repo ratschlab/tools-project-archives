@@ -17,8 +17,6 @@ def test_extract_archive(tmp_path):
 
     # wait until this aciton has completed
     extract_archive(archive_path, extraction_path)
-    # TODO: Will be fixed in "develop" branch
-    time.sleep(0.1)
 
     dir_listing = os.listdir(extraction_path)
 
@@ -40,8 +38,6 @@ def test_extract_split(tmp_path):
 
     # wait until this aciton has completed
     extract_archive(archive_path, extraction_path)
-    # TODO: Will be fixed in "develop" branch
-    time.sleep(0.1)
 
     dir_listing = os.listdir(extraction_path)
 
@@ -64,8 +60,6 @@ def test_extract_symlink(tmp_path):
 
     # wait until this aciton has completed
     extract_archive(archive_path, extraction_path)
-    # TODO: Will be fixed in "develop" branch
-    time.sleep(0.1)
 
     dir_listing = os.listdir(extraction_path)
 
@@ -90,8 +84,6 @@ def test_extract_encrypted_archive(tmp_path, setup_gpg):
 
     # wait until this aciton has completed
     extract_archive(archive_path, extraction_path)
-    # TODO: Will be fixed in "develop" branch
-    time.sleep(0.1)
 
     dir_listing = os.listdir(extraction_path)
 
@@ -117,8 +109,6 @@ def test_extract_encrypted_split(tmp_path, setup_gpg):
 
     # wait until this aciton has completed
     extract_archive(archive_path, extraction_path)
-    # TODO: Will be fixed in "develop" branch
-    time.sleep(0.1)
 
     dir_listing = os.listdir(extraction_path)
 
