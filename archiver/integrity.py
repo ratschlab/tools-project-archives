@@ -62,9 +62,6 @@ def deep_integrity_check(archives_with_hashes, is_encrypted, threads):
             temp_path = Path(temp_path_string) / "extraction-folder"
             archive_content_path = extract_archive(archive_file_path, temp_path, threads=threads, extract_at_destination=True)
 
-            # TODO: Again, when extraction runs fast files are not yet readable (listdir) immediately after - fix this
-            time.sleep(0.1)
-
             terminate_if_extracted_archive_not_existing(archive_content_path)
             hash_result = helpers.hash_listing_for_files_in_folder(archive_content_path)
 

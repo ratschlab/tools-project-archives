@@ -8,9 +8,6 @@ from . import helpers
 from .encryption import decrypt_list_of_archives
 from .constants import COMPRESSED_ARCHIVE_SUFFIX, ENCRYPTED_ARCHIVE_SUFFIX, REQUIRED_SPACE_MULTIPLIER
 
-# TODO: Handle subprocess exceptions
-# TODO: What should happen with the archive after extraction?
-
 # Should there be a flag or automatically recongnize encrypted archives?
 # Ensure gpg key is available
 
@@ -74,11 +71,13 @@ def uncompress_and_extract(archive_file_paths, destination_directory_path, threa
         if threads:
             additional_arguments.extend(["--threads", str(threads)])
 
-        ps = subprocess.Popen(["plzip", "-dc", archive_path] + additional_arguments, stdout=subprocess.PIPE)
-        subprocess.Popen(["tar", "-x", "-C", destination_directory_path], stdin=ps.stdout)
-        ps.stdout.close()
-        ps.wait()
-        # TODO: terminate (with)
+        try:
+            p1 = subprocess.Popen(["plzip", "-dc", archive_path] + additional_arguments, stdout=subprocess.PIPE)
+            p2 = subprocess.Popen(["tar", "-x", "-C", destination_directory_path], stdin=p1.stdout)
+            p1.stdout.close()
+            p2.wait()
+        except subprocess.CalledProcessError:
+            helpers.terminate_with_message(f"Extraction of archive {archive_path} failed.")
 
         destination_directory_path_string = helpers.get_absolute_path_string(destination_directory_path)
 
