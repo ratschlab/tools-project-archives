@@ -16,21 +16,17 @@ def check_integrity(source_path, deep_flag=False, threads=None):
 
     if not shallow_integrity_check(archives_with_hashes):
         logging.error("Integrity check unsuccessful. Archive has been changed since creation.")
-        print("Integrity check unsuccessful. Archive has been changed since creation.")
         return
 
     if deep_flag and not deep_integrity_check(archives_with_hashes, is_encrypted, threads):
         logging.error("Deep integrity check unsuccessful. Archive has been changed since creation.")
-        print("Deep integrity check unsuccessful. Archive has been changed since creation.")
         return
 
     if deep_flag:
         logging.info("Deep integrity check successful")
-        print("Deep integrity check successful")
         return
 
     logging.info("Integrity check successful")
-    print("Integrity check successful")
 
 
 def shallow_integrity_check(archives_with_hashes):
@@ -40,8 +36,7 @@ def shallow_integrity_check(archives_with_hashes):
         archive_hash_file_path = archive[1]
 
         if not compare_hashes_from_files(archive_file_path, archive_hash_file_path):
-            logging.warning(f"Signature of file {archive_file_path.name} has changed.")
-            print(f"Signature of file {archive_file_path.name} has changed.")
+            logging.warning(f"Hash of file {archive_file_path.name} has changed.")
             return False
 
     return True
