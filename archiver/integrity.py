@@ -4,7 +4,7 @@ from pathlib import Path
 
 
 from . import helpers
-from .constants import COMPRESSED_ARCHIVE_SUFFIX, ENCRYPTED_ARCHIVE_SUFFIX, MD5_FILE_SEP
+from .constants import COMPRESSED_ARCHIVE_SUFFIX, ENCRYPTED_ARCHIVE_SUFFIX, MD5_LINE_REGEX
 from .extract import extract_archive
 
 
@@ -76,15 +76,16 @@ def compare_archive_listing_hashes(hash_result, expected_hash_listing_path):
     hash_result_dict = {fn: hash for (fn, hash) in hash_result}
 
     with open(expected_hash_listing_path, "r") as file:
-        lines = [MD5_FILE_SEP.split(l) for l in file.readlines()]
+        expected_dict = {}
+        for l in file.readlines():
+            m = MD5_LINE_REGEX.match(l)
 
-        for l in lines:
-            if len(l) < 2:
+            if not m:
                 logging.error(
                     f"Not properly formatted MD5 checksum line found in file {expected_hash_listing_path}: {l}")
                 return False
 
-        expected_dict = {e[1].lstrip('./'): e[0] for e in lines}
+            expected_dict[m.groups()[1].lstrip('./')] = m.groups()[0]
 
     corruption_found = False
 

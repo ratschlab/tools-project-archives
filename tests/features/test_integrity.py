@@ -117,7 +117,7 @@ def test_integrity_check_deep_corrupted(caplog):
     archive_dir = get_directory_with_name("normal-archive-corrupted-deep")
 
     expected_messages = [
-        "Missing file test-folder/folder-in-archive/file3.txt in archive!",
+        "Missing file test-folder/folder-in-archive/big file3.txt in archive!",
         'File test-folder/folder-in-archive/file2.txt in archive does not appear in list of md5sums!',
         "Hash of test-folder/file1.txt has changed: Expected 49dbcfb5e7ae8ca55cab5b0e4674d9fd but got 49dbcfb5e7ae8ca55cab6b0e4674d9fd",
         "Deep integrity check unsuccessful. Archive has been changed since creation."]
