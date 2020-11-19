@@ -109,7 +109,8 @@ def compare_hashes_from_files(archive_file_path, archive_hash_file_path):
     with open(archive_hash_file_path, "r") as file:
         hash_file_content = file.read()
 
-        return archive_hash == hash_file_content
+    # hash_file_content may contain path of file
+    return hash_file_content.startswith(archive_hash)
 
 
 def get_archives_with_hashes_from_path(path):
