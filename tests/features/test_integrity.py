@@ -113,21 +113,25 @@ def test_integrity_check_deep_on_split_encrypted_archive(capsys, setup_gpg):
     assert_successful_deep_check(archive_file, capsys)
 
 
-def test_integrity_check_deep_corrupted(capsys):
+def test_integrity_check_deep_corrupted(caplog):
     archive_dir = get_directory_with_name("normal-archive-corrupted-deep")
 
-    expected_messages = ["Signature of test-folder/file1.txt has changed.", "Deep integrity check unsuccessful. Archive has been changed since creation."]
+    expected_messages = [
+        "Missing file test-folder/folder-in-archive/file3.txt in archive!",
+        'File test-folder/folder-in-archive/file2.txt in archive does not appear in list of md5sums!',
+        "Hash of test-folder/file1.txt has changed: Expected 49dbcfb5e7ae8ca55cab5b0e4674d9fd but got 49dbcfb5e7ae8ca55cab6b0e4674d9fd",
+        "Deep integrity check unsuccessful. Archive has been changed since creation."]
 
-    check_integrity_and_validate_output_contains(archive_dir, capsys, expected_messages, DEEP)
+    check_integrity_and_validate_output_contains(archive_dir, caplog, expected_messages, DEEP)
 
 
-def test_integrity_check_deep_corrupted_encrypted(capsys, setup_gpg):
+def test_integrity_check_deep_corrupted_encrypted(caplog, setup_gpg):
     archive_dir = get_directory_with_name("encrypted-archive-corrupted-deep")
 
-    expected_messages = ["Signature of test-folder/folder-in-archive/file2.txt has changed.",
+    expected_messages = ["Hash of test-folder/folder-in-archive/file2.txt has changed: Expected 5762a5694bf3cb3dp59bf864ed71a4a8 but got 5762a5694bf3cb3df59bf864ed71a4a8",
                          "Deep integrity check unsuccessful. Archive has been changed since creation."]
 
-    check_integrity_and_validate_output_contains(archive_dir, capsys, expected_messages, DEEP)
+    check_integrity_and_validate_output_contains(archive_dir, caplog, expected_messages, DEEP)
 
 
 def test_integrity_check_symlink(capsys):
@@ -162,10 +166,8 @@ def assert_integrity_check_with_output(archive_path, expected_output, capsys, de
     assert capsys.readouterr().out == expected_output
 
 
-def check_integrity_and_validate_output_contains(archive_path, capsys, messages, deep=False):
+def check_integrity_and_validate_output_contains(archive_path, caplog, expected_messages, deep=False):
     check_integrity(archive_path, deep)
 
-    output = capsys.readouterr().out
-
-    for message in messages:
-        assert message in output
+    for message in expected_messages:
+        assert message in caplog.messages

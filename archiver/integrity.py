@@ -1,15 +1,11 @@
-import subprocess
-from pathlib import Path
-import os
-import hashlib
-import tempfile
-import time
 import logging
+import tempfile
+from pathlib import Path
+
 
 from . import helpers
+from .constants import COMPRESSED_ARCHIVE_SUFFIX, ENCRYPTED_ARCHIVE_SUFFIX, MD5_FILE_SEP
 from .extract import extract_archive
-from .encryption import decrypt_archive
-from .constants import COMPRESSED_ARCHIVE_SUFFIX, COMPRESSED_ARCHIVE_HASH_SUFFIX, ENCRYPTED_ARCHIVE_SUFFIX
 
 
 def check_integrity(source_path, deep_flag=False, threads=None):
@@ -19,12 +15,12 @@ def check_integrity(source_path, deep_flag=False, threads=None):
     logging.info("Starting integrity check on: " + source_path.as_posix())
 
     if not shallow_integrity_check(archives_with_hashes):
-        logging.warning("Integrity check unsuccessful. Archive has been changed since creation.")
+        logging.error("Integrity check unsuccessful. Archive has been changed since creation.")
         print("Integrity check unsuccessful. Archive has been changed since creation.")
         return
 
     if deep_flag and not deep_integrity_check(archives_with_hashes, is_encrypted, threads):
-        logging.warning("Deep integrity check unsuccessful. Archive has been changed since creation.")
+        logging.error("Deep integrity check unsuccessful. Archive has been changed since creation.")
         print("Deep integrity check unsuccessful. Archive has been changed since creation.")
         return
 
@@ -77,28 +73,33 @@ def terminate_if_extracted_archive_not_existing(extracted_archive):
 
 
 def compare_archive_listing_hashes(hash_result, expected_hash_listing_path):
-    corrupted_file_paths = []
+    hash_result_dict = {fn: hash for (fn, hash) in hash_result}
 
     with open(expected_hash_listing_path, "r") as file:
-        file_string = file.read().rstrip()
+        lines = [MD5_FILE_SEP.split(l) for l in file.readlines()]
 
-    for line in hash_result:
-        file_path = line[0]
-        file_hash = line[1]
+        for l in lines:
+            if len(l) < 2:
+                logging.error(
+                    f"Not properly formatted MD5 checksum line found in file {expected_hash_listing_path}: {l}")
+                return False
 
-        search_content = f"{file_hash} {file_path}"
+        expected_dict = {e[1].lstrip('./'): e[0] for e in lines}
 
-        if search_content not in file_string:
-            corrupted_file_paths.append(file_path)
+    corruption_found = False
 
-    if not corrupted_file_paths:
-        return True
+    if hash_result_dict.keys() != expected_dict.keys():
+        corruption_found = True
+        for k in expected_dict.keys() - hash_result_dict.keys():
+            logging.error(f"Missing file {k} in archive!")
+        for k in hash_result_dict.keys() - expected_dict.keys():
+            logging.error(f"File {k} in archive does not appear in list of md5sums!")
 
-    for path in corrupted_file_paths:
-        logging.warning(f"Signature of {path} has changed.")
-        print(f"Signature of {path} has changed.")
-
-    return False
+    for k in expected_dict.keys():
+        if k in hash_result_dict.keys() and hash_result_dict[k] != expected_dict[k]:
+            logging.error(f"Hash of {k} has changed: Expected {expected_dict[k]} but got {hash_result_dict[k]}")
+            corruption_found = True
+    return not corruption_found
 
 
 def compare_hashes_from_files(archive_file_path, archive_hash_file_path):
