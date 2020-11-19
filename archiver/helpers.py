@@ -41,8 +41,8 @@ def create_and_write_file_hash(file_path):
 
     hash_output = get_file_hash_from_path(file_path)
 
-    hash_file = open(file_path.as_posix() + ".md5", "w")
-    hash_file.write(hash_output)
+    with open(file_path.as_posix() + ".md5", "w") as hash_file:
+        hash_file.write(f"{hash_output}  {file_path.name}\n")
 
 
 def get_file_hash_from_path(file_path):
