@@ -73,18 +73,23 @@ def hash_listing_for_files_in_folder(source_path, relative_to_path=None, max_wor
         relative_to_path = source_path.parent
 
     hashes_list_fut = []
+    file_list_abs = []
+    file_list = []
+    import multiprocessing
+    #with ThreadPoolExecutor(max_workers=max_workers) as executor:
+    for root, _, files in os.walk(source_path):
+        root_path = Path(root)
+        for file in files:
+            relative_path_to_file_string = root_path.relative_to(relative_to_path).joinpath(file).as_posix()
+                #file_hash_fut = executor.submit(get_file_hash_from_path, root_path.joinpath(file))
+            file_list.append(relative_path_to_file_string)
+            file_list_abs.append(root_path.joinpath(file))
+            #    hashes_list_fut.append([relative_path_to_file_string, file_hash_fut])
 
-    with ThreadPoolExecutor(max_workers=max_workers) as executor:
-        for root, _, files in os.walk(source_path):
-            root_path = Path(root)
-            for file in files:
-                relative_path_to_file_string = root_path.relative_to(relative_to_path).joinpath(file).as_posix()
-                file_hash_fut = executor.submit(get_file_hash_from_path, root_path.joinpath(file))
+    with multiprocessing.Pool(max_workers) as pool:
+        hashes_list = pool.map(get_file_hash_from_path, file_list_abs) # [e[0], e[1].result()]  for e in hashes_list_fut ]
 
-                hashes_list_fut.append([relative_path_to_file_string, file_hash_fut])
-
-    hashes_list = [ [e[0], e[1].result()]  for e in hashes_list_fut ]
-    return hashes_list
+    return [list(e) for e in zip(file_list, hashes_list)]
 
 
 def get_threads_from_args_or_environment(threads_arg):
