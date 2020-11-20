@@ -7,6 +7,7 @@ import subprocess
 import logging
 import shutil
 import multiprocessing
+from concurrent.futures import ThreadPoolExecutor
 
 from .constants import READ_CHUNK_BYTE_SIZE, COMPRESSED_ARCHIVE_SUFFIX, ENCRYPTED_ARCHIVE_SUFFIX, MAX_NUMBER_CPUS, ENV_VAR_MAPPER_MAX_CPUS
 
@@ -67,19 +68,22 @@ def get_symlink_path_hash(symlink_path):
     return hasher.hexdigest()
 
 
-def hash_listing_for_files_in_folder(source_path, relative_to_path=None):
+def hash_listing_for_files_in_folder(source_path, relative_to_path=None, max_workers=1):
     if not relative_to_path:
         relative_to_path = source_path.parent
 
-    hashes_list = []
-    for root, _, files in os.walk(source_path):
-        root_path = Path(root)
-        for file in files:
-            reative_path_to_file_string = root_path.relative_to(relative_to_path).joinpath(file).as_posix()
-            file_hash = get_file_hash_from_path(root_path.joinpath(file))
+    hashes_list_fut = []
 
-            hashes_list.append([reative_path_to_file_string, file_hash])
+    with ThreadPoolExecutor(max_workers=max_workers) as executor:
+        for root, _, files in os.walk(source_path):
+            root_path = Path(root)
+            for file in files:
+                relative_path_to_file_string = root_path.relative_to(relative_to_path).joinpath(file).as_posix()
+                file_hash_fut = executor.submit(get_file_hash_from_path, root_path.joinpath(file))
 
+                hashes_list_fut.append([relative_path_to_file_string, file_hash_fut])
+
+    hashes_list = [ [e[0], e[1].result()]  for e in hashes_list_fut ]
     return hashes_list
 
 
