@@ -14,19 +14,30 @@ def check_integrity(source_path, deep_flag=False, threads=None):
 
     logging.info("Starting integrity check on: " + source_path.as_posix())
 
-    if not shallow_integrity_check(archives_with_hashes):
-        logging.error("Integrity check unsuccessful. Archive has been changed since creation.")
-        return
-
-    if deep_flag and not deep_integrity_check(archives_with_hashes, is_encrypted, threads):
-        logging.error("Deep integrity check unsuccessful. Archive has been changed since creation.")
-        return
+    check_result = shallow_integrity_check(archives_with_hashes)
 
     if deep_flag:
-        logging.info("Deep integrity check successful")
-        return
+        # with deep flag still continue, no matter what the result of the previous test was
+        deep_check_result = deep_integrity_check(archives_with_hashes,
+                                                 is_encrypted, threads)
 
-    logging.info("Integrity check successful")
+        if check_result and deep_check_result:
+            logging.info("Deep integrity check successful.")
+        elif not check_result and deep_check_result:
+            logging.error(
+                "Basic integrity check unsuccessful. But checksums of files in archive match.")
+        else:
+            logging.error(
+                "Deep integrity check unsuccessful. Archive has been changed since creation.")
+        return check_result and deep_check_result
+
+    if not check_result:
+        logging.error(
+            "Basic integrity check unsuccessful. Archive has been changed since creation.")
+    else:
+        logging.info("Basic integrity check successful.")
+
+    return check_result
 
 
 def shallow_integrity_check(archives_with_hashes):

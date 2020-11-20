@@ -52,25 +52,25 @@ def test_integrity_check_corrupted(caplog):
     archive_dir = get_directory_with_name("normal-archive-corrupted")
     archive_file = archive_dir.joinpath("test-folder.tar.lz")
 
-    expected_string = f"Integrity check unsuccessful. Archive has been changed since creation."
+    expected_string = f"Basic integrity check unsuccessful. Archive has been changed since creation."
 
-    assert_integrity_check_with_output(archive_file, expected_string, caplog)
+    assert_integrity_check_with_output(archive_file, expected_string, False, caplog)
 
 
 def test_integrity_check_corrupted_encrypted(caplog, setup_gpg):
     archive_dir = get_directory_with_name("encrypted-archive-corrupted")
 
-    expected_string = f"Integrity check unsuccessful. Archive has been changed since creation."
+    expected_string = f"Basic integrity check unsuccessful. Archive has been changed since creation."
 
-    assert_integrity_check_with_output(archive_dir, expected_string, caplog)
+    assert_integrity_check_with_output(archive_dir, expected_string, False, caplog)
 
 
 def test_integrity_check_corrupted_on_split_archive(caplog):
     archive_dir = get_directory_with_name("split-archive-corrupted")
 
-    expected_string = f"Integrity check unsuccessful. Archive has been changed since creation."
+    expected_string = f"Basic integrity check unsuccessful. Archive has been changed since creation."
 
-    assert_integrity_check_with_output(archive_dir, expected_string, caplog)
+    assert_integrity_check_with_output(archive_dir, expected_string, False, caplog)
 
 
 def test_integrity_check_deep(caplog):
@@ -116,7 +116,7 @@ def test_integrity_check_deep_corrupted(caplog):
         "Hash of test-folder/file1.txt has changed: Expected 49dbcfb5e7ae8ca55cab5b0e4674d9fd but got 49dbcfb5e7ae8ca55cab6b0e4674d9fd",
         "Deep integrity check unsuccessful. Archive has been changed since creation."]
 
-    check_integrity_and_validate_output_contains(archive_dir, caplog, expected_messages, DEEP)
+    check_integrity_and_validate_output_contains(archive_dir, caplog, expected_messages, False, DEEP)
 
 
 def test_integrity_check_deep_corrupted_encrypted(caplog, setup_gpg):
@@ -125,7 +125,7 @@ def test_integrity_check_deep_corrupted_encrypted(caplog, setup_gpg):
     expected_messages = ["Hash of test-folder/folder-in-archive/file2.txt has changed: Expected 5762a5694bf3cb3dp59bf864ed71a4a8 but got 5762a5694bf3cb3df59bf864ed71a4a8",
                          "Deep integrity check unsuccessful. Archive has been changed since creation."]
 
-    check_integrity_and_validate_output_contains(archive_dir, caplog, expected_messages, DEEP)
+    check_integrity_and_validate_output_contains(archive_dir, caplog, expected_messages, False, DEEP)
 
 
 def test_integrity_check_symlink(caplog):
@@ -145,23 +145,23 @@ def test_integrity_check_deep_symlink(caplog):
 # MARK: Helpers
 
 def assert_successful_deep_check(archive_path, caplog):
-    expected_output = "Deep integrity check successful"
-    assert_integrity_check_with_output(archive_path, expected_output, caplog, DEEP)
+    expected_output = "Deep integrity check successful."
+    assert_integrity_check_with_output(archive_path, expected_output, True, caplog, DEEP)
 
 
 def assert_successful_shallow_check(archive_path, caplog):
-    expected_output = "Integrity check successful"
-    assert_integrity_check_with_output(archive_path, expected_output, caplog)
+    expected_output = "Basic integrity check successful."
+    assert_integrity_check_with_output(archive_path, expected_output, True, caplog)
 
 
-def assert_integrity_check_with_output(archive_path, expected_output, caplog, deep=False):
-    check_integrity(archive_path, deep)
+def assert_integrity_check_with_output(archive_path, expected_output, expected_return, caplog, deep=False):
+    assert check_integrity(archive_path, deep) == expected_return
 
     assert caplog.messages[-1] == expected_output
 
 
-def check_integrity_and_validate_output_contains(archive_path, caplog, expected_messages, deep=False):
-    check_integrity(archive_path, deep)
+def check_integrity_and_validate_output_contains(archive_path, caplog, expected_messages, expected_return, deep=False):
+    assert check_integrity(archive_path, deep) == expected_return
 
     for message in expected_messages:
         assert message in caplog.messages
