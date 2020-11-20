@@ -1,7 +1,8 @@
+import logging
 import os
+import shutil
 import subprocess
 from pathlib import Path
-import shutil
 
 import pytest
 
@@ -26,3 +27,9 @@ def setup_gpg():
     secret_key = archive_path / "private.gpg"
 
     subprocess.run(["gpg", "--import", secret_key])
+
+
+@pytest.fixture()
+def caplog(caplog):
+    caplog.set_level(logging.INFO)
+    return caplog
