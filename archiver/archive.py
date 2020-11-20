@@ -49,7 +49,7 @@ def create_archive(source_path, destination_path, threads=None, encryption_keys=
         create_split_archive(source_path, destination_path, source_name, int(splitting), threads, encryption_keys, compression, remove_unencrypted)
     else:
         logging.info("Create and write hash list...")
-        create_file_listing_hash(source_path, destination_path, source_name)
+        create_file_listing_hash(source_path, destination_path, source_name, max_workers=threads)
 
         logging.info("Create tar archive...")
         create_tar_archive(source_path, destination_path, source_name)
@@ -76,7 +76,7 @@ def create_split_archive(source_path, destination_path, source_name, splitting, 
         source_part_name = f"{source_name}.part{index + 1}"
 
         logging.info(f"Create and write hash list of part {index + 1}...")
-        create_file_listing_hash(source_path, destination_path, source_part_name, archive)
+        create_file_listing_hash(source_path, destination_path, source_part_name, archive, max_workers=threads)
 
         logging.info(f"Create tar archive part {index + 1}...")
         create_tar_archive(source_path, destination_path, source_part_name, archive)
@@ -93,13 +93,13 @@ def create_split_archive(source_path, destination_path, source_name, splitting, 
             encrypt_list_of_archives(archive_list, encryption_keys, remove_unencrypted)
 
 
-def create_file_listing_hash(source_path, destination_path, source_name, archive_list=None):
+def create_file_listing_hash(source_path, destination_path, source_name, archive_list=None, max_workers=1):
     if archive_list:
         paths_to_hash_list = archive_list
     else:
         paths_to_hash_list = [source_path]
 
-    hashes = hashes_for_path_list(paths_to_hash_list, source_path.parent)
+    hashes = hashes_for_path_list(paths_to_hash_list, source_path.parent, max_workers)
     file_path = destination_path.joinpath(source_name + ".md5")
 
     with open(file_path, "a") as hash_file:
@@ -110,17 +110,17 @@ def create_file_listing_hash(source_path, destination_path, source_name, archive
             hash_file.write(f"{file_hash} {file_path}\n")
 
 
-def hashes_for_path_list(path_list, parent_path):
+def hashes_for_path_list(path_list, parent_path, max_workers=1):
     hash_list = []
 
     for path in path_list:
         if path.is_dir():
-            hashes = helpers.hash_listing_for_files_in_folder(path, parent_path)
+            hashes = helpers.hash_listing_for_files_in_folder(path, parent_path, max_workers=max_workers)
             hash_list = hash_list + hashes
         else:
-            realtive_file_path_string = path.relative_to(parent_path).as_posix()
+            relative_file_path_string = path.relative_to(parent_path).as_posix()
             file_hash = helpers.get_file_hash_from_path(path)
-            hash_list.append([realtive_file_path_string, file_hash])
+            hash_list.append([relative_file_path_string, file_hash])
 
     return hash_list
 
