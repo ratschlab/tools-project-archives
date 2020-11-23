@@ -113,7 +113,12 @@ def get_number_of_threads_from_env():
         logging.info(f"Environment variable {ENV_VAR_MAPPER_MAX_CPUS} is not set")
         return None
 
-    env_variable_threads_number = int(os.environ.get(env_variable_name))
+    env_variable_threads = os.environ.get(env_variable_name)
+
+    try:
+        env_variable_threads_number = int(env_variable_threads)
+    except:
+        pass
 
     if not env_variable_threads_number:
         logging.info(f"Environment variable {env_variable_name} doesn't contain a valid number of threads")
