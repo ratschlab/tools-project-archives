@@ -32,7 +32,7 @@ def encrypt_existing_archive(archive_path, encryption_keys, destination_dir=None
     encrypt_list_of_archives([archive_path], encryption_keys, remove_unencrypted, destination_dir)
 
 
-def create_archive(source_path, destination_path, threads=None, encryption_keys=None, compression=6, splitting=None, remove_unencrypted=False, force=False):
+def create_archive(source_path, destination_path, threads=None, encryption_keys=None, compression=6, splitting=None, remove_unencrypted=False, force=False, work_dir=None):
     # Argparse already checks if arguments are present, so only argument format needs to be validated
     helpers.terminate_if_path_nonexistent(source_path)
     # Create destination folder if nonexistent or overwrite if --force option used
@@ -46,13 +46,13 @@ def create_archive(source_path, destination_path, threads=None, encryption_keys=
     logging.info(f"Start creating archive for: {helpers.get_absolute_path_string(source_path)}")
 
     if splitting:
-        create_split_archive(source_path, destination_path, source_name, int(splitting), threads, encryption_keys, compression, remove_unencrypted)
+        create_split_archive(source_path, destination_path, source_name, int(splitting), threads, encryption_keys, compression, remove_unencrypted, work_dir)
     else:
         logging.info("Create and write hash list...")
         create_file_listing_hash(source_path, destination_path, source_name, max_workers=threads)
 
         logging.info("Create tar archive...")
-        create_tar_archive(source_path, destination_path, source_name)
+        create_tar_archive(source_path, destination_path, source_name, work_dir)
         create_and_write_archive_hash(destination_path, source_name)
         create_archive_listing(destination_path, source_name)
 
@@ -68,7 +68,7 @@ def create_archive(source_path, destination_path, threads=None, encryption_keys=
     logging.info(f"Archive created: {helpers.get_absolute_path_string(destination_path)}")
 
 
-def create_split_archive(source_path, destination_path, source_name, splitting, threads, encryption_keys, compression, remove_unencrypted):
+def create_split_archive(source_path, destination_path, source_name, splitting, threads, encryption_keys, compression, remove_unencrypted, work_dir=None):
     logging.info("Start creation of split archive")
     split_archives = splitter.split_directory(source_path, splitting)
 
@@ -79,7 +79,7 @@ def create_split_archive(source_path, destination_path, source_name, splitting, 
         create_file_listing_hash(source_path, destination_path, source_part_name, archive, max_workers=threads)
 
         logging.info(f"Create tar archive part {index + 1}...")
-        create_tar_archive(source_path, destination_path, source_part_name, archive)
+        create_tar_archive(source_path, destination_path, source_part_name, archive, work_dir)
         create_and_write_archive_hash(destination_path, source_part_name)
         create_archive_listing(destination_path, source_part_name)
 
@@ -125,24 +125,24 @@ def hashes_for_path_list(path_list, parent_path, max_workers=1):
     return hash_list
 
 
-def create_tar_archive(source_path, destination_path, source_name, archive_list=None):
+def create_tar_archive(source_path, destination_path, source_name, archive_list=None, work_dir=None):
     destination_file_path = destination_path.joinpath(source_name + ".tar")
     source_path_parent = source_path.absolute().parent
 
     if archive_list:
-        create_tar_archive_from_list(source_path, archive_list, destination_file_path, source_path_parent)
+        create_tar_archive_from_list(source_path, archive_list, destination_file_path, source_path_parent, work_dir)
         return
 
     # -C flag on tar necessary to get relative path in tar archive
     subprocess.run(["tar", "-cf", destination_file_path, "-C", source_path_parent, source_path.stem])
 
 
-def create_tar_archive_from_list(source_path, archive_list, destination_file_path, source_path_parent):
+def create_tar_archive_from_list(source_path, archive_list, destination_file_path, source_path_parent, work_dir=None):
     relative_archive_list = [path.absolute().relative_to(source_path.absolute().parent) for path in archive_list]
     files_string_list = [path.as_posix() for path in relative_archive_list]
 
     # Using TemporaryDirectory instead of NamedTemporaryFile to have full control over file creation
-    with tempfile.TemporaryDirectory() as temp_path_string:
+    with tempfile.TemporaryDirectory(dir=work_dir) as temp_path_string:
         tmp_file_path = Path(temp_path_string) / "paths.txt"
 
         with open(tmp_file_path, "w") as tmp_file:

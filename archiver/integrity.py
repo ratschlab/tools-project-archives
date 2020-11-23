@@ -8,7 +8,7 @@ from .constants import COMPRESSED_ARCHIVE_SUFFIX, ENCRYPTED_ARCHIVE_SUFFIX, MD5_
 from .extract import extract_archive
 
 
-def check_integrity(source_path, deep_flag=False, threads=None):
+def check_integrity(source_path, deep_flag=False, threads=None, work_dir=None):
     archives_with_hashes = get_archives_with_hashes_from_path(source_path)
     is_encrypted = helpers.path_target_is_encrypted(source_path)
 
@@ -19,7 +19,7 @@ def check_integrity(source_path, deep_flag=False, threads=None):
     if deep_flag:
         # with deep flag still continue, no matter what the result of the previous test was
         deep_check_result = deep_integrity_check(archives_with_hashes,
-                                                 is_encrypted, threads)
+                                                 is_encrypted, threads, work_dir)
 
         if check_result and deep_check_result:
             logging.info("Deep integrity check successful.")
@@ -53,14 +53,14 @@ def shallow_integrity_check(archives_with_hashes):
     return True
 
 
-def deep_integrity_check(archives_with_hashes, is_encrypted, threads):
+def deep_integrity_check(archives_with_hashes, is_encrypted, threads, work_dir):
     # Unpack each archive separately
     for archive in archives_with_hashes:
         archive_file_path = archive[0]
         expected_listing_hash_path = archive[2]
 
         # Create temporary directory to unpack archive
-        with tempfile.TemporaryDirectory() as temp_path_string:
+        with tempfile.TemporaryDirectory(dir=work_dir) as temp_path_string:
             temp_path = Path(temp_path_string) / "extraction-folder"
             archive_content_path = extract_archive(archive_file_path, temp_path, threads=threads, extract_at_destination=True)
 

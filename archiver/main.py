@@ -27,6 +27,7 @@ def main():
 def parse_arguments(args):
     # Main parser
     parser = argparse.ArgumentParser(prog="archiver", description='Handles the archiving of large project data')
+    parser.add_argument("-w", "--work-dir", type=str, help="Working directory")
     subparsers = parser.add_subparsers(help="Available actions", required=True, dest="command")
 
     # Archiving parser
@@ -98,13 +99,15 @@ def handle_archive(args):
 
     bytes_splitting = None
 
+    work_dir = args.work_dir
+
     if args.part:
         try:
             bytes_splitting = helpers.get_bytes_in_string_with_unit(args.part)
         except Exception as error:
             helpers.terminate_with_exception(error)
 
-    create_archive(source_path, destination_path, threads, args.key, compression, bytes_splitting, args.remove, args.force)
+    create_archive(source_path, destination_path, threads, args.key, compression, bytes_splitting, args.remove, args.force, work_dir)
 
 
 def handle_encryption(args):
@@ -143,7 +146,7 @@ def handle_list(args):
     # Path to archive file *.tar.lz
     source_path = Path(args.archive_dir)
 
-    create_listing(source_path, args.subpath, args.deep)
+    create_listing(source_path, args.subpath, args.deep, args.work_dir)
 
 
 def handle_check(args):
@@ -151,7 +154,7 @@ def handle_check(args):
     source_path = Path(args.archive_dir)
     threads = helpers.get_threads_from_args_or_environment(args.threads)
 
-    check_integrity(source_path, args.deep, threads)
+    check_integrity(source_path, args.deep, threads, args.work_dir)
 
 
 if __name__ == "__main__":
