@@ -57,8 +57,7 @@ def test_encrypt_regular_archive_error_existing(tmp_path):
     with pytest.raises(SystemExit) as error:
         encrypt_existing_archive(archive_path, keys, destination_path)
 
-    assert error.type == SystemExit
-    assert str(error.value) == f"Path {get_absolute_path_string(destination_path)} must not exist. Use --force to override"
+        assert error.type == SystemExit
 
 
 def test_encrypt_regular_archive_force_override_existing(tmp_path):

@@ -8,7 +8,7 @@ from .constants import COMPRESSED_ARCHIVE_SUFFIX, ENCRYPTED_ARCHIVE_SUFFIX, MD5_
 from .extract import extract_archive
 
 
-def check_integrity(source_path, deep_flag=False, threads=None):
+def check_integrity(source_path, deep_flag=False, threads=None, work_dir=None):
     archives_with_hashes = get_archives_with_hashes_from_path(source_path)
     is_encrypted = helpers.path_target_is_encrypted(source_path)
 
@@ -19,7 +19,7 @@ def check_integrity(source_path, deep_flag=False, threads=None):
     if deep_flag:
         # with deep flag still continue, no matter what the result of the previous test was
         deep_check_result = deep_integrity_check(archives_with_hashes,
-                                                 is_encrypted, threads)
+                                                 is_encrypted, threads, work_dir)
 
         if check_result and deep_check_result:
             logging.info("Deep integrity check successful.")
@@ -46,6 +46,7 @@ def shallow_integrity_check(archives_with_hashes):
         archive_file_path = archive[0]
         archive_hash_file_path = archive[1]
 
+        logging.info(f"Verifying hash of {archive_file_path}")
         if not compare_hashes_from_files(archive_file_path, archive_hash_file_path):
             logging.warning(f"Hash of file {archive_file_path.name} has changed.")
             return False
@@ -53,19 +54,19 @@ def shallow_integrity_check(archives_with_hashes):
     return True
 
 
-def deep_integrity_check(archives_with_hashes, is_encrypted, threads):
+def deep_integrity_check(archives_with_hashes, is_encrypted, threads, work_dir):
     # Unpack each archive separately
     for archive in archives_with_hashes:
         archive_file_path = archive[0]
         expected_listing_hash_path = archive[2]
 
         # Create temporary directory to unpack archive
-        with tempfile.TemporaryDirectory() as temp_path_string:
+        with tempfile.TemporaryDirectory(dir=work_dir) as temp_path_string:
             temp_path = Path(temp_path_string) / "extraction-folder"
             archive_content_path = extract_archive(archive_file_path, temp_path, threads=threads, extract_at_destination=True)
 
             terminate_if_extracted_archive_not_existing(archive_content_path)
-            hash_result = helpers.hash_listing_for_files_in_folder(archive_content_path)
+            hash_result = helpers.hash_listing_for_files_in_folder(archive_content_path, max_workers=threads)
 
             return compare_archive_listing_hashes(hash_result, expected_listing_hash_path)
 

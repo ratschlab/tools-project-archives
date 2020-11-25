@@ -47,7 +47,6 @@ def create_and_write_file_hash(file_path):
 
 def get_file_hash_from_path(file_path):
     if file_path.is_symlink():
-        logging.warning(f"Symlink {file_path.name} found. The link itself will be archived and hashed but not the files that it points to.")
         return get_symlink_path_hash(file_path)
 
     hasher = hashlib.md5()
@@ -67,20 +66,26 @@ def get_symlink_path_hash(symlink_path):
     return hasher.hexdigest()
 
 
-def hash_listing_for_files_in_folder(source_path, relative_to_path=None):
+def hash_listing_for_files_in_folder(source_path, relative_to_path=None, max_workers=1):
     if not relative_to_path:
         relative_to_path = source_path.parent
 
-    hashes_list = []
+    file_list = []
     for root, _, files in os.walk(source_path):
         root_path = Path(root)
         for file in files:
-            reative_path_to_file_string = root_path.relative_to(relative_to_path).joinpath(file).as_posix()
-            file_hash = get_file_hash_from_path(root_path.joinpath(file))
+            abs_file = root_path.joinpath(file)
+            if abs_file.is_symlink():
+                logging.warning(
+                    f"Symlink {abs_file.relative_to(relative_to_path)} found. "
+                    f"The archive contains the link itself, but not necessarily the file it points to.")
 
-            hashes_list.append([reative_path_to_file_string, file_hash])
+            file_list.append(abs_file)
 
-    return hashes_list
+    with multiprocessing.Pool(max_workers) as pool:
+        hashes_list = pool.map(get_file_hash_from_path, file_list)
+
+    return [[e[0].relative_to(relative_to_path).as_posix(), e[1]] for e in zip(file_list, hashes_list)]
 
 
 def get_threads_from_args_or_environment(threads_arg):
@@ -108,7 +113,12 @@ def get_number_of_threads_from_env():
         logging.info(f"Environment variable {ENV_VAR_MAPPER_MAX_CPUS} is not set")
         return None
 
-    env_variable_threads_number = os.environ.get(env_variable_name)
+    env_variable_threads = os.environ.get(env_variable_name)
+
+    try:
+        env_variable_threads_number = int(env_variable_threads)
+    except:
+        pass
 
     if not env_variable_threads_number:
         logging.info(f"Environment variable {env_variable_name} doesn't contain a valid number of threads")
@@ -313,7 +323,7 @@ def terminate_with_exception(exception):
 
 def terminate_with_message(message):
     logging.error(message)
-    sys.exit(message)
+    sys.exit(1)
 
 
 def encryption_keys_must_exist(key_list):

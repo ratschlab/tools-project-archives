@@ -4,19 +4,22 @@ import argparse
 import sys
 from pathlib import Path
 import logging
+import os
 
 from .archive import create_archive, encrypt_existing_archive
 from .extract import extract_archive, decrypt_existing_archive
 from .listing import create_listing
 from .integrity import check_integrity
-from . import helpers
+from . import helpers, __version__
 
 # Configure logger
 logging.basicConfig(format='%(asctime)s - %(levelname)s: %(message)s', level=logging.INFO)
 
-
 def main():
     parsed_arguments = parse_arguments(sys.argv[1:])
+
+    logging.info(f"archiver version {__version__}")
+    logging.info(f"Executing as {os.getlogin()} on {os.uname().nodename}")
 
     if parsed_arguments.func:
         parsed_arguments.func(parsed_arguments)
@@ -27,12 +30,13 @@ def main():
 def parse_arguments(args):
     # Main parser
     parser = argparse.ArgumentParser(prog="archiver", description='Handles the archiving of large project data')
+    parser.add_argument("-w", "--work-dir", type=str, help="Working directory")
     subparsers = parser.add_subparsers(help="Available actions", required=True, dest="command")
 
     # Archiving parser
     parser_archive = subparsers.add_parser("archive", help="Create archive")
     parser_archive.add_argument("source", type=str, help="Source input file or directory")
-    parser_archive.add_argument("archive_dir", type=str, nargs="?", help="Path to directory which will be created")
+    parser_archive.add_argument("archive_dir", type=str, help="Path to directory which will be created")
     parser_archive.add_argument("-n", "--threads", type=int, help="Set the number of worker threads, overriding the system's default")
     parser_archive.add_argument("-c", "--compression", type=int, help="Compression level between 0 (fastest) to 9 (slowest), default is 6")
     parser_archive.add_argument("-k", "--key", type=str, action="append",
@@ -98,13 +102,15 @@ def handle_archive(args):
 
     bytes_splitting = None
 
+    work_dir = args.work_dir
+
     if args.part:
         try:
             bytes_splitting = helpers.get_bytes_in_string_with_unit(args.part)
         except Exception as error:
             helpers.terminate_with_exception(error)
 
-    create_archive(source_path, destination_path, threads, args.key, compression, bytes_splitting, args.remove, args.force)
+    create_archive(source_path, destination_path, threads, args.key, compression, bytes_splitting, args.remove, args.force, work_dir)
 
 
 def handle_encryption(args):
@@ -143,7 +149,7 @@ def handle_list(args):
     # Path to archive file *.tar.lz
     source_path = Path(args.archive_dir)
 
-    create_listing(source_path, args.subpath, args.deep)
+    create_listing(source_path, args.subpath, args.deep, args.work_dir)
 
 
 def handle_check(args):
@@ -151,7 +157,7 @@ def handle_check(args):
     source_path = Path(args.archive_dir)
     threads = helpers.get_threads_from_args_or_environment(args.threads)
 
-    check_integrity(source_path, args.deep, threads)
+    check_integrity(source_path, args.deep, threads, args.work_dir)
 
 
 if __name__ == "__main__":

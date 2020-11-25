@@ -8,9 +8,9 @@ from .encryption import decrypt_list_of_archives
 from .constants import LISTING_SUFFIX, COMPRESSED_ARCHIVE_SUFFIX, ENCRYPTED_ARCHIVE_SUFFIX
 
 
-def create_listing(source_path, subdir_path=None, deep=False):
+def create_listing(source_path, subdir_path=None, deep=False, work_dir=None):
     if deep:
-        listing_from_archive(source_path, subdir_path)
+        listing_from_archive(source_path, subdir_path, work_dir)
     else:
         listing_from_listing_file(source_path, subdir_path)
 
@@ -33,21 +33,21 @@ def listing_from_listing_file(source_path, subdir_path):
         print("")
 
 
-def listing_from_archive(source_path, subdir_path):
+def listing_from_archive(source_path, subdir_path, work_dir):
     is_encrypted = helpers.path_target_is_encrypted(source_path)
     archives = helpers.get_archives_from_path(source_path, is_encrypted)
 
     if is_encrypted:
         logging.info("Deep listing of encrypted archive.")
-        decrypt_and_list(archives, subdir_path)
+        decrypt_and_list(archives, subdir_path, work_dir)
     else:
         logging.info("Deep listing of compressed archive.")
         list_archives(archives, subdir_path)
 
 
-def decrypt_and_list(archives, subdir_path):
+def decrypt_and_list(archives, subdir_path, work_dir):
     # TODO: Check if enough disk space or warn
-    with tempfile.TemporaryDirectory() as temp_path_string:
+    with tempfile.TemporaryDirectory(dir=work_dir) as temp_path_string:
         temp_path = Path(temp_path_string)
 
         decrypt_list_of_archives(archives, temp_path)

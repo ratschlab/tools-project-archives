@@ -42,7 +42,7 @@ def test_create_symlink_archive(tmp_path, caplog):
     create_archive(folder_path, destination_path, compression=5)
     assert_successful_archive_creation(destination_path, archive_path, folder_name, unencrypted="all")
 
-    expected_warning = "Symlink link.txt found. The link itself will be archived and hashed but not the files that it points to."
+    expected_warning = "Symlink symlink-folder/link.txt found. The archive contains the link itself, but not necessarily the file it points to."
     assert expected_warning in caplog.text
 
 
