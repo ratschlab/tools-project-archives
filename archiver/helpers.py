@@ -323,7 +323,7 @@ def terminate_with_exception(exception):
 
 def terminate_with_message(message):
     logging.error(message)
-    sys.exit(message)
+    sys.exit(1)
 
 
 def encryption_keys_must_exist(key_list):

@@ -56,7 +56,7 @@ def create_archive(source_path, destination_path, threads=None, encryption_keys=
         create_and_write_archive_hash(destination_path, source_name)
         create_archive_listing(destination_path, source_name)
 
-        logging.info("Starting compression...")
+        logging.info("Starting compression of tar archive...")
         compress_using_lzip(destination_path, source_name, threads, compression)
         create_and_write_compressed_archive_hash(destination_path, source_name)
 
