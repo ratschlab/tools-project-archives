@@ -46,6 +46,7 @@ def shallow_integrity_check(archives_with_hashes):
         archive_file_path = archive[0]
         archive_hash_file_path = archive[1]
 
+        logging.info(f"Verifying hash of {archive_file_path}")
         if not compare_hashes_from_files(archive_file_path, archive_hash_file_path):
             logging.warning(f"Hash of file {archive_file_path.name} has changed.")
             return False

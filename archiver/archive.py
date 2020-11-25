@@ -51,7 +51,7 @@ def create_archive(source_path, destination_path, threads=None, encryption_keys=
         logging.info("Create and write hash list...")
         create_file_listing_hash(source_path, destination_path, source_name, max_workers=threads)
 
-        logging.info("Create tar archive...")
+        logging.info(f"Create tar archive in {destination_path}...")
         create_tar_archive(source_path, destination_path, source_name, work_dir)
         create_and_write_archive_hash(destination_path, source_name)
         create_archive_listing(destination_path, source_name)

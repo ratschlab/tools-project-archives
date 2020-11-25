@@ -64,7 +64,7 @@ def extract_archive(source_path, destination_directory_path, partial_extraction_
 
 def uncompress_and_extract(archive_file_paths, destination_directory_path, threads, encrypted=False):
     for archive_path in archive_file_paths:
-        logging.info(f"Complete extraction of archive " + helpers.get_absolute_path_string(archive_path))
+        logging.info(f"Extract archive {helpers.get_absolute_path_string(archive_path)}")
 
         additional_arguments = []
 

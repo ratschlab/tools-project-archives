@@ -4,6 +4,7 @@ import argparse
 import sys
 from pathlib import Path
 import logging
+import os
 
 from .archive import create_archive, encrypt_existing_archive
 from .extract import extract_archive, decrypt_existing_archive
@@ -14,9 +15,10 @@ from . import helpers
 # Configure logger
 logging.basicConfig(format='%(asctime)s - %(levelname)s: %(message)s', level=logging.INFO)
 
-
 def main():
     parsed_arguments = parse_arguments(sys.argv[1:])
+
+    logging.info(f"Executing as {os.getlogin()} on {os.uname().nodename}")
 
     if parsed_arguments.func:
         parsed_arguments.func(parsed_arguments)
