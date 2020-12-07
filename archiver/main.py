@@ -1,25 +1,27 @@
 #!/usr/bin/env python3
 
 import argparse
-import sys
-from pathlib import Path
+import getpass
 import logging
 import os
+import sys
+from pathlib import Path
 
+from . import helpers, __version__
 from .archive import create_archive, encrypt_existing_archive
 from .extract import extract_archive, decrypt_existing_archive
-from .listing import create_listing
 from .integrity import check_integrity
-from . import helpers, __version__
+from .listing import create_listing
 
 # Configure logger
 logging.basicConfig(format='%(asctime)s - %(levelname)s: %(message)s', level=logging.INFO)
 
-def main():
-    parsed_arguments = parse_arguments(sys.argv[1:])
+
+def main(args=tuple(sys.argv[1:])):
+    parsed_arguments = parse_arguments(args)
 
     logging.info(f"archiver version {__version__}")
-    logging.info(f"Executing as {os.getlogin()} on {os.uname().nodename}")
+    logging.info(f"Executing as {getpass.getuser()} on {os.uname().nodename}")
 
     if parsed_arguments.func:
         parsed_arguments.func(parsed_arguments)
@@ -87,7 +89,7 @@ def parse_arguments(args):
     parser_check.add_argument("-n", "--threads", type=int, help="Set the number of worker threads, overriding the system's default")
     parser_check.set_defaults(func=handle_check)
 
-    return parser.parse_args()
+    return parser.parse_args(args)
 
 
 def handle_archive(args):
@@ -157,7 +159,11 @@ def handle_check(args):
     source_path = Path(args.archive_dir)
     threads = helpers.get_threads_from_args_or_environment(args.threads)
 
-    check_integrity(source_path, args.deep, threads, args.work_dir)
+    if not check_integrity(source_path, args.deep, threads, args.work_dir):
+        # return a different error code to the default code of 1 to be able to distinguish
+        # general errors from a successful run of the program with an unsuccessful outcome
+        # not taking 2, as it usually stands for command line argument errors
+        return sys.exit(3)
 
 
 if __name__ == "__main__":
