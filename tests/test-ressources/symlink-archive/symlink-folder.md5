@@ -1,3 +1,5 @@
 49dbcfb5e7ae8ca55cab6b0e4674d9fd symlink-folder/file1.txt
-1158ea38cb06667fa13264c178f9b744 symlink-folder/link.txt
+bf6ba6d21ea0cb9b6c0dd6c5a150b845 symlink-folder/invalid_link
+b47b345e7a279ebd20d0a6d23f384feb symlink-folder/invalid_link_abs
 5762a5694bf3cb3df59bf864ed71a4a8 symlink-folder/folder-in-archive/file2.txt
+21e022b0b2958d0a999060300943ba9a symlink-folder/folder-in-archive/link.txt

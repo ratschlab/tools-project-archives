@@ -1,7 +1,8 @@
 Listing content of: symlink-folder.tar.lz
-drwxr-xr-x  0 fnoah  staff       0 Jun  9 12:28 symlink-folder/
--rw-r--r--  0 fnoah  staff      14 Jun  9 12:25 symlink-folder/file1.txt
-drwxr-xr-x  0 fnoah  staff       0 Jun  9 12:25 symlink-folder/folder-in-archive/
-lrwxr-xr-x  0 fnoah  staff       0 Jun  9 12:27 symlink-folder/link.txt -> ../some-file.txt
--rw-r--r--  0 fnoah  staff      14 Jun  9 12:25 symlink-folder/folder-in-archive/file2.txt
-
+drwxr-xr-x  0 marc   staff       0 Dec  7 15:13 symlink-folder/
+-rw-r--r--  0 marc   staff      14 Nov 18 11:40 symlink-folder/file1.txt
+lrwxr-xr-x  0 marc   staff       0 Dec  7 15:12 symlink-folder/invalid_link -> not_existing
+drwxr-xr-x  0 marc   staff       0 Dec  7 15:07 symlink-folder/folder-in-archive/
+lrwxr-xr-x  0 marc   staff       0 Dec  7 15:13 symlink-folder/invalid_link_abs -> /not/existing
+-rw-r--r--  0 marc   staff      14 Nov 18 11:40 symlink-folder/folder-in-archive/file2.txt
+lrwxr-xr-x  0 marc   staff       0 Dec  7 15:07 symlink-folder/folder-in-archive/link.txt -> ../file1.txt
