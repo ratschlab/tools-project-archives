@@ -1,16 +1,17 @@
 #!/usr/bin/env python3
 
 import argparse
-import sys
-from pathlib import Path
+import getpass
 import logging
 import os
+import sys
+from pathlib import Path
 
+from . import helpers, __version__
 from .archive import create_archive, encrypt_existing_archive
 from .extract import extract_archive, decrypt_existing_archive
-from .listing import create_listing
 from .integrity import check_integrity
-from . import helpers, __version__
+from .listing import create_listing
 
 # Configure logger
 logging.basicConfig(format='%(asctime)s - %(levelname)s: %(message)s', level=logging.INFO)
@@ -20,7 +21,7 @@ def main(args=tuple(sys.argv[1:])):
     parsed_arguments = parse_arguments(args)
 
     logging.info(f"archiver version {__version__}")
-    logging.info(f"Executing as {os.getlogin()} on {os.uname().nodename}")
+    logging.info(f"Executing as {getpass.getuser()} on {os.uname().nodename}")
 
     if parsed_arguments.func:
         parsed_arguments.func(parsed_arguments)
