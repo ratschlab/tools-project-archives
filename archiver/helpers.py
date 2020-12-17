@@ -85,9 +85,14 @@ def hash_listing_for_files_in_folder(source_path, relative_to_path=None, max_wor
                     f" The archive will contain the link itself, but not the file it points to.")
             elif not abs_file.resolve().exists():
                 logging.warning(
-                    f"Symlink {abs_file.relative_to(relative_to_path)} found pointing non existing file {abs_file.resolve()} ."
-                    f" The archive will only the link itself")
-
+                    f"Symlink {abs_file.relative_to(relative_to_path)} found pointing to a non-existing file {abs_file.resolve()} ."
+                    f" The archive will only contain the link itself")
+            elif link.is_absolute():
+                # target exists and is within tree to be archived, however, link is absolute,
+                # so will be broken if unpacked on another system
+                logging.warning(f"Symlink {abs_file.relative_to(relative_to_path)} has an absolute target. "
+                                f"Consider making it a relative link to {source_path} s.t. it gets properly "
+                                f"resolved when unpacking the archive on another system.")
 
     if not relative_to_path:
         relative_to_path = source_path.parent
