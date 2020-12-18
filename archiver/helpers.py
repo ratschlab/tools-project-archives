@@ -73,29 +73,30 @@ def hash_listing_for_files_in_folder(source_path, relative_to_path=None, max_wor
         if integrity_check:
             if link.is_absolute():
                 logging.warning(
-                    f"Symlink {abs_file.relative_to(relative_to_path)} found pointing to {str(link)} ."
+                    f"Symlink {abs_file.relative_to(relative_to_path.parent)} found pointing to {str(link)} ."
                     f"The archive contains the link itself, but possibly not the file it points to.")
             # if the link is relative, check existence in a later step using file listings
         else:
             # archiving
-            if source_path.resolve().absolute() not in abs_file.resolve().parents:
+            absolute_root = relative_to_path.resolve().absolute() 
+            if absolute_root not in abs_file.resolve().parents:
                 logging.warning(
-                    f"Symlink {abs_file.relative_to(relative_to_path)} found pointing to {abs_file.resolve()} "
+                    f"Symlink {abs_file.relative_to(relative_to_path.parent)} found pointing to {abs_file.resolve()} "
                     f"outside the archiving directory {source_path.resolve().absolute()}."
                     f" The archive will contain the link itself, but not the file it points to.")
             elif not abs_file.resolve().exists():
                 logging.warning(
-                    f"Symlink {abs_file.relative_to(relative_to_path)} found pointing to a non-existing file {abs_file.resolve()} ."
+                    f"Symlink {abs_file.relative_to(relative_to_path.parent)} found pointing to a non-existing file {abs_file.resolve()} ."
                     f" The archive will only contain the link itself")
             elif link.is_absolute():
                 # target exists and is within tree to be archived, however, link is absolute,
                 # so will be broken if unpacked on another system
-                logging.warning(f"Symlink {abs_file.relative_to(relative_to_path)} has an absolute target. "
+                logging.warning(f"Symlink {abs_file.relative_to(relative_to_path.parent)} has an absolute target. "
                                 f"Consider making it a relative link to {source_path} s.t. it gets properly "
                                 f"resolved when unpacking the archive on another system.")
 
     if not relative_to_path:
-        relative_to_path = source_path.parent
+        relative_to_path = source_path
 
     file_list = []
     for root, _, files in os.walk(source_path):
@@ -111,7 +112,7 @@ def hash_listing_for_files_in_folder(source_path, relative_to_path=None, max_wor
     with multiprocessing.Pool(max_workers) as pool:
         hashes_list = pool.map(get_file_hash_from_path, file_list)
 
-    return [[e[0].relative_to(relative_to_path).as_posix(), e[1]] for e in zip(file_list, hashes_list)]
+    return [[e[0].relative_to(relative_to_path.parent).as_posix(), e[1]] for e in zip(file_list, hashes_list)]
 
 
 def get_threads_from_args_or_environment(threads_arg):
