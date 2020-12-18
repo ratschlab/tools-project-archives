@@ -172,14 +172,14 @@ def get_size_of_directory(path, deep=False):
     if deep:
         return sum(f.stat().st_size for f in path.glob('**/*') if f.is_file())
 
+    command = ["du", "-shb", path] if plattform_is_linux() else ["du", "-sh", path]
+    parsed_output = subprocess.check_output(command).decode("utf-8")
+
+    dir_size = re.split(r'\t+', parsed_output.lstrip())[0]
+
     try:
-        command = ["du", "-shb", path] if plattform_is_linux() else ["du", "-sh", path]
-        parsed_output = subprocess.check_output(command).decode("utf-8")
-
-        dir_size = re.split(r'\t+', parsed_output.lstrip())[0]
-
         return int(dir_size)
-    except:
+    except ValueError:
         return get_bytes_in_string_with_unit(dir_size)
 
 
