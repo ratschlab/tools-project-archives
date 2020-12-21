@@ -116,7 +116,7 @@ def deep_integrity_check(archives_with_hashes, is_encrypted, threads, work_dir):
     missing_links = verify_relative_symbolic_links(archives_with_hashes)
 
     for path, target in missing_links.items():
-        logging.warning(f"Symbolic link {path} pointing to {target} cannot be found in archive")
+        logging.warning(f"Symlink {path} pointing to {target} is broken in archive")
 
     return successful
 

@@ -124,7 +124,7 @@ def parse_tar_listing(path):
         for l in f.readlines():
             fields = l.split()
 
-            # assume field 3 is a date formatted like 2020-12-17 to
+            # assume field 3 is a date formatted like 2020-12-17 to determine listing format
             is_gnu_tar = '-' in fields[3]
             entry = _process_gnutar(fields) if is_gnu_tar else _process_bsdtar(
                 fields)
