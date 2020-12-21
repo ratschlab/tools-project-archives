@@ -141,6 +141,9 @@ def test_integrity_check_deep_symlink(caplog):
 
     assert_successful_deep_check(archive_file, caplog)
 
+    assert "Symlink symlink-folder/invalid_link_abs found pointing to /not/existing . The archive contains the link itself, but possibly not the file it points to." in caplog.messages
+    assert "Symlink symlink-folder/invalid_link pointing to not_existing is broken in archive" in caplog.messages
+
 
 def test_verify_relative_symbolic_links():
     archive_dir = get_directory_with_name("symlink-archive")
