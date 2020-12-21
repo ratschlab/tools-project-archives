@@ -82,6 +82,11 @@ def verify_relative_symbolic_links(archives_with_hashes):
         # for absolute targets we already gave warning during hash_listing_for_files_in_folder
         if not Path(target).is_absolute():
             target_path = (Path(path).parent / Path(target)).resolve()
+
+            if Path().resolve() not in target_path.parents:
+                missing[path] = target
+                continue
+
             relative_target_path = target_path.relative_to(Path().resolve())
 
             if str(relative_target_path) not in file_set:
