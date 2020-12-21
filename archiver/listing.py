@@ -1,11 +1,13 @@
-import subprocess
-from pathlib import Path
 import logging
+import re
+import subprocess
 import tempfile
+from pathlib import Path
+from collections import namedtuple
 
 from . import helpers
+from .constants import LISTING_SUFFIX
 from .encryption import decrypt_list_of_archives
-from .constants import LISTING_SUFFIX, COMPRESSED_ARCHIVE_SUFFIX, ENCRYPTED_ARCHIVE_SUFFIX
 
 
 def create_listing(source_path, subdir_path=None, deep=False, work_dir=None):
@@ -83,3 +85,49 @@ def get_listing_files_for_path(path):
     helpers.terminate_if_path_nonexistent(path)
 
     return [listing_path]
+
+
+ListingEntry=namedtuple('ListingEntry', ['permissions', 'owner',
+                                         'group', 'size', 'mod_date', 'mod_time', 'path', 'link_target'])
+
+
+def parse_tar_listing(path):
+    LINK_RE_SEP = re.compile(r"\s?->\s?")
+
+    def _process_path(fields, path_index):
+        remaining = ''.join(fields[path_index:])
+        # last field may contain 'path' or 'path -> link target'
+        link_parts = []
+        if '->' in remaining:
+            link_parts = LINK_RE_SEP.split(remaining)
+
+        if len(link_parts) > 1:
+            return link_parts[0], link_parts[1]
+        else:
+            return fields[path_index], None
+
+    def _process_gnutar(fields):
+        path, link_target = _process_path(fields, 5)
+        owner, group = fields[1].split('/')
+
+        return ListingEntry(fields[0], owner, group, fields[2], fields[3],
+                            fields[4], path, link_target)
+
+    def _process_bsdtar(line):
+        path, link_target = _process_path(line, 8)
+
+        return ListingEntry(line[0], line[2], line[3], line[4],
+                            ' '.join(line[5:7]), line[7], path, link_target)
+
+    entries = []
+    with open(path, 'r') as f:
+        for l in f.readlines():
+            fields = l.split()
+
+            # assume field 3 is a date formatted like 2020-12-17 to determine listing format
+            is_gnu_tar = '-' in fields[3]
+            entry = _process_gnutar(fields) if is_gnu_tar else _process_bsdtar(
+                fields)
+            entries.append(entry)
+
+    return entries

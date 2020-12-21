@@ -1,9 +1,8 @@
 import pytest
-import os
-from pathlib import Path
 
-from archiver.listing import create_listing
-from tests.helpers import get_directory_with_name, get_listing_with_name, compare_list_content_ignoring_order
+from archiver.listing import create_listing, parse_tar_listing
+from tests.helpers import get_directory_with_name, get_listing_with_name, \
+    compare_list_content_ignoring_order
 
 DEEP = True
 
@@ -174,6 +173,19 @@ def test_list_archive_content_symlink_deep(capsys):
     expected_listing = get_listing_with_name("listing-symlink-deep.lst")
 
     create_file_listing_and_assert_output_equals(archive_dir, expected_listing, capsys, None, DEEP)
+
+
+@pytest.mark.parametrize('listing_name', ['tar-listing-symlink.lst', 'tar-listing-symlink-gnutar.lst'])
+def test_parse_tar_listing(listing_name):
+    listing_path = get_listing_with_name(listing_name)
+
+    listing = parse_tar_listing(listing_path)
+
+    assert len(listing) == 7
+    assert all(e.owner == 'marc' for e in listing)
+    assert all(e.group == 'staff' for e in listing)
+    assert all(int(e.size) >= 0 for e in listing)
+    assert listing[-1].link_target == '../file1.txt'
 
 
 # MARK: Test helpers

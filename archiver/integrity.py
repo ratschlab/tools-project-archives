@@ -4,8 +4,9 @@ from pathlib import Path
 
 
 from . import helpers
-from .constants import COMPRESSED_ARCHIVE_SUFFIX, ENCRYPTED_ARCHIVE_SUFFIX, MD5_LINE_REGEX
+from .constants import COMPRESSED_ARCHIVE_SUFFIX, ENCRYPTED_ARCHIVE_SUFFIX, MD5_LINE_REGEX, LISTING_SUFFIX
 from .extract import extract_archive
+from .listing import parse_tar_listing
 
 
 def check_integrity(source_path, deep_flag=False, threads=None, work_dir=None):
@@ -54,8 +55,49 @@ def shallow_integrity_check(archives_with_hashes):
     return True
 
 
+def verify_relative_symbolic_links(archives_with_hashes):
+    """
+    Checks whether relative links in archives can be resolved.
+
+    It considers listing files only, which may only yield approximative results. Note, that in case
+    of split archives, we would need to unpack all splits, since a link may point to a file in some other
+    split. However, unpacking all splits may turn out to not feasible, e.g. for space reasons.
+
+    :param archives_with_hashes:
+    :return: dictionary of paths to symlinks where target is missing and is relative
+    """
+    file_set = set() # the set of all files in the archive (parts)
+    symlink_dict = {} # all symlinks found across listing
+    for archive in archives_with_hashes:
+        part_path = archive[0]
+        part_listing = part_path.parent / (helpers.filename_without_archive_extensions(part_path) + LISTING_SUFFIX)
+        entries = parse_tar_listing(part_listing)
+
+        file_set.update([str(e.path).rstrip('/') for e in entries])
+        symlink_dict.update(
+            {e.path: e.link_target for e in entries if e.link_target})
+
+    missing = {}
+    for path, target in symlink_dict.items():
+        # for absolute targets we already gave warning during hash_listing_for_files_in_folder
+        if not Path(target).is_absolute():
+            target_path = (Path(path).parent / Path(target)).resolve()
+
+            if Path().resolve() not in target_path.parents:
+                missing[path] = target
+                continue
+
+            relative_target_path = target_path.relative_to(Path().resolve())
+
+            if str(relative_target_path) not in file_set:
+                missing[path] = target
+
+    return missing
+
+
 def deep_integrity_check(archives_with_hashes, is_encrypted, threads, work_dir):
     # Unpack each archive separately
+    successful = True
     for archive in archives_with_hashes:
         archive_file_path = archive[0]
         expected_listing_hash_path = archive[2]
@@ -66,9 +108,17 @@ def deep_integrity_check(archives_with_hashes, is_encrypted, threads, work_dir):
             archive_content_path = extract_archive(archive_file_path, temp_path, threads=threads, extract_at_destination=True)
 
             terminate_if_extracted_archive_not_existing(archive_content_path)
-            hash_result = helpers.hash_listing_for_files_in_folder(archive_content_path, max_workers=threads)
+            hash_result = helpers.hash_listing_for_files_in_folder(archive_content_path, max_workers=threads, integrity_check=True)
 
-            return compare_archive_listing_hashes(hash_result, expected_listing_hash_path)
+            r = compare_archive_listing_hashes(hash_result, expected_listing_hash_path)
+            successful = successful and r
+
+    missing_links = verify_relative_symbolic_links(archives_with_hashes)
+
+    for path, target in missing_links.items():
+        logging.warning(f"Symlink {path} pointing to {target} is broken in archive")
+
+    return successful
 
 
 # MARK: Helpers

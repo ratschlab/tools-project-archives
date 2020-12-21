@@ -67,7 +67,7 @@ def test_extract_symlink(tmp_path):
     assert dir_listing == [FOLDER_NAME]
 
     # check if symlink exists
-    assert extraction_path.joinpath(FOLDER_NAME + "/link.txt").is_symlink()
+    assert extraction_path.joinpath(FOLDER_NAME, "folder-in-archive", "link.txt").is_symlink()
 
     # assert content of extracted file
     assert filecmp.cmp(folder_path.joinpath("file1.txt"), extraction_path.joinpath(FOLDER_NAME + "/file1.txt"))

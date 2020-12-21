@@ -1,4 +1,4 @@
-from archiver.integrity import check_integrity
+from archiver.integrity import check_integrity, verify_relative_symbolic_links, get_archives_with_hashes_from_path
 from tests.helpers import get_directory_with_name
 
 DEEP = True
@@ -140,6 +140,20 @@ def test_integrity_check_deep_symlink(caplog):
     archive_file = archive_dir.joinpath("symlink-folder.tar.lz")
 
     assert_successful_deep_check(archive_file, caplog)
+
+    assert "Symlink symlink-folder/invalid_link_abs found pointing to /not/existing . The archive contains the link itself, but possibly not the file it points to." in caplog.messages
+    assert "Symlink symlink-folder/invalid_link pointing to not_existing is broken in archive" in caplog.messages
+
+
+def test_verify_relative_symbolic_links():
+    archive_dir = get_directory_with_name("symlink-archive")
+
+    archives_with_hashes = get_archives_with_hashes_from_path(archive_dir)
+    missing = verify_relative_symbolic_links(archives_with_hashes)
+
+    link_key = 'symlink-folder/invalid_link'
+    assert link_key in missing and missing[link_key] == 'not_existing'
+    assert len(missing) == 1
 
 
 # MARK: Helpers

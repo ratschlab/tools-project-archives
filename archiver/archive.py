@@ -93,13 +93,13 @@ def create_split_archive(source_path, destination_path, source_name, splitting, 
             encrypt_list_of_archives(archive_list, encryption_keys, remove_unencrypted)
 
 
-def create_file_listing_hash(source_path, destination_path, source_name, archive_list=None, max_workers=1):
+def create_file_listing_hash(source_path_root, destination_path, source_name, archive_list=None, max_workers=1):
     if archive_list:
         paths_to_hash_list = archive_list
     else:
-        paths_to_hash_list = [source_path]
+        paths_to_hash_list = [source_path_root]
 
-    hashes = hashes_for_path_list(paths_to_hash_list, source_path.parent, max_workers)
+    hashes = hashes_for_path_list(paths_to_hash_list, source_path_root, max_workers)
     file_path = destination_path.joinpath(source_name + ".md5")
 
     with open(file_path, "a") as hash_file:
@@ -110,15 +110,15 @@ def create_file_listing_hash(source_path, destination_path, source_name, archive
             hash_file.write(f"{file_hash} {file_path}\n")
 
 
-def hashes_for_path_list(path_list, parent_path, max_workers=1):
+def hashes_for_path_list(path_list, source_path_root, max_workers=1):
     hash_list = []
 
     for path in path_list:
         if path.is_dir():
-            hashes = helpers.hash_listing_for_files_in_folder(path, parent_path, max_workers=max_workers)
+            hashes = helpers.hash_listing_for_files_in_folder(path, source_path_root, max_workers=max_workers)
             hash_list = hash_list + hashes
         else:
-            relative_file_path_string = path.relative_to(parent_path).as_posix()
+            relative_file_path_string = path.relative_to(source_path_root.parent).as_posix()
             file_hash = helpers.get_file_hash_from_path(path)
             hash_list.append([relative_file_path_string, file_hash])
 
