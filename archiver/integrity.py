@@ -73,7 +73,7 @@ def verify_relative_symbolic_links(archives_with_hashes):
         part_listing = part_path.parent / (helpers.filename_without_archive_extensions(part_path) + LISTING_SUFFIX)
         entries = parse_tar_listing(part_listing)
 
-        file_set.update([e.path for e in entries])
+        file_set.update([str(e.path).rstrip('/') for e in entries])
         symlink_dict.update(
             {e.path: e.link_target for e in entries if e.link_target})
 
