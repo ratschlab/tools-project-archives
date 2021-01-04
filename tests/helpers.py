@@ -1,6 +1,9 @@
-import pytest
-from pathlib import Path
 import os
+import subprocess
+from pathlib import Path
+
+import pytest
+
 
 # MARK: Fixtures
 
@@ -110,3 +113,10 @@ def get_listing_with_name(listing_name):
 
 def get_current_directory():
     return Path(os.path.realpath(__file__)).parent
+
+
+def run_archiver_tool(args_list):
+    code_base = get_current_directory().parent
+
+    return subprocess.run(['python', '-m', 'archiver.main'] + args_list,
+                              cwd=code_base)

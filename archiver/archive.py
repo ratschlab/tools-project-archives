@@ -4,6 +4,7 @@ import hashlib
 from pathlib import Path
 import logging
 import tempfile
+import multiprocessing
 
 from . import helpers
 from . import splitter
@@ -93,6 +94,38 @@ def create_split_archive(source_path, destination_path, source_name, splitting, 
             encrypt_list_of_archives(archive_list, encryption_keys, remove_unencrypted)
 
 
+def create_filelist_and_hashs(source_path, destination_path, split_size, threads):
+    helpers.handle_destination_directory_creation(destination_path) # TODO: improve, include force argument?
+
+    nr_parts = 1
+
+    if split_size:
+        nr_parts = create_file_listing_hash_split_archives(source_path, destination_path,
+                                                split_size, threads)
+    else:
+        create_file_listing_hash(source_path, destination_path,
+                                 source_path.name, archive_list=None,
+                                 max_workers=threads)
+
+    # TODO: write nr_parts
+
+
+def create_file_listing_hash_split_archives(source_path, destination_path, split_size, threads):
+    logging.info("Generate file listings")
+    split_archives = splitter.split_directory(source_path, split_size)
+
+    source_name = source_path.name
+    nr_parts = 0
+    for index, archive in enumerate(split_archives):
+        source_part_name = f"{source_name}.part{index + 1}"
+        create_file_listing_hash(source_path, destination_path,
+                                         source_part_name, archive,
+                                         max_workers=threads)
+        nr_parts += 1
+
+    return nr_parts
+
+
 def create_file_listing_hash(source_path_root, destination_path, source_name, archive_list=None, max_workers=1):
     if archive_list:
         paths_to_hash_list = archive_list
@@ -123,6 +156,29 @@ def hashes_for_path_list(path_list, source_path_root, max_workers=1):
             hash_list.append([relative_file_path_string, file_hash])
 
     return hash_list
+
+
+def _process_part(source_path, destination_path, work_dir, source_part_name):
+    archive_list = [ source_path.parent / f for f in helpers.read_hash_file(destination_path / f"{source_part_name}.md5").keys()]
+
+    create_tar_archive(source_path, destination_path, source_part_name, archive_list, work_dir)
+    create_and_write_archive_hash(destination_path, source_part_name)
+    create_archive_listing(destination_path, source_part_name)
+
+
+def create_tar_archives_and_listings(source_path, destination_path, work_dir, parts=None, workers=1):
+    source_name = source_path.name
+
+    parts = list(destination_path.glob(f'{source_name}.md5')) + \
+            list(destination_path.glob(f'{source_name}.part[0-9]*.md5'))
+
+    if not parts:
+        helpers.terminate_with_message("No part files") # TODO:
+
+    part_names = [ p.name.rstrip('.md5') for p in parts]
+
+    with multiprocessing.Pool(workers) as pool:
+        pool.starmap(_process_part, [ (source_path, destination_path, work_dir, p) for p in part_names])
 
 
 def create_tar_archive(source_path, destination_path, source_name, archive_list=None, work_dir=None):
@@ -157,6 +213,22 @@ def create_archive_listing(destination_path, source_name):
 
     archive_listing_file = open(listing_path, "w")
     subprocess.run(["tar", "-tvf", tar_path], stdout=archive_listing_file)
+
+
+def compress_and_hash(destination_path, threads, compression, part):
+    if part:
+        parts = list(destination_path.glob(f'*part{part}.tar'))
+    else:
+        parts = list(destination_path.glob('*.tar'))
+
+    part_names = [ p.name.rstrip('.tar') for p in parts ]
+
+    for part in part_names:
+        compress_using_lzip(destination_path, part, threads, compression)
+
+    with multiprocessing.Pool(min(threads, len(parts))) as pool:
+        pool.starmap(create_and_write_compressed_archive_hash,
+                     [ (destination_path, part) for part in part_names ])
 
 
 def compress_using_lzip(destination_path, source_name, threads, compression):

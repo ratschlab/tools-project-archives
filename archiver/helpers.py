@@ -8,7 +8,8 @@ import logging
 import shutil
 import multiprocessing
 
-from .constants import READ_CHUNK_BYTE_SIZE, COMPRESSED_ARCHIVE_SUFFIX, ENCRYPTED_ARCHIVE_SUFFIX, MAX_NUMBER_CPUS, ENV_VAR_MAPPER_MAX_CPUS
+from .constants import READ_CHUNK_BYTE_SIZE, COMPRESSED_ARCHIVE_SUFFIX, \
+    ENCRYPTED_ARCHIVE_SUFFIX, MAX_NUMBER_CPUS, ENV_VAR_MAPPER_MAX_CPUS, MD5_LINE_REGEX
 
 
 def get_files_with_type_in_directory_or_terminate(directory, file_type):
@@ -43,6 +44,22 @@ def create_and_write_file_hash(file_path):
 
     with open(file_path.as_posix() + ".md5", "w") as hash_file:
         hash_file.write(f"{hash_output}  {file_path.name}\n")
+
+
+def read_hash_file(file_path):
+    hash_dict = {}
+
+    with open(file_path, "r") as file:
+        for l in file.readlines():
+            m = MD5_LINE_REGEX.match(l)
+
+            if not m:
+                logging.error(
+                    f"Not properly formatted MD5 checksum line found in file {expected_hash_listing_path}: {l}")
+                return False
+
+            hash_dict[m.groups()[1].lstrip('./')] = m.groups()[0]
+    return hash_dict
 
 
 def get_file_hash_from_path(file_path):

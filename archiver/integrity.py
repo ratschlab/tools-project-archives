@@ -132,17 +132,7 @@ def terminate_if_extracted_archive_not_existing(extracted_archive):
 def compare_archive_listing_hashes(hash_result, expected_hash_listing_path):
     hash_result_dict = {fn: hash for (fn, hash) in hash_result}
 
-    with open(expected_hash_listing_path, "r") as file:
-        expected_dict = {}
-        for l in file.readlines():
-            m = MD5_LINE_REGEX.match(l)
-
-            if not m:
-                logging.error(
-                    f"Not properly formatted MD5 checksum line found in file {expected_hash_listing_path}: {l}")
-                return False
-
-            expected_dict[m.groups()[1].lstrip('./')] = m.groups()[0]
+    expected_dict = helpers.read_hash_file(expected_hash_listing_path)
 
     corruption_found = False
 
