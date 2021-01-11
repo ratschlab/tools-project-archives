@@ -55,10 +55,12 @@ def read_hash_file(file_path):
 
             if not m:
                 logging.error(
-                    f"Not properly formatted MD5 checksum line found in file {expected_hash_listing_path}: {l}")
+                    f"Not properly formatted MD5 checksum line found in file {file_path}: {l}")
                 return False
 
-            hash_dict[m.groups()[1].lstrip('./')] = m.groups()[0]
+            path = m.groups()[1]
+            path = path[2:] if path.startswith('./') else path
+            hash_dict[path] = m.groups()[0]
     return hash_dict
 
 
