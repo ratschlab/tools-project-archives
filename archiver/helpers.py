@@ -124,7 +124,9 @@ def hash_listing_for_files_in_folder(source_path, relative_to_path=None, max_wor
             if abs_file.is_symlink():
                 _handle_symlink(abs_file)
 
-            file_list.append(abs_file)
+            if abs_file.is_symlink() or abs_file.is_file():
+                # ignoring other file types like FIFO, sockets etc
+                file_list.append(abs_file)
 
     with multiprocessing.Pool(max_workers) as pool:
         hashes_list = pool.map(get_file_hash_from_path, file_list)
