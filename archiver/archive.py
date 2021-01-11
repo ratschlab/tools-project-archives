@@ -122,7 +122,6 @@ def create_file_listing_hash_split_archives(source_path, destination_path, split
                                          source_part_name, archive,
                                          max_workers=threads)
         nr_parts += 1
-
     return nr_parts
 
 
@@ -143,17 +142,23 @@ def create_file_listing_hash(source_path_root, destination_path, source_name, ar
             hash_file.write(f"{file_hash} {file_path}\n")
 
 
+def _compute_file_hashes(path, source_path_root):
+    relative_file_path_string = path.relative_to(source_path_root.parent).as_posix()
+    file_hash = helpers.get_file_hash_from_path(path)
+    return [relative_file_path_string, file_hash]
+
+
 def hashes_for_path_list(path_list, source_path_root, max_workers=1):
     hash_list = []
 
-    for path in path_list:
-        if path.is_dir():
-            hashes = helpers.hash_listing_for_files_in_folder(path, source_path_root, max_workers=max_workers)
-            hash_list = hash_list + hashes
-        else:
-            relative_file_path_string = path.relative_to(source_path_root.parent).as_posix()
-            file_hash = helpers.get_file_hash_from_path(path)
-            hash_list.append([relative_file_path_string, file_hash])
+    dirs = [ path for path in path_list if path.is_dir()]
+    for path in dirs:
+        hashes = helpers.hash_listing_for_files_in_folder(path, source_path_root, max_workers=max_workers)
+        hash_list = hash_list + hashes
+
+    others = [path for path in path_list if not path.is_dir()]
+    with multiprocessing.Pool(max_workers) as pool:
+        hash_list = hash_list + pool.starmap(_compute_file_hashes, [(p, source_path_root) for p in others])
 
     return hash_list
 
