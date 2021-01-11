@@ -174,14 +174,16 @@ def _process_part(source_path, destination_path, work_dir, source_part_name):
 def create_tar_archives_and_listings(source_path, destination_path, work_dir, parts=None, workers=1):
     source_name = source_path.name
 
-    parts = list(destination_path.glob(f'{source_name}.md5')) + \
+    if parts:
+        part_hashes = [destination_path / f"{source_name}.part{part}.md5" for part in parts]
+    else:
+        part_hashes = list(destination_path.glob(f'{source_name}.md5')) + \
             list(destination_path.glob(f'{source_name}.part[0-9]*.md5'))
 
-    if not parts:
-        helpers.terminate_with_message("No part files") # TODO:
+        if not part_hashes:
+            helpers.terminate_with_message(f"No {source_name}.md5 or files matching {source_name}.part[0-9]*.md5 found in {destination_path}")
 
-    part_names = [ p.name.rstrip('.md5') for p in parts]
-
+    part_names = [os.path.splitext(p)[0] for p in part_hashes]
     with multiprocessing.Pool(workers) as pool:
         pool.starmap(_process_part, [ (source_path, destination_path, work_dir, p) for p in part_names])
 
@@ -226,11 +228,13 @@ def compress_and_hash(destination_path, threads, compression, part):
     else:
         parts = list(destination_path.glob('*.tar'))
 
-    part_names = [ p.name.rstrip('.tar') for p in parts ]
+    part_names = [os.path.splitext(p.name)[0] for p in parts]
 
+    # compress sequentially
     for part in part_names:
         compress_using_lzip(destination_path, part, threads, compression)
 
+    # compute md5sums of archive parts in parallel
     with multiprocessing.Pool(min(threads, len(parts))) as pool:
         pool.starmap(create_and_write_compressed_archive_hash,
                      [ (destination_path, part) for part in part_names ])

@@ -166,8 +166,9 @@ def handle_create_tar_archive(args):
     threads = helpers.get_threads_from_args_or_environment(args.threads)
 
     part = args.part
+    parts_list = [part] if part else []
 
-    create_tar_archives_and_listings(source_path, destination_path, work_dir, part, threads)
+    create_tar_archives_and_listings(source_path, destination_path, work_dir, parts_list, threads)
 
 
 def handle_create_compressed(args):
