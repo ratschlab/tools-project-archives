@@ -36,8 +36,6 @@ def encrypt_existing_archive(archive_path, encryption_keys, destination_dir=None
 def create_archive(source_path, destination_path, threads=None, encryption_keys=None, compression=6, splitting=None, remove_unencrypted=False, force=False, work_dir=None):
     # Argparse already checks if arguments are present, so only argument format needs to be validated
     helpers.terminate_if_path_nonexistent(source_path)
-    # Create destination folder if nonexistent or overwrite if --force option used
-    helpers.handle_destination_directory_creation(destination_path, force)
 
     if encryption_keys:
         helpers.encryption_keys_must_exist(encryption_keys)
@@ -49,6 +47,9 @@ def create_archive(source_path, destination_path, threads=None, encryption_keys=
     if splitting:
         create_split_archive(source_path, destination_path, source_name, int(splitting), threads, encryption_keys, compression, remove_unencrypted, work_dir)
     else:
+        # Create destination folder if nonexistent or overwrite if --force option used
+        helpers.handle_destination_directory_creation(destination_path, force)
+
         logging.info("Create and write hash list...")
         create_file_listing_hash(source_path, destination_path, source_name, max_workers=threads)
 
@@ -71,27 +72,18 @@ def create_archive(source_path, destination_path, threads=None, encryption_keys=
 
 def create_split_archive(source_path, destination_path, source_name, splitting, threads, encryption_keys, compression, remove_unencrypted, work_dir=None):
     logging.info("Start creation of split archive")
-    split_archives = splitter.split_directory(source_path, splitting)
 
-    for index, archive in enumerate(split_archives):
-        source_part_name = f"{source_name}.part{index + 1}"
+    if not threads:
+        threads = 1
 
-        logging.info(f"Create and write hash list of part {index + 1}...")
-        create_file_listing_hash(source_path, destination_path, source_part_name, archive, max_workers=threads)
+    create_filelist_and_hashs(source_path, destination_path, splitting, threads)
 
-        logging.info(f"Create tar archive part {index + 1}...")
-        create_tar_archive(source_path, destination_path, source_part_name, archive, work_dir)
-        create_and_write_archive_hash(destination_path, source_part_name)
-        create_archive_listing(destination_path, source_part_name)
+    create_tar_archives_and_listings(source_path, destination_path, work_dir, workers=threads)
 
-        logging.info(f"Starting compression of part {index + 1}...")
-        compress_using_lzip(destination_path, source_part_name, threads, compression)
-        create_and_write_compressed_archive_hash(destination_path, source_part_name)
+    compress_and_hash(destination_path, threads, compression)
 
-        if encryption_keys:
-            logging.info(f"Starting encryption of part {index + 1}...")
-            archive_list = [destination_path.joinpath(source_part_name + COMPRESSED_ARCHIVE_SUFFIX)]
-            encrypt_list_of_archives(archive_list, encryption_keys, remove_unencrypted)
+    if encryption_keys:
+        do_encryption(destination_path, encryption_keys, threads)
 
 
 def create_filelist_and_hashs(source_path, destination_path, split_size, threads):
@@ -211,11 +203,14 @@ def create_archive_listing(destination_path, source_name):
     subprocess.run(["tar", "-tvf", tar_path], stdout=archive_listing_file)
 
 
-def compress_and_hash(destination_path, threads, compression, part):
+def compress_and_hash(destination_path, threads, compression, part=None):
     if part:
         parts = list(destination_path.glob(f'*part{part}.tar'))
     else:
         parts = list(destination_path.glob('*.tar'))
+
+    if not parts:
+        helpers.terminate_with_message(f"No suitable tar files found to be compressed in {destination_path}")
 
     part_names = [os.path.splitext(p.name)[0] for p in parts]
 
@@ -251,3 +246,16 @@ def create_and_write_compressed_archive_hash(destination_path, source_name):
     path = destination_path.joinpath(source_name + ".tar.lz").absolute()
 
     helpers.create_and_write_file_hash(path)
+
+
+def do_encryption(destination_path, encryption_keys, remove_unencrypted=False, part=None, threads=1):
+    if part:
+        parts = list(destination_path.glob(f'*part{part}{COMPRESSED_ARCHIVE_SUFFIX}'))
+    else:
+        parts = list(destination_path.glob(f'*{COMPRESSED_ARCHIVE_SUFFIX}'))
+
+    if not parts:
+        helpers.terminate_with_message(
+            f"No suitable {COMPRESSED_ARCHIVE_SUFFIX} files found to be encrypted in {destination_path}")
+
+    encrypt_list_of_archives(parts, encryption_keys, remove_unencrypted, threads=threads)
