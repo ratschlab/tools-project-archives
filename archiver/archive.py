@@ -142,25 +142,14 @@ def create_file_listing_hash(source_path_root, destination_path, source_name, ar
             hash_file.write(f"{file_hash} {file_path}\n")
 
 
-def _compute_file_hashes(path, source_path_root):
-    relative_file_path_string = path.relative_to(source_path_root.parent).as_posix()
-    file_hash = helpers.get_file_hash_from_path(path)
-    return [relative_file_path_string, file_hash]
-
-
 def hashes_for_path_list(path_list, source_path_root, max_workers=1):
-    hash_list = []
+    files = [path for path in path_list if not path.is_dir()]
 
-    dirs = [ path for path in path_list if path.is_dir()]
-    for path in dirs:
-        hashes = helpers.hash_listing_for_files_in_folder(path, source_path_root, max_workers=max_workers)
-        hash_list = hash_list + hashes
+    for path in path_list:
+        if path.is_dir():
+            files.extend(helpers.get_files_in_folder(path))
 
-    others = [path for path in path_list if not path.is_dir()]
-    with multiprocessing.Pool(max_workers) as pool:
-        hash_list = hash_list + pool.starmap(_compute_file_hashes, [(p, source_path_root) for p in others])
-
-    return hash_list
+    return helpers.hash_files_and_check_symlinks(source_path_root, files, max_workers=max_workers)
 
 
 def _process_part(source_path, destination_path, work_dir, source_part_name):

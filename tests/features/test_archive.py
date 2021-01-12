@@ -72,6 +72,18 @@ def test_create_symlink_archive(tmp_path, caplog):
     assert "Symlink symlink-folder/invalid_link_abs found pointing to /not/existing outside the archiving directory" in caplog.text
 
 
+def test_create_symlink_archive_split(tmp_path, caplog):
+    folder_name = "symlink-folder"
+
+    folder_path = helpers.get_directory_with_name(folder_name)
+    destination_path = tmp_path / "name-of-destination-folder"
+
+    create_archive(folder_path, destination_path, compression=5, splitting=20)
+
+    assert "Symlink symlink-folder/invalid_link found pointing to a non-existing file " in caplog.text
+    assert "Symlink symlink-folder/invalid_link_abs found pointing to /not/existing outside the archiving directory" in caplog.text
+
+
 def test_create_encrypted_archive(tmp_path):
     folder_name = "test-folder"
 

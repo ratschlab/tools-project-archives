@@ -108,7 +108,9 @@ def deep_integrity_check(archives_with_hashes, is_encrypted, threads, work_dir):
             archive_content_path = extract_archive(archive_file_path, temp_path, threads=threads, extract_at_destination=True)
 
             terminate_if_extracted_archive_not_existing(archive_content_path)
-            hash_result = helpers.hash_listing_for_files_in_folder(archive_content_path, max_workers=threads, integrity_check=True)
+
+            files = helpers.get_files_in_folder(archive_content_path)
+            hash_result = helpers.hash_files_and_check_symlinks(archive_content_path, files, max_workers=threads, integrity_check=True)
 
             r = compare_archive_listing_hashes(hash_result, expected_listing_hash_path)
             successful = successful and r
