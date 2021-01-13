@@ -55,7 +55,9 @@ def create_archive(source_path, destination_path, threads=None, encryption_keys=
 
         logging.info(f"Create tar archive in {destination_path}...")
         create_tar_archive(source_path, destination_path, source_name, work_dir)
+        logging.info(f"Generating hash for tar archive {destination_path}...")
         create_and_write_archive_hash(destination_path, source_name)
+        logging.info(f"Generating archive listing for tar archive {destination_path}...")
         create_archive_listing(destination_path, source_name)
 
         logging.info("Starting compression of tar archive...")
@@ -103,12 +105,13 @@ def create_filelist_and_hashs(source_path, destination_path, split_size, threads
 
 
 def create_file_listing_hash_split_archives(source_path, destination_path, split_size, threads):
-    logging.info("Generate file listings")
+
     split_archives = splitter.split_directory(source_path, split_size)
 
     source_name = source_path.name
     nr_parts = 0
     for index, archive in enumerate(split_archives):
+        logging.info(f"Generate file listings for part {index + 1}")
         source_part_name = f"{source_name}.part{index + 1}"
         create_file_listing_hash(source_path, destination_path,
                                          source_part_name, archive,
@@ -147,8 +150,11 @@ def hashes_for_path_list(path_list, source_path_root, max_workers=1):
 def _process_part(source_path, destination_path, work_dir, source_part_name):
     archive_list = [ source_path.parent / f for f in helpers.read_hash_file(destination_path / f"{source_part_name}.md5").keys()]
 
+    logging.info(f"Create tar archive for {source_part_name}")
     create_tar_archive(source_path, destination_path, source_part_name, archive_list, work_dir)
+    logging.info(f"Generating hash for tar archive {source_part_name}")
     create_and_write_archive_hash(destination_path, source_part_name)
+    logging.info(f"Generating tar archive listing for {source_part_name}")
     create_archive_listing(destination_path, source_part_name)
 
 
@@ -165,6 +171,7 @@ def create_tar_archives_and_listings(source_path, destination_path, work_dir, pa
             helpers.terminate_with_message(f"No {source_name}.md5 or files matching {source_name}.part[0-9]*.md5 found in {destination_path}")
 
     part_names = [os.path.splitext(p)[0] for p in part_hashes]
+    logging.info(f"Creating tar archives and listings for {part_names} using {workers} workers.")
     with multiprocessing.Pool(workers) as pool:
         pool.starmap(_process_part, [ (source_path, destination_path, work_dir, p) for p in part_names])
 
@@ -216,9 +223,11 @@ def compress_and_hash(destination_path, threads, compression, part=None):
 
     # compress sequentially
     for part in part_names:
+        logging.info(f"Compressing {part} using {threads} threads.")
         compress_using_lzip(destination_path, part, threads, compression)
 
     # compute md5sums of archive parts in parallel
+    logging.info(f"Generate hash of compressed tar {part} using {threads} threads.")
     with multiprocessing.Pool(min(threads, len(parts))) as pool:
         pool.starmap(create_and_write_compressed_archive_hash,
                      [ (destination_path, part) for part in part_names ])
