@@ -2,17 +2,28 @@ import logging
 import subprocess
 from pathlib import Path
 import os
+import multiprocessing
 
 from . import helpers
 from .constants import REQUIRED_SPACE_MULTIPLIER, COMPRESSED_ARCHIVE_SUFFIX, ENCRYPTION_ALGORITHM
 
 
-def encrypt_list_of_archives(archive_list, encryption_keys, delete=False, output_dir=None):
-    for archive_path in archive_list:
-        output_file = output_dir / archive_path.name if output_dir else archive_path
-        output_path = helpers.add_suffix_to_path(output_file, ".gpg")
-        encrypt_archive(archive_path, output_path, encryption_keys, delete)
-        helpers.create_and_write_file_hash(output_path)
+def _encrypt_list_of_archives_fnc(output_dir, archive_path, encryption_keys, delete):
+    output_file = output_dir / archive_path.name if output_dir else archive_path
+    output_path = helpers.add_suffix_to_path(output_file, ".gpg")
+    encrypt_archive(archive_path, output_path, encryption_keys, delete)
+    helpers.create_and_write_file_hash(output_path)
+
+
+def encrypt_list_of_archives(archive_list, encryption_keys, delete=False, output_dir=None, threads=1):
+    eff_threads = min(threads, len(archive_list))
+
+    if eff_threads == 1:
+        for archive_path in archive_list:
+            _encrypt_list_of_archives_fnc(output_dir, archive_path, encryption_keys, delete)
+    else:
+        with multiprocessing.Pool(eff_threads) as pool:
+            pool.starmap(_encrypt_list_of_archives_fnc, [(output_dir, p, encryption_keys, delete) for p in archive_list])
 
 
 def encrypt_archive(archive_path, output_path, encryption_keys, delete=False):

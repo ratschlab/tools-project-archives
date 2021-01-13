@@ -8,7 +8,8 @@ import logging
 import shutil
 import multiprocessing
 
-from .constants import READ_CHUNK_BYTE_SIZE, COMPRESSED_ARCHIVE_SUFFIX, ENCRYPTED_ARCHIVE_SUFFIX, MAX_NUMBER_CPUS, ENV_VAR_MAPPER_MAX_CPUS
+from .constants import READ_CHUNK_BYTE_SIZE, COMPRESSED_ARCHIVE_SUFFIX, \
+    ENCRYPTED_ARCHIVE_SUFFIX, MAX_NUMBER_CPUS, ENV_VAR_MAPPER_MAX_CPUS, MD5_LINE_REGEX
 
 
 def get_files_with_type_in_directory_or_terminate(directory, file_type):
@@ -45,6 +46,24 @@ def create_and_write_file_hash(file_path):
         hash_file.write(f"{hash_output}  {file_path.name}\n")
 
 
+def read_hash_file(file_path):
+    hash_dict = {}
+
+    with open(file_path, "r") as file:
+        for l in file.readlines():
+            m = MD5_LINE_REGEX.match(l)
+
+            if not m:
+                logging.error(
+                    f"Not properly formatted MD5 checksum line found in file {file_path}: {l}")
+                return False
+
+            path = m.groups()[1]
+            path = path[2:] if path.startswith('./') else path
+            hash_dict[path] = m.groups()[0]
+    return hash_dict
+
+
 def get_file_hash_from_path(file_path):
     if file_path.is_symlink():
         return get_symlink_path_hash(file_path)
@@ -66,53 +85,59 @@ def get_symlink_path_hash(symlink_path):
     return hasher.hexdigest()
 
 
-def hash_listing_for_files_in_folder(source_path, relative_to_path=None, max_workers=1, integrity_check=False):
-    def _handle_symlink(abs_file):
-        link = Path(os.readlink(abs_file))
+def _check_symlinks(abs_file, relative_to_path, integrity_check=False):
+    if not abs_file.is_symlink():
+        return
 
-        if integrity_check:
-            if link.is_absolute():
-                logging.warning(
-                    f"Symlink {abs_file.relative_to(relative_to_path.parent)} found pointing to {str(link)} ."
-                    f" The archive contains the link itself, but possibly not the file it points to.")
-            # if the link is relative, check existence in a later step using file listings
-        else:
-            # archiving
-            absolute_root = relative_to_path.resolve().absolute() 
-            if absolute_root not in abs_file.resolve().parents:
-                logging.warning(
-                    f"Symlink {abs_file.relative_to(relative_to_path.parent)} found pointing to {abs_file.resolve()} "
-                    f"outside the archiving directory {source_path.resolve().absolute()}."
-                    f" The archive will contain the link itself, but not the file it points to.")
-            elif not abs_file.resolve().exists():
-                logging.warning(
-                    f"Symlink {abs_file.relative_to(relative_to_path.parent)} found pointing to a non-existing file {abs_file.resolve()} ."
-                    f" The archive will only contain the link itself")
-            elif link.is_absolute():
-                # target exists and is within tree to be archived, however, link is absolute,
-                # so will be broken if unpacked on another system
-                logging.warning(f"Symlink {abs_file.relative_to(relative_to_path.parent)} has an absolute target {link} . "
-                                f" Consider making it a relative link to {source_path} s.t. it gets properly "
-                                f"resolved when unpacking the archive on another system.")
+    link = Path(os.readlink(abs_file))
 
-    if not relative_to_path:
-        relative_to_path = source_path
+    if integrity_check:
+        if link.is_absolute():
+            logging.warning(
+                f"Symlink {abs_file.relative_to(relative_to_path.parent)} found pointing to {str(link)} ."
+                f" The archive contains the link itself, but possibly not the file it points to.")
+        # if the link is relative, check existence in a later step using file listings
+    else:
+        # archiving
+        absolute_root = relative_to_path.resolve().absolute()
+        if absolute_root not in abs_file.resolve().parents:
+            logging.warning(
+                f"Symlink {abs_file.relative_to(relative_to_path.parent)} found pointing to {abs_file.resolve()} "
+                f"outside the archiving directory {relative_to_path.resolve().absolute()}."
+                f" The archive will contain the link itself, but not the file it points to.")
+        elif not abs_file.resolve().exists():
+            logging.warning(
+                f"Symlink {abs_file.relative_to(relative_to_path.parent)} found pointing to a non-existing file {abs_file.resolve()} ."
+                f" The archive will only contain the link itself")
+        elif link.is_absolute():
+            # target exists and is within tree to be archived, however, link is absolute,
+            # so will be broken if unpacked on another system
+            logging.warning(f"Symlink {abs_file.relative_to(relative_to_path.parent)} has an absolute target {link} . "
+                            f" Consider making it a relative link to {relative_to_path} s.t. it gets properly "
+                            f"resolved when unpacking the archive on another system.")
 
-    file_list = []
-    for root, _, files in os.walk(source_path):
-        root_path = Path(root)
-        for file in files:
-            abs_file = root_path.joinpath(file)
 
-            if abs_file.is_symlink():
-                _handle_symlink(abs_file)
+def hash_files_and_check_symlinks(source_path, abs_paths, max_workers=1, integrity_check=False):
+    # ignoring other file types like FIFO, sockets etc
+    file_list = [f for f in abs_paths if f.is_symlink() or f.is_file()]
 
-            file_list.append(abs_file)
+    [_check_symlinks(f, source_path, integrity_check=integrity_check) for f in file_list]
 
     with multiprocessing.Pool(max_workers) as pool:
         hashes_list = pool.map(get_file_hash_from_path, file_list)
 
-    return [[e[0].relative_to(relative_to_path.parent).as_posix(), e[1]] for e in zip(file_list, hashes_list)]
+    return [[e[0].relative_to(source_path.parent).as_posix(), e[1]] for e
+            in zip(file_list, hashes_list)]
+
+
+def get_files_in_folder(folder_path):
+    file_list = []
+    for root, _, files in os.walk(folder_path):
+        root_path = Path(root)
+        for file in files:
+            abs_file = root_path.joinpath(file)
+            file_list.append(abs_file)
+    return file_list
 
 
 def get_threads_from_args_or_environment(threads_arg):

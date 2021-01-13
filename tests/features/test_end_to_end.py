@@ -1,9 +1,7 @@
-import subprocess
-
 import pytest
 
 from tests.helpers import get_directory_with_name, get_test_ressources_path, \
-    get_current_directory
+    get_current_directory, run_archiver_tool
 
 CODE_BASE_PATH=get_current_directory().parent
 
@@ -14,7 +12,6 @@ CODE_BASE_PATH=get_current_directory().parent
         (get_directory_with_name('normal-archive-corrupted'), 3),
     ])
 def test_integrity_end_to_end(archive_path, expected_return_code):
-    proc_ret = subprocess.run(['python', '-m', 'archiver.main', 'check', str(archive_path)],
-                              cwd=CODE_BASE_PATH)
+    proc_ret = run_archiver_tool(['check', str(archive_path)])
 
     assert proc_ret.returncode == expected_return_code

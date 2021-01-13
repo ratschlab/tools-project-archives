@@ -29,6 +29,10 @@ def assert_successful_archive_creation(destination_path, archive_path, folder_na
     expected_listing_suffixes = get_required_listing_suffixes(encrypted, unencrypted)
     # Will return unmodified given list if split is None
     expected_listing = add_split_prefix_to_file_suffixes(expected_listing_suffixes, split)
+
+    if split:
+        expected_listing += ['.parts.txt']
+        
     # Get all hash filesnames from expected listing
     hash_filenames = hash_filenames_from_list(expected_listing)
 

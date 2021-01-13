@@ -46,6 +46,7 @@ def split_directory(directory_path, max_package_size):
                 current_archive = [file_path]
                 archive_size = file_size
             else:
-                raise ValueError(f"File {file_path.as_posix()} is larger than the maximum package size")
+                raise ValueError(f"File {file_path.as_posix()} with {file_size} bytes "
+                                 f"is larger than the maximum package size of {max_package_size} bytes")
 
     yield current_archive
