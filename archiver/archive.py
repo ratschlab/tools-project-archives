@@ -96,12 +96,13 @@ def create_filelist_and_hashs(source_path, destination_path, split_size, threads
     if split_size:
         nr_parts = create_file_listing_hash_split_archives(source_path, destination_path,
                                                 split_size, threads)
+
+        with open(destination_path / f"{source_path.name}.parts.txt", "w") as f:
+            f.write(f"{nr_parts}\n")
     else:
         create_file_listing_hash(source_path, destination_path,
                                  source_path.name, archive_list=None,
                                  max_workers=threads)
-
-    # TODO: write nr_parts
 
 
 def create_file_listing_hash_split_archives(source_path, destination_path, split_size, threads):
