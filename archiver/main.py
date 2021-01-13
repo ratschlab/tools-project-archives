@@ -59,6 +59,9 @@ def parse_arguments(args):
     parser_create_filelist = subparser_create.add_parser("filelist", parents=[archive_parent_parser])
     parser_create_filelist.add_argument("--part-size", type=str,
                                 help="Split archive into parts by specifying the size of each part. Example: 5G for 5 gigibytes (2^30 bytes).")
+    parser_create_filelist.add_argument("-f", "--force", action="store_true",
+                                default=False,
+                                help="Overwrite output directory if it already exists and create parents of folder if they don't exist.")
     parser_create_filelist.set_defaults(func=handle_create_filelist)
 
     parser_create_tar = subparser_create.add_parser("tar", parents=[archive_parent_parser])
@@ -156,7 +159,7 @@ def handle_create_filelist(args):
         except Exception as error:
             helpers.terminate_with_exception(error)
 
-    create_filelist_and_hashs(source_path, destination_path, bytes_splitting, threads)
+    create_filelist_and_hashs(source_path, destination_path, bytes_splitting, threads, args.force)
 
 
 def handle_create_tar_archive(args):

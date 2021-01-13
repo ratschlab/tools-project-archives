@@ -45,7 +45,7 @@ def create_archive(source_path, destination_path, threads=None, encryption_keys=
     logging.info(f"Start creating archive for: {helpers.get_absolute_path_string(source_path)}")
 
     if splitting:
-        create_split_archive(source_path, destination_path, source_name, int(splitting), threads, encryption_keys, compression, remove_unencrypted, work_dir)
+        create_split_archive(source_path, destination_path, source_name, int(splitting), threads, encryption_keys, compression, remove_unencrypted, work_dir, force)
     else:
         # Create destination folder if nonexistent or overwrite if --force option used
         helpers.handle_destination_directory_creation(destination_path, force)
@@ -72,13 +72,13 @@ def create_archive(source_path, destination_path, threads=None, encryption_keys=
     logging.info(f"Archive created: {helpers.get_absolute_path_string(destination_path)}")
 
 
-def create_split_archive(source_path, destination_path, source_name, splitting, threads, encryption_keys, compression, remove_unencrypted, work_dir=None):
+def create_split_archive(source_path, destination_path, source_name, splitting, threads, encryption_keys, compression, remove_unencrypted, work_dir=None, force=False):
     logging.info("Start creation of split archive")
 
     if not threads:
         threads = 1
 
-    create_filelist_and_hashs(source_path, destination_path, splitting, threads)
+    create_filelist_and_hashs(source_path, destination_path, splitting, threads, force)
 
     create_tar_archives_and_listings(source_path, destination_path, work_dir, workers=threads)
 
@@ -88,8 +88,8 @@ def create_split_archive(source_path, destination_path, source_name, splitting, 
         do_encryption(destination_path, encryption_keys, threads)
 
 
-def create_filelist_and_hashs(source_path, destination_path, split_size, threads):
-    helpers.handle_destination_directory_creation(destination_path) # TODO: improve, include force argument?
+def create_filelist_and_hashs(source_path, destination_path, split_size, threads, force=False):
+    helpers.handle_destination_directory_creation(destination_path, force)
 
     nr_parts = 1
 
@@ -129,6 +129,7 @@ def create_file_listing_hash(source_path_root, destination_path, source_name, ar
     hashes = hashes_for_path_list(paths_to_hash_list, source_path_root, max_workers)
     file_path = destination_path.joinpath(source_name + ".md5")
 
+    logging.info(f"Writing file hash list to {file_path}")
     with open(file_path, "a") as hash_file:
         for line in hashes:
             file_path = line[0]
@@ -170,8 +171,8 @@ def create_tar_archives_and_listings(source_path, destination_path, work_dir, pa
         if not part_hashes:
             helpers.terminate_with_message(f"No {source_name}.md5 or files matching {source_name}.part[0-9]*.md5 found in {destination_path}")
 
-    part_names = [os.path.splitext(p)[0] for p in part_hashes]
-    logging.info(f"Creating tar archives and listings for {part_names} using {workers} workers.")
+    part_names = [os.path.splitext(p.name)[0] for p in part_hashes]
+    logging.info(f"Creating tar archives and listings for {','.join(part_names)} using {workers} workers.")
     with multiprocessing.Pool(workers) as pool:
         pool.starmap(_process_part, [ (source_path, destination_path, work_dir, p) for p in part_names])
 
@@ -227,7 +228,7 @@ def compress_and_hash(destination_path, threads, compression, part=None):
         compress_using_lzip(destination_path, part, threads, compression)
 
     # compute md5sums of archive parts in parallel
-    logging.info(f"Generate hash of compressed tar {part} using {threads} threads.")
+    logging.info(f"Generate hash of compressed tar {','.join(part_names)} using {threads} threads.")
     with multiprocessing.Pool(min(threads, len(parts))) as pool:
         pool.starmap(create_and_write_compressed_archive_hash,
                      [ (destination_path, part) for part in part_names ])
