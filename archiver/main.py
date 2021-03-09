@@ -13,9 +13,11 @@ from .archive import create_archive, encrypt_existing_archive, create_filelist_a
 from .extract import extract_archive, decrypt_existing_archive
 from .integrity import check_integrity
 from .listing import create_listing
+from .preparation_checks import CmdBasedCheck
 
 # Configure logger
-logging.basicConfig(format='%(asctime)s - %(levelname)s: %(message)s', level=logging.INFO)
+log_fmt = '%(asctime)s - %(levelname)s: %(message)s'
+logging.basicConfig(format=log_fmt, level=logging.INFO)
 
 
 def main(args=tuple(sys.argv[1:])):
@@ -119,6 +121,16 @@ def parse_arguments(args):
     parser_check.add_argument("-d", "--deep", action="store_true", help="Verify integrity by unpacking archive and hashing each file")
     parser_check.add_argument("-n", "--threads", type=int, help="Set the number of worker threads, overriding the system's default")
     parser_check.set_defaults(func=handle_check)
+
+    # Preparation checks
+    parser_preparation_check = subparsers.add_parser("preparation-checks",
+                                     help='Check archiving directory before archiving for a sound structure')
+
+    parser_preparation_check.add_argument("archive_source_dir", type=Path,
+                        help="Archive Source directory")
+    parser_preparation_check.add_argument("--check-file", type=Path,
+                        help="config file", default=DEFAULT_FILE_CHECK_PATH)
+    parser_preparation_check.set_defaults(func=handle_preparation_check)
 
     return parser.parse_args(args)
 
@@ -234,6 +246,43 @@ def handle_check(args):
         # general errors from a successful run of the program with an unsuccessful outcome
         # not taking 2, as it usually stands for command line argument errors
         return sys.exit(3)
+
+DEFAULT_FILE_CHECK_PATH = Path(__file__).parent.parent / 'default_fs_checks.ini'
+def handle_preparation_check(parsed_args):
+    #parsed_args = arg_parser.parse_args(args)
+
+    wdir = parsed_args.archive_source_dir
+    cfg_file = parsed_args.check_file
+    is_verbose = True # TODO fix parsed_args.verbose
+
+    if is_verbose:
+        # TODO find better way and refactor
+        # https://stackoverflow.com/questions/20240464/python-logging-file-is-not-working-when-using-logging-basicconfig
+        import importlib
+        importlib.reload(logging)
+        logging.basicConfig(format=log_fmt,
+                            level=logging.DEBUG)
+
+    os.chdir(wdir)
+
+    # construct file check objects
+    logging.debug(f"Reading config from {cfg_file}")
+    file_checks = CmdBasedCheck.checks_from_configfile(cfg_file)
+
+    # TODO: add in precondition check!
+
+    all_ret = [ (c.name, c.run()) for c in file_checks]
+
+    all_success = all(r for _, r in all_ret)
+
+    # TODO: more? refactor?
+    logging.info('---------------------------------------------------------')
+    if all_success:
+        logging.info("All checks successful")
+    else:
+        logging.warning(f"Some checks failed: {', '.join([name for name, r in all_ret if not r])}")
+        sys.exit(1)
+
 
 
 if __name__ == "__main__":

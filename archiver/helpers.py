@@ -381,3 +381,8 @@ def terminate_with_message(message):
 def encryption_keys_must_exist(key_list):
     for key in key_list:
         terminate_if_file_nonexistent(Path(key))
+
+
+def run_shell_cmd(cmd_str: str):
+    logging.debug(f"Executing command \'{cmd_str}\'")
+    return subprocess.run(cmd_str, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, shell=True)
