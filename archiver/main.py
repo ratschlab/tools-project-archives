@@ -8,20 +8,22 @@ import sys
 from pathlib import Path
 
 from . import helpers, __version__
-from .archive import create_archive, encrypt_existing_archive, create_filelist_and_hashs, \
+from .archive import create_archive, encrypt_existing_archive, \
+    create_filelist_and_hashs, \
     create_tar_archives_and_listings, compress_and_hash
 from .extract import extract_archive, decrypt_existing_archive
 from .integrity import check_integrity
 from .listing import create_listing
 from .preparation_checks import CmdBasedCheck
 
-# Configure logger
-log_fmt = '%(asctime)s - %(levelname)s: %(message)s'
-logging.basicConfig(format=log_fmt, level=logging.INFO)
-
 
 def main(args=tuple(sys.argv[1:])):
     parsed_arguments = parse_arguments(args)
+
+    log_fmt = '%(asctime)s - %(levelname)s: %(message)s'
+    logging.basicConfig(format=log_fmt, force=True,
+                        level=logging.DEBUG if parsed_arguments.verbose else logging.INFO
+                        )
 
     logging.info(f"archiver version {__version__}")
     logging.info(f"Executing as {getpass.getuser()} on {os.uname().nodename}")
@@ -36,6 +38,9 @@ def parse_arguments(args):
     # Main parser
     parser = argparse.ArgumentParser(prog="archiver", description='Handles the archiving of large project data')
     parser.add_argument("-w", "--work-dir", type=str, help="Working directory")
+    parser.add_argument("-v", "--verbose", action="store_const", const=True)
+
+
     subparsers = parser.add_subparsers(help="Available actions", required=True, dest="command")
 
     # Create Archive Parent Parser
@@ -253,15 +258,6 @@ def handle_preparation_check(parsed_args):
 
     wdir = parsed_args.archive_source_dir
     cfg_file = parsed_args.check_file
-    is_verbose = True # TODO fix parsed_args.verbose
-
-    if is_verbose:
-        # TODO find better way and refactor
-        # https://stackoverflow.com/questions/20240464/python-logging-file-is-not-working-when-using-logging-basicconfig
-        import importlib
-        importlib.reload(logging)
-        logging.basicConfig(format=log_fmt,
-                            level=logging.DEBUG)
 
     os.chdir(wdir)
 
