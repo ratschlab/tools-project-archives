@@ -4,6 +4,7 @@ from typing import Dict
 import pytest
 
 from archiver.preparation_checks import CmdBasedCheck
+from tests.helpers import create_file_with_size
 
 default_config_file_path = Path(
     __file__).parent.parent.parent / 'default_fs_checks.ini'
@@ -27,24 +28,6 @@ def test_readme_check(default_checks: Dict[str, CmdBasedCheck], tmpdir):
     tmp_file.touch()
 
     assert check.run()
-
-
-def test_files_readonly(default_checks: Dict[str, CmdBasedCheck], tmpdir):
-    check = default_checks['check_files_readonly']
-    arch_dir = tmpdir / 'myarch'
-    arch_dir.mkdir()
-    tmp_file = Path(arch_dir, 'myfile')
-    tmp_file.touch()
-
-    os.chdir(arch_dir)
-
-    tmp_file.chmod(0o777)
-
-    arch_dir.chmod(0o555, True)
-
-    assert check.run()
-
-    arch_dir.chmod(0o777, True)
 
 
 def test_no_broken_links(default_checks: Dict[str, CmdBasedCheck], tmpdir):
@@ -108,11 +91,10 @@ def test_no_absolute_symlinks(default_checks: Dict[str, CmdBasedCheck], tmpdir):
 
 
 def test_no_duplicates(default_checks: Dict[str, CmdBasedCheck], tmpdir):
-    check = default_checks['check_no_duplicates']
+    check = default_checks['check_no_large_duplicates']
 
     myfile = Path(tmpdir, 'myfile')
-    with myfile.open('w') as f:
-        f.write("Hello\n")
+    create_file_with_size(myfile, 2024**2)
 
     os.chdir(tmpdir)
     assert check.run()
