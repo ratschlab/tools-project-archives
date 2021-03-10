@@ -247,7 +247,7 @@ def handle_check(args):
         # not taking 2, as it usually stands for command line argument errors
         return sys.exit(3)
 
-DEFAULT_FILE_CHECK_PATH = Path(__file__).parent.parent / 'default_fs_checks.ini'
+DEFAULT_FILE_CHECK_PATH = Path(__file__).parent.parent / 'default_preparation_checks.ini'
 def handle_preparation_check(parsed_args):
     #parsed_args = arg_parser.parse_args(args)
 
