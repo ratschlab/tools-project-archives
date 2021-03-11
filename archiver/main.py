@@ -270,14 +270,27 @@ def handle_preparation_check(parsed_args):
     logging.debug(f"Reading config from {cfg_file}")
     file_checks = CmdBasedCheck.checks_from_configfile(cfg_file)
 
-    # TODO: add in precondition check!
+    logging.debug("Verifying all preconditions for the checks are satisfied")
+    all_precond = [(c.name, c.run_precondition()) for c in file_checks]
+
+    all_precond_success = all(r for _, r in all_precond)
+
+    if not all_precond_success:
+        logging.warning(
+            f"Skipping the following checks, since their precondition failed: {', '.join([name for name, r in all_precond if not r])}")
 
     all_ret = [(c.name, c.run(wdir)) for c in file_checks]
 
     all_success = all(r for _, r in all_ret)
 
+    if not all_precond_success:
+        logging.warning("Skipped some tests")
+
     if all_success:
-        logging.info("All checks successful :)")
+        logging.info("All performed checks successful :)")
+
+        if not all_precond_success:
+            sys.exit(1)
     else:
         logging.warning(f"Some checks failed: {', '.join([name for name, r in all_ret if not r])}")
         sys.exit(1)

@@ -63,6 +63,9 @@ class CmdBasedCheck:
         self.check_failure_msg: str = check_failure_msg
 
     def run_precondition(self):
+        if not self.precondition:
+            return True
+
         sp = helpers.run_shell_cmd(self.precondition)
 
         if sp.returncode != 0:
@@ -76,10 +79,6 @@ class CmdBasedCheck:
 
         logging.info(CHECK_SEP_STR)
         logging.info(f'Running check {self.name}')
-
-        if self.precondition and not self.run_precondition():
-            logging.error(f"Precondition failed - skipping {self.name}")
-            return False
 
         sp = helpers.run_shell_cmd(self.check_cmd)
 
