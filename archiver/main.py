@@ -21,9 +21,16 @@ def main(args=tuple(sys.argv[1:])):
     parsed_arguments = parse_arguments(args)
 
     log_fmt = '%(asctime)s - %(levelname)s: %(message)s'
-    logging.basicConfig(format=log_fmt, force=True,
-                        level=logging.DEBUG if parsed_arguments.verbose else logging.INFO
-                        )
+    log_level = logging.DEBUG if parsed_arguments.verbose else logging.INFO
+    log_stream = sys.stdout
+
+    logging.basicConfig(format=log_fmt, force=True, level=log_level, stream=log_stream)
+
+    try:
+        import coloredlogs
+        coloredlogs.install(fmt=log_fmt, level=str(log_level), stream=log_stream)
+    except ImportError as e:
+        pass
 
     logging.info(f"archiver version {__version__}")
     logging.info(f"Executing as {getpass.getuser()} on {os.uname().nodename}")
