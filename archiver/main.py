@@ -28,7 +28,7 @@ def main(args=tuple(sys.argv[1:])):
 
     try:
         import coloredlogs
-        coloredlogs.install(fmt=log_fmt, level=str(log_level), stream=log_stream)
+        coloredlogs.install(fmt=log_fmt, level=log_level, stream=log_stream)
     except ImportError as e:
         pass
 
@@ -263,10 +263,8 @@ DEFAULT_FILE_CHECK_PATH = Path(__file__).parent.parent / 'default_preparation_ch
 def handle_preparation_check(parsed_args):
     #parsed_args = arg_parser.parse_args(args)
 
-    wdir = parsed_args.archive_source_dir
+    wdir = Path(parsed_args.archive_source_dir).absolute()
     cfg_file = parsed_args.check_file
-
-    os.chdir(wdir)
 
     # construct file check objects
     logging.debug(f"Reading config from {cfg_file}")
@@ -274,14 +272,12 @@ def handle_preparation_check(parsed_args):
 
     # TODO: add in precondition check!
 
-    all_ret = [ (c.name, c.run()) for c in file_checks]
+    all_ret = [(c.name, c.run(wdir)) for c in file_checks]
 
     all_success = all(r for _, r in all_ret)
 
-    # TODO: more? refactor?
-    logging.info('---------------------------------------------------------')
     if all_success:
-        logging.info("All checks successful")
+        logging.info("All checks successful :)")
     else:
         logging.warning(f"Some checks failed: {', '.join([name for name, r in all_ret if not r])}")
         sys.exit(1)

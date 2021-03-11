@@ -1,10 +1,16 @@
-from archiver import helpers
-import logging
 import configparser
-from enum import Enum
-from typing import List
+import logging
+import os
 import re
 from abc import ABC, abstractmethod
+from typing import List
+
+from archiver import helpers
+
+CHECK_SEP_STR = '---------------------------------------------------------------'
+
+WDIR_REPLACMENT_TAG = '{WDIR}'
+
 
 class SuccessCondition(ABC):
     @abstractmethod
@@ -43,7 +49,7 @@ class ContainsCondition(SuccessCondition):
         self.txt = txt
 
     def check(self, sp):
-        return self.txt in sp.stdout.decode('UTF-8') # TODO: how to include enocding!?
+        return self.txt in sp.stdout.decode()
 
 
 class CmdBasedCheck:
@@ -60,17 +66,20 @@ class CmdBasedCheck:
         sp = helpers.run_shell_cmd(self.precondition)
 
         if sp.returncode != 0:
-            logging.error(f"Command {self.precondition} failed with {sp.stdout}. {self.precondition_failure_msg}")
+            logging.error(f"Command {self.precondition} failed with {sp.stdout}:")
+            logging.error(f"  {self.precondition_failure_msg}")
             return False
         return True
 
+    def run(self, wdir):
+        os.chdir(wdir)
 
-    def run(self):
-        logging.info('---------------------------------------------------------')
+        logging.info(CHECK_SEP_STR)
         logging.info(f'Running check {self.name}')
 
         if self.precondition and not self.run_precondition():
-            logging.error("Precondition failed")
+            logging.error(f"Precondition failed - skipping {self.name}")
+            return False
 
         sp = helpers.run_shell_cmd(self.check_cmd)
 
@@ -80,7 +89,7 @@ class CmdBasedCheck:
             logging.info(f"Check {self.name} succeeded")
             return True
         else:
-            logging.error(f"Check {self.name} failed. {self.check_failure_msg} Output was\n {sp.stdout.decode('UTF-8')}")
+            logging.error(f"Check {self.name} failed. {self.check_failure_msg.replace(WDIR_REPLACMENT_TAG, str(wdir))}\nOutput was\n{sp.stdout.decode()}")
             return False
 
 
