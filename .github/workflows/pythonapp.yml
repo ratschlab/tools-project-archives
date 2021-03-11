@@ -12,7 +12,7 @@ on:
 jobs:
   build:
 
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
 
     steps:
     - uses: actions/checkout@v2
@@ -21,12 +21,19 @@ jobs:
       with:
         python-version: 3.8
     - name: Install system dependencies
-      run: sudo apt-get install plzip tar gnupg2
+      run: sudo apt-get install plzip tar gnupg2 build-essential
     - name: Install python dependencies
       run: |
         python -m pip install --upgrade pip
         pip install pytest
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+    # jdupes is an optional dependency in the precondition checks, need it here for testing
+    - name: Install jdupes
+      run: |
+        git clone https://github.com/jbruchon/jdupes.git
+        cd jdupes
+        git checkout v1.19.1
+        make && sudo make install
     - name: Test with pytest
       run: |
         pip install pytest
