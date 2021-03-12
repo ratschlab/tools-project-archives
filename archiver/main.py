@@ -8,18 +8,29 @@ import sys
 from pathlib import Path
 
 from . import helpers, __version__
-from .archive import create_archive, encrypt_existing_archive, create_filelist_and_hashs, \
+from .archive import create_archive, encrypt_existing_archive, \
+    create_filelist_and_hashs, \
     create_tar_archives_and_listings, compress_and_hash
 from .extract import extract_archive, decrypt_existing_archive
 from .integrity import check_integrity
 from .listing import create_listing
-
-# Configure logger
-logging.basicConfig(format='%(asctime)s - %(levelname)s: %(message)s', level=logging.INFO)
+from .preparation_checks import CmdBasedCheck
 
 
 def main(args=tuple(sys.argv[1:])):
     parsed_arguments = parse_arguments(args)
+
+    log_fmt = '%(asctime)s - %(levelname)s: %(message)s'
+    log_level = logging.DEBUG if parsed_arguments.verbose else logging.INFO
+    log_stream = sys.stdout
+
+    logging.basicConfig(format=log_fmt, force=True, level=log_level, stream=log_stream)
+
+    try:
+        import coloredlogs
+        coloredlogs.install(fmt=log_fmt, level=log_level, stream=log_stream)
+    except ImportError as e:
+        pass
 
     logging.info(f"archiver version {__version__}")
     logging.info(f"Executing as {getpass.getuser()} on {os.uname().nodename}")
@@ -34,6 +45,9 @@ def parse_arguments(args):
     # Main parser
     parser = argparse.ArgumentParser(prog="archiver", description='Handles the archiving of large project data')
     parser.add_argument("-w", "--work-dir", type=str, help="Working directory")
+    parser.add_argument("-v", "--verbose", action="store_const", const=True)
+
+
     subparsers = parser.add_subparsers(help="Available actions", required=True, dest="command")
 
     # Create Archive Parent Parser
@@ -119,6 +133,16 @@ def parse_arguments(args):
     parser_check.add_argument("-d", "--deep", action="store_true", help="Verify integrity by unpacking archive and hashing each file")
     parser_check.add_argument("-n", "--threads", type=int, help="Set the number of worker threads, overriding the system's default")
     parser_check.set_defaults(func=handle_check)
+
+    # Preparation checks
+    parser_preparation_check = subparsers.add_parser("preparation-checks",
+                                     help='Check archiving directory for a sound structure before archiving.')
+
+    parser_preparation_check.add_argument("archive_source_dir", type=Path,
+                        help="Archive Source directory")
+    parser_preparation_check.add_argument("--check-file", type=Path,
+                        help="path to config file with custom checks", default=DEFAULT_FILE_CHECK_PATH)
+    parser_preparation_check.set_defaults(func=handle_preparation_check)
 
     return parser.parse_args(args)
 
@@ -234,6 +258,43 @@ def handle_check(args):
         # general errors from a successful run of the program with an unsuccessful outcome
         # not taking 2, as it usually stands for command line argument errors
         return sys.exit(3)
+
+DEFAULT_FILE_CHECK_PATH = Path(__file__).parent.parent / 'default_preparation_checks.ini'
+def handle_preparation_check(parsed_args):
+    wdir = Path(parsed_args.archive_source_dir).absolute()
+    cfg_file = parsed_args.check_file
+
+    # construct file check objects
+    logging.debug(f"Reading config from {cfg_file}")
+    file_checks = CmdBasedCheck.checks_from_configfile(cfg_file)
+
+    logging.debug("Verifying all preconditions for the checks are satisfied")
+    all_precond = [(c.name, c.run_precondition()) for c in file_checks]
+
+    all_precond_success = all(r for _, r in all_precond)
+
+    if not all_precond_success:
+        logging.warning(
+            f"Skipping the following checks, since their precondition failed: "
+            f"{', '.join([name for name, r in all_precond if not r])}")
+
+    all_ret = [(c.name, c.run(wdir)) for c in file_checks]
+
+    all_success = all(r for _, r in all_ret)
+
+    if not all_precond_success:
+        logging.warning("Skipped some tests")
+
+    if all_success:
+        logging.info("All performed checks successful :)")
+
+        if not all_precond_success:
+            sys.exit(1)
+    else:
+        logging.warning(f"Some checks failed: "
+                        f"{', '.join([name for name, r in all_ret if not r])}")
+        sys.exit(1)
+
 
 
 if __name__ == "__main__":
