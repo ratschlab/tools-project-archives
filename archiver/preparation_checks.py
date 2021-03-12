@@ -3,7 +3,8 @@ import logging
 import os
 import re
 from abc import ABC, abstractmethod
-from typing import List
+from pathlib import Path
+from typing import List, Union
 
 from archiver import helpers
 
@@ -53,7 +54,9 @@ class ContainsCondition(SuccessCondition):
 
 
 class CmdBasedCheck:
-    def __init__(self, name, precondition, precondition_failure_msg, check_cmd, success_conditions: List[SuccessCondition], check_failure_msg):
+    def __init__(self, name: str, precondition: str,
+                 precondition_failure_msg: str, check_cmd: str,
+                 success_conditions: List[SuccessCondition], check_failure_msg: str):
         self.name = name
         self.precondition = precondition
         self.precondition_failure_msg = precondition_failure_msg
@@ -74,7 +77,7 @@ class CmdBasedCheck:
             return False
         return True
 
-    def run(self, wdir):
+    def run(self, wdir: Union[str, Path]):
         os.chdir(wdir)
 
         logging.info(CHECK_SEP_STR)
@@ -88,7 +91,9 @@ class CmdBasedCheck:
             logging.info(f"Check {self.name} succeeded")
             return True
         else:
-            logging.error(f"Check {self.name} failed. {self.check_failure_msg.replace(WDIR_REPLACMENT_TAG, str(wdir))}\nOutput was\n{sp.stdout.decode()}")
+            logging.error(f"Check {self.name} failed. "
+                          f"{self.check_failure_msg.replace(WDIR_REPLACMENT_TAG, str(wdir))}\n"
+                          f"Output was\n{sp.stdout.decode()}")
             return False
 
 
@@ -99,8 +104,10 @@ class CmdBasedCheck:
         config.read(path)
 
         logging.debug(f"Found {len(config.sections())} checks")
-        return [CmdBasedCheck(name, sec['precondition'], sec['precondition_failure_msg'],
+        return [CmdBasedCheck(name, sec['precondition'],
+                              sec['precondition_failure_msg'],
                               sec['check_cmd'],
                               [SuccessCondition.parse_check(c) for c in sec['success_conditions'].split(',')],
                               sec['check_failure_msg'])
-                for name, sec in config.items() if name != config.default_section]
+                for name, sec in config.items() if
+                name != config.default_section]

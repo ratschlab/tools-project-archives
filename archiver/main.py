@@ -136,12 +136,12 @@ def parse_arguments(args):
 
     # Preparation checks
     parser_preparation_check = subparsers.add_parser("preparation-checks",
-                                     help='Check archiving directory before archiving for a sound structure')
+                                     help='Check archiving directory for a sound structure before archiving.')
 
     parser_preparation_check.add_argument("archive_source_dir", type=Path,
                         help="Archive Source directory")
     parser_preparation_check.add_argument("--check-file", type=Path,
-                        help="config file", default=DEFAULT_FILE_CHECK_PATH)
+                        help="path to config file with custom checks", default=DEFAULT_FILE_CHECK_PATH)
     parser_preparation_check.set_defaults(func=handle_preparation_check)
 
     return parser.parse_args(args)
@@ -261,8 +261,6 @@ def handle_check(args):
 
 DEFAULT_FILE_CHECK_PATH = Path(__file__).parent.parent / 'default_preparation_checks.ini'
 def handle_preparation_check(parsed_args):
-    #parsed_args = arg_parser.parse_args(args)
-
     wdir = Path(parsed_args.archive_source_dir).absolute()
     cfg_file = parsed_args.check_file
 
@@ -277,7 +275,8 @@ def handle_preparation_check(parsed_args):
 
     if not all_precond_success:
         logging.warning(
-            f"Skipping the following checks, since their precondition failed: {', '.join([name for name, r in all_precond if not r])}")
+            f"Skipping the following checks, since their precondition failed: "
+            f"{', '.join([name for name, r in all_precond if not r])}")
 
     all_ret = [(c.name, c.run(wdir)) for c in file_checks]
 
@@ -292,7 +291,8 @@ def handle_preparation_check(parsed_args):
         if not all_precond_success:
             sys.exit(1)
     else:
-        logging.warning(f"Some checks failed: {', '.join([name for name, r in all_ret if not r])}")
+        logging.warning(f"Some checks failed: "
+                        f"{', '.join([name for name, r in all_ret if not r])}")
         sys.exit(1)
 
 
