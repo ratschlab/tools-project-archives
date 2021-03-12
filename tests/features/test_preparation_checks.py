@@ -58,6 +58,8 @@ def test_symlinks_within_dir_only(default_checks: Dict[str, CmdBasedCheck], tmpd
     mylink2 = Path(tmpdir, 'mylink2')
     mylink2.symlink_to(os.path.join('..', tmpdir.basename, myfile.name))
 
+    Path(tmpdir, 'brokenlink').symlink_to(Path(tmpdir, 'doesnotexist'))
+
     assert check.run(tmpdir)
 
     my_dirlink_outside = Path(tmpdir, 'mydirlink')
@@ -74,6 +76,8 @@ def test_no_absolute_symlinks(default_checks: Dict[str, CmdBasedCheck], tmpdir):
 
     mylink = Path(tmpdir, 'mylink')
     mylink.symlink_to(myfile.relative_to(mylink.parent))
+
+    Path(tmpdir, 'brokenlink').symlink_to(Path(tmpdir, 'doesnotexist'))
 
     assert check.run(tmpdir)
 
