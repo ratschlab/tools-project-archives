@@ -30,6 +30,12 @@ It supports:
 pip install project-archiver
 ```
 
+For nicer output on the console, you can optionally install the `coloredlogs` package
+
+```
+pip install coloredlogs
+```
+
 ## Usage
 
 ### Quickstart
