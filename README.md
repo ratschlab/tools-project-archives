@@ -1,4 +1,4 @@
-# tools-project-archives
+# Project Archiver
 
 Simple and easy command line tool to archive files at the end of a (research)
 project (for example for compliance reasons).
@@ -16,51 +16,81 @@ It supports:
 
 ## Installation
 
-
 ### Requirements
 
 - python >= 3.6
 - [plzip](https://www.nongnu.org/lzip/plzip.html) (available for some package
   management systems like `apt` or `brew`)
 - gnupg (optional, only required for encryption)
-
+- [jdupes](https://github.com/jbruchon/jdupes) (optional, for preparation checks)
 
 ### Install Python Package
- #TODO: pip install
 
+```
+pip install project-archiver
+```
 
 ## Usage
 
- # TODO: change/automate
+### Quickstart
+
+#### Archive Creation
+
+Optionally, verify directory structure before archiving - see more details in [Prepare Files for Archiving](#prepare-files-for-archiving) section
+```sh
+archiver preparation-checks SOURCE_DIR
 ```
-$ archiver archive [src] [archive_dir] [-p --part <maximum size of each archive part>] [-n --threads] [-k --key <public key>] [-c --compression] # Create a new archive
-$ archiver extract [archive_dir] [dest] [--subdir <path in archive>] [-n --threads] # Extract archive
-$ archiver list [archive_dir] [<subdir>] [-d --deep] # List content of archive
-$ archiver check [archive_dir] [-d --deep] # Check integrity of archive
-$ archiver encrypt [archive_dir] [-k --key <public key>] # Encrypts existing archive. When creating new archive, use 'archive' command
+
+Create archive
+```sh
+archiver archive --threads 4 SOURCE_DIR ARCHIVE_DIR
 ```
+
+Create archives in parts with a part size of at most 500GB (before compression):
+```sh
+archiver archive --threads 4 --part-size 500G SOURCE_DIR ARCHIVE_DIR
+```
+
+For archiving large directories (>few TBs) `archiver create` allows running the archiving step by step - see 
+section [Optimally Creating Large Split Archives](#optimally-creating-large-split-archives)
+
+
+### Listing and Extraction
+List archive content
+```sh
+archiver list ARCHIVE_DIR
+```
+
+Extract entire archive
+```sh
+archiver extract ARCHIVE_DIR DESTINATION_DIR
+```
+
+Extract single file from archive
+```sh
+archiver extract --subpath testdir/testfile ARCHIVE_DIR DESTINATION_DIR
+```
+
+### Integrity Check
+Quick integrity check on archive: checking hash of compressed archives match
+```sh
+archiver check ARCHIVE_DIR
+```
+
+Deep integrity check on archive: extracting files and verifying all file hashes match
+```sh
+archiver check --deep --threads 4 ARCHIVE_DIR
+```
+
 
 ### Creating an Archive
 
-In the next few sections some details and recommendations on how to create an archive
+In the next few sections some more details and recommendations on how to create an archive
 
 #### Prepare Files for Archiving
 
-First, prepare files for archiving by moving relevant files to a directory.
-
-A few things you may want to check before proceding with the archive creation:
- * check you have read access to all files, fix if necessary. The following
-   command returns non readable files, excluding broken links: `find . !-readable ! -type l`
- * check if there are unnecessary files, for example
-   * temporary files or directories
-   * duplicate files. You can use [jdupes](https://github.com/jbruchon/jdupes) to find and symlink duplicate files (TODO: test and explain how to use `jdupes`)
- * check for broken symlinks: `find . -xtype l`
- * replace absolute symlinks (e.g pointing to a file like
-     `/data/myproject/samples/myfile.txt`) with relative symlinks (e.g.
-     `samples/myfile.txt`) (TODO, `find . -type l -lname '/*'`, use [symlinks](https://github.com/brandt/symlinks)
- * in case you want to create split archives, it is recommended to replace
-   hardlinks with symlinks (see section "Handling of Links") command for this? TODO
-               find . -type f -links +1 -printf '%i %n %p\n' | sort [TODO iname appropriate]
+First, prepare files for archiving by moving relevant files to a directory. Relevant files
+may include raw data, intermediate data artifacts, figures, publications, code, container images (e.g. docker or singularity)
 
 ##### README.txt
 
@@ -71,23 +101,53 @@ Here an example template:
 
 ```
 [project name]
+[short project abstract]
 
-[project abstract]
-
+Key People:
 [list of collaborators and authors]
 
+Duration:
 [start and end year]
 
-[publications]
+Publications:
+[publication list]
+
+Relevant Code:
+[if not included in archive, reference to where code is located]
+
+Directory Structure:
+[overview over directory structure]
 
 ```
+
+##### Check File Structure
+
+A few things you may want to check before proceeding with the archive creation:
+ * check you have read access to all files, fix if necessary. Otherwise, the archiving step will fail
+ * check if there are unnecessary files or duplicates
+ * check for broken symlinks
+ * replace absolute symlinks (e.g pointing to a file like `/data/myproject/samples/myfile.txt`) 
+   with relative symlinks (e.g. `samples/myfile.txt`)
+
+To help you verify all this, you can run
+```sh
+archiver preparation-checks SOURCE_DIR
+```
+
+If some check fails, look in the output for suggestions on how to fix it.
 
 
 #### Creating the Archive
 
-Not too large archives can directly be created using `archiver archive`. Refer to
-`archiver archive --help` for details.
-TODO make example along with `tee`
+Not too large archives can directly be created using `archiver archive`:
+
+```sh
+archiver archive --threads 4 SOURCE_DIR ARCHIVE_DIR | tee archiving.log
+```
+
+where `SOURCE_DIR` is the directory tree to be archived and `ARCHIVE_DIR` is the 
+destination directory for the archive files - see section [Archive Package Structure](#archive-package-structure) 
+for details on the files generated during archiving. 
 
 Larger archives (maybe >1TB) can be split into parts, that is, instead of creating one huge
 compressed tar file, several tar files are generated. This can be done by adding
@@ -95,18 +155,19 @@ the `--part-size` argument. Note, that the part size is with respect to the unco
 Splitting the archive into parts can simplify file
 handling as moving large files between systems can be painful. There may also be
 file size limits on the target system. Furthermore, archive creation, integrity
-checks and partial extractions can be done more efficiently with a split archive.
+checks and partial extractions can be done faster with a split archive due to parallelization.
 
+Refer to `archiver archive --help` for more details.
 
 ##### Optimally Creating Large Split Archives
 
 For really large archives (perhaps several TBs upwards) it may be beneficial to execute the
 archive creation workflow step by step. This can help to use available
 processing resources optimally as the different steps have different
-requirements. Also, if a steps fails for some reason, starting from scratch may
+resource usage characteristics (I/O and CPU). Also, if a steps fails for some reason, starting from scratch may
 not be necessary.
 
-The creation workflow lookd like this:
+The creation workflow looks like this:
  1. `archiver create filelist`: collects the files to be archived and generates
     the hash for every file. Parallelization is at file level.
  2. `archiver create tar`: creates a tar archive and a listing for every part independently.
@@ -119,12 +180,17 @@ Note, that the `create tar` and `create compressed-tar` commands can be invoked
 to work on a single part only using the `--part` argument. This can be useful to schedule the processing on
 different machines.
 
-TODO script fragment including `tee`
+Here an execution example. Assume you like to archive 2.5TB of data before compression 
+on a machine with 8 available cores using a part size of 500GB (resulting in 5 parts):
+```sh
+archiver create filelist --threads 5 --part-size 500G SOURCE_DIR ARCHIVE_DIR | tee archiving.log
+archiver create tar --threads 5 SOURCE_DIR ARCHIVE_DIR | tee -a archiving.log
+archiver create compressed-tar --threads 8 ARCHIVE_DIR | tee -a archiving.log
+```
 
+### Archive Package Structure
 
-### Archive Package structure
-
-A standard archive generated with this CLI-Tool will constist of the following files in
+A standard archive directory generated with this CLI-Tool consists of the following files in
 a new directory:
 
 - Base archive: project_name.tar.lz
@@ -145,8 +211,8 @@ as suffix, where X is the part number. So the archive of part 1 would be called
 
 Symlinks are included as is by `tar`. However, the `archiver` tool will emit
 warnings in case of broken symlinks or absolute symlinks. Absolute symlinks are
-problematic, as when the archive gets extracted to a different system, symlinks
-will be likely broken. It is therefore recommendable to replace absolute symlinks
+problematic, as in case the archive gets extracted on a different system, absoulte symlinks
+will likely be broken. It is therefore recommendable to replace absolute symlinks
 with relative symlinks where the target is expressed relative to the symlink location.
 
 
@@ -160,6 +226,11 @@ parts and hence appearing in two different tar files. For
 this reason, it is recommended to replace hardlinks with symlinks to avoid a
 possible duplication of data.
 
+### Compression
+
+Currently, only lzip (LZMA) is supported. It was chosen for its design for long-term archiving 
+providing additional integrity checks and recovery mechansims, see also 
+[lzip documentation](https://www.nongnu.org/lzip/lzip.html)
 
 ### GPG encryption
 
