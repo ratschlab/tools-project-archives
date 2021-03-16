@@ -11,6 +11,7 @@ from . import helpers, __version__
 from .archive import create_archive, encrypt_existing_archive, \
     create_filelist_and_hashs, \
     create_tar_archives_and_listings, compress_and_hash
+from .constants import DEFAULT_COMPRESSION_LEVEL
 from .extract import extract_archive, decrypt_existing_archive
 from .integrity import check_integrity
 from .listing import create_listing
@@ -43,62 +44,62 @@ def main(args=tuple(sys.argv[1:])):
 
 def parse_arguments(args):
     # Main parser
-    parser = argparse.ArgumentParser(prog="archiver", description='Handles the archiving of large project data')
-    parser.add_argument("-w", "--work-dir", type=str, help="Working directory")
+    parser = argparse.ArgumentParser(prog="archiver", description='Archive large project data')
+    parser.add_argument("-w", "--work-dir", type=str, help="Directory for temporary files")
     parser.add_argument("-v", "--verbose", action="store_const", const=True)
 
+    subparsers = parser.add_subparsers(help="Available commands", required=True, dest="command")
 
-    subparsers = parser.add_subparsers(help="Available actions", required=True, dest="command")
+    compression_help = f"Compression level between 0 (fastest) to 9 (slowest), default is {DEFAULT_COMPRESSION_LEVEL}"
+    part_size_help = "Split archive into parts by specifying the maximum size of each " \
+                     "part (based on uncompressed filesizes). Example: 5G for 5 gigibytes (2^30 bytes)."
+    part_help = "Which part to process. If missing, process all"
+    force_help = "Overwrite output directory if it already exists and create parents of folder if they don't exist."
+    thread_help = "Set the number of workers"
+    encryption_key_help = "Path to public key which will be used for encryption. Archive will be encrypted when this option is used. Can be used more than once."
+    remove_unencrypted_help = "Remove unencrypted archive after encrypted archive has been created and stored."
 
     # Create Archive Parent Parser
     archive_parent_parser = argparse.ArgumentParser(add_help=False)
-    archive_parent_parser.add_argument("source", type=str, help="Source input file or directory")
-    archive_parent_parser.add_argument("archive_dir", type=str, help="Path to directory which will be created")
-    archive_parent_parser.add_argument("-n", "--threads", type=int,
-                                help="Set the number of worker threads, overriding the system's default")
+    archive_parent_parser.add_argument("source", type=str, help="Source directory")
+    archive_parent_parser.add_argument("archive_dir", type=str, help="Path for archive directory (will be created)")
+    archive_parent_parser.add_argument("-n", "--threads", type=int, help=thread_help)
 
     # Archiving parser
     parser_archive = subparsers.add_parser("archive", help="Create archive", parents=[archive_parent_parser])
-    parser_archive.add_argument("-c", "--compression", type=int, help="Compression level between 0 (fastest) to 9 (slowest), default is 6")
+    parser_archive.add_argument("-c", "--compression", type=int, help=compression_help)
     parser_archive.add_argument("-k", "--key", type=str, action="append",
-                                help="Path to public key which will be used for encryption. Archive will be encrypted when this option is used. Can be used more than once.")
-    parser_archive.add_argument("--part-size", type=str, help="Split archive into parts by specifying the size of each part. Example: 5G for 5 gigibytes (2^30 bytes).")
-    parser_archive.add_argument("-r", "--remove", action="store_true", default=False, help="Remove unencrypted archive after encrypted archive has been created and stored.")
-    parser_archive.add_argument("-f", "--force", action="store_true", default=False, help="Overwrite output directory if it already exists and create parents of folder if they don't exist.")
+                                help=encryption_key_help)
+    parser_archive.add_argument("--part-size", type=str, help=part_size_help)
+    parser_archive.add_argument("-r", "--remove", action="store_true", default=False, help=remove_unencrypted_help)
+    parser_archive.add_argument("-f", "--force", action="store_true", default=False, help=force_help)
     parser_archive.set_defaults(func=handle_archive)
 
-    parser_create = subparsers.add_parser("create", help="Create archive")
-    subparser_create = parser_create.add_subparsers(help="Available actions", required=True, dest="command")
+    parser_create = subparsers.add_parser("create", help="Create archives step-by-step (optimization possibilities for large split archives)")
+    subparser_create = parser_create.add_subparsers(help="Available subcommands", required=True, dest="create_command")
 
-    parser_create_filelist = subparser_create.add_parser("filelist", parents=[archive_parent_parser])
-    parser_create_filelist.add_argument("--part-size", type=str,
-                                help="Split archive into parts by specifying the size of each part. Example: 5G for 5 gigibytes (2^30 bytes).")
-    parser_create_filelist.add_argument("-f", "--force", action="store_true",
-                                default=False,
-                                help="Overwrite output directory if it already exists and create parents of folder if they don't exist.")
+    parser_create_filelist = subparser_create.add_parser("filelist", help="create list and hashs of all files to be archived", parents=[archive_parent_parser])
+    parser_create_filelist.add_argument("--part-size", type=str, help=part_size_help)
+    parser_create_filelist.add_argument("-f", "--force", action="store_true", default=False, help=force_help)
     parser_create_filelist.set_defaults(func=handle_create_filelist)
 
-    parser_create_tar = subparser_create.add_parser("tar", parents=[archive_parent_parser])
-    parser_create_tar.add_argument("-p", "--part", type=int,
-                                help="Which part to process")
+    parser_create_tar = subparser_create.add_parser("tar", help="create tar archives and listings", parents=[archive_parent_parser])
+    parser_create_tar.add_argument("-p", "--part", type=int, help=part_help)
     parser_create_tar.set_defaults(func=handle_create_tar_archive)
 
-    parser_create_compressed = subparser_create.add_parser("compressed-tar")
+    parser_create_compressed = subparser_create.add_parser("compressed-tar", help="compress tars")
     parser_create_compressed.add_argument("archive_dir", type=str, help="Path to directory which will be created")
-    parser_create_compressed.add_argument("-n", "--threads", type=int,
-                                help="Set the number of worker threads, overriding the system's default")
-    parser_create_compressed.add_argument("-c", "--compression", type=int,
-                                help="Compression level between 0 (fastest) to 9 (slowest), default is 6")
-    parser_create_compressed.add_argument("-p", "--part", type=str,
-                                help="Which part to process")
+    parser_create_compressed.add_argument("-n", "--threads", type=int, help=thread_help)
+    parser_create_compressed.add_argument("-c", "--compression", type=int, help=compression_help)
+    parser_create_compressed.add_argument("-p", "--part", type=str, help=part_help)
     parser_create_compressed.set_defaults(func=handle_create_compressed)
 
     # Encryption parser
     parser_encrypt = subparsers.add_parser("encrypt", help="Encrypt existing unencrypted archive")
     parser_encrypt.add_argument("source", type=str, help="Existing archive directory or .tar.lz file")
     parser_encrypt.add_argument("destination", type=str, nargs="?", help="Specify destination where encrypted archive should be stored")
-    parser_encrypt.add_argument("-k", "--key", type=str, action="append", required=True, help="Path to public key which will be used for encryption. Can be used more than once.")
-    parser_encrypt.add_argument("-r", "--remove", action="store_true", default=False, help="Remove unencrypted archive after encrypted archive has been created and stored.")
+    parser_encrypt.add_argument("-k", "--key", type=str, action="append", required=True, help=encryption_key_help)
+    parser_encrypt.add_argument("-r", "--remove", action="store_true", default=False, help=remove_unencrypted_help)
     parser_encrypt.add_argument("-e", "--reencrypt", action="store_true", default=False, help="Reencrypt already encrypted archive with a new set of keys. Only newly specified keys will have access.")
     parser_encrypt.add_argument("-f", "--force", action="store_true", default=False, help="Overwrite output directory if it already exists and create parents of folder if they don't exist.")
     parser_encrypt.set_defaults(func=handle_encryption)
@@ -108,16 +109,16 @@ def parse_arguments(args):
     parser_decrypt.add_argument("source", type=str, help="Existing archive directory or .tar.lz file")
     parser_decrypt.add_argument("destination", type=str, nargs="?", help="Specify destination where unencrypted archive should be stored")
     parser_decrypt.add_argument("-r", "--remove", action="store_true", default=False, help="Remove encrypted archive after unencrypted archive has been created and stored.")
-    parser_decrypt.add_argument("-f", "--force", action="store_true", default=False, help="Overwrite output directory if it already exists and create parents of folder if they don't exist.")
+    parser_decrypt.add_argument("-f", "--force", action="store_true", default=False, help=force_help)
     parser_decrypt.set_defaults(func=handle_decryption)
 
     # Extraction parser
-    parser_extract = subparsers.add_parser("extract", help="Extract archive")
+    parser_extract = subparsers.add_parser("extract", help="Extract files from existing archive")
     parser_extract.add_argument("archive_dir", type=str, help="Select source archive tar.lz file")
     parser_extract.add_argument("destination", type=str, help="Path to directory where archive will be extracted")
     parser_extract.add_argument("-s", "--subpath", type=str, help="Directory or file inside archive to extract")
-    parser_extract.add_argument("-n", "--threads", type=int, help="Set the number of worker threads, overriding the system's default")
-    parser_extract.add_argument("-f", "--force", action="store_true", default=False, help="Overwrite output directory if it already exists and create parents of folder if they don't exist.")
+    parser_extract.add_argument("-n", "--threads", type=int, help=thread_help)
+    parser_extract.add_argument("-f", "--force", action="store_true", default=False, help=force_help)
     parser_extract.set_defaults(func=handle_extract)
 
     # List parser
@@ -131,12 +132,12 @@ def parse_arguments(args):
     parser_check = subparsers.add_parser("check", help="Check integrity of archive")
     parser_check.add_argument("archive_dir", type=str, help="Select source archive directory or .tar.lz file")
     parser_check.add_argument("-d", "--deep", action="store_true", help="Verify integrity by unpacking archive and hashing each file")
-    parser_check.add_argument("-n", "--threads", type=int, help="Set the number of worker threads, overriding the system's default")
+    parser_check.add_argument("-n", "--threads", type=int, help=thread_help)
     parser_check.set_defaults(func=handle_check)
 
     # Preparation checks
     parser_preparation_check = subparsers.add_parser("preparation-checks",
-                                     help='Check archiving directory for a sound structure before archiving.')
+                                     help='Verify source directory has a sound structure before archiving')
 
     parser_preparation_check.add_argument("archive_source_dir", type=Path,
                         help="Archive Source directory")
@@ -153,7 +154,7 @@ def handle_archive(args):
     # Path to a directory which will be created (if it does yet exist)
     destination_path = Path(args.archive_dir)
     # Default compression level should be 6
-    compression = args.compression if args.compression else 6
+    compression = args.compression if args.compression else DEFAULT_COMPRESSION_LEVEL
 
     threads = helpers.get_threads_from_args_or_environment(args.threads)
 
@@ -202,8 +203,7 @@ def handle_create_compressed(args):
     destination_path = Path(args.archive_dir)
     threads = helpers.get_threads_from_args_or_environment(args.threads)
 
-    # TODO: add default comspression level
-    compression = args.compression if args.compression else 6
+    compression = args.compression if args.compression else DEFAULT_COMPRESSION_LEVEL
 
     part = args.part
     compress_and_hash(destination_path, threads, compression, part)

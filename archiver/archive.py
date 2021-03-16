@@ -9,7 +9,7 @@ import multiprocessing
 from . import helpers
 from . import splitter
 from .encryption import encrypt_list_of_archives
-from .constants import COMPRESSED_ARCHIVE_SUFFIX, ENCRYPTED_ARCHIVE_SUFFIX
+from .constants import COMPRESSED_ARCHIVE_SUFFIX, ENCRYPTED_ARCHIVE_SUFFIX, DEFAULT_COMPRESSION_LEVEL
 
 
 def encrypt_existing_archive(archive_path, encryption_keys, destination_dir=None, remove_unencrypted=False, force=False):
@@ -33,7 +33,7 @@ def encrypt_existing_archive(archive_path, encryption_keys, destination_dir=None
     encrypt_list_of_archives([archive_path], encryption_keys, remove_unencrypted, destination_dir)
 
 
-def create_archive(source_path, destination_path, threads=None, encryption_keys=None, compression=6, splitting=None, remove_unencrypted=False, force=False, work_dir=None):
+def create_archive(source_path, destination_path, threads=None, encryption_keys=None, compression=DEFAULT_COMPRESSION_LEVEL, splitting=None, remove_unencrypted=False, force=False, work_dir=None):
     # Argparse already checks if arguments are present, so only argument format needs to be validated
     helpers.terminate_if_path_nonexistent(source_path)
 
