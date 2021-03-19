@@ -1,15 +1,14 @@
-import os
-import subprocess
-import hashlib
-from pathlib import Path
 import logging
-import tempfile
 import multiprocessing
+import os
+import tempfile
+from pathlib import Path
 
 from . import helpers
 from . import splitter
+from .constants import COMPRESSED_ARCHIVE_SUFFIX, ENCRYPTED_ARCHIVE_SUFFIX, \
+    DEFAULT_COMPRESSION_LEVEL
 from .encryption import encrypt_list_of_archives
-from .constants import COMPRESSED_ARCHIVE_SUFFIX, ENCRYPTED_ARCHIVE_SUFFIX, DEFAULT_COMPRESSION_LEVEL
 
 
 def encrypt_existing_archive(archive_path, encryption_keys, destination_dir=None, remove_unencrypted=False, force=False):
@@ -187,7 +186,7 @@ def create_tar_archive(source_path, destination_path, source_name, archive_list=
         return
 
     # -C flag on tar necessary to get relative path in tar archive
-    subprocess.run(["tar", "--posix", "-cf", destination_file_path, "-C", source_path_parent, source_path.stem])
+    helpers.run_shell_cmd(["tar", "--posix", "-cf", destination_file_path, "-C", source_path_parent, source_path.stem])
 
 
 def create_tar_archive_from_list(source_path, archive_list, destination_file_path, source_path_parent, work_dir=None):
@@ -201,15 +200,14 @@ def create_tar_archive_from_list(source_path, archive_list, destination_file_pat
         with open(tmp_file_path, "w") as tmp_file:
             tmp_file.write("\n".join(files_string_list))
 
-        subprocess.run(["tar", "--posix", "-cf", destination_file_path, "-C", source_path_parent, "--files-from", tmp_file_path])
+        helpers.run_shell_cmd(["tar", "--posix", "-cf", destination_file_path, "-C", source_path_parent, "--files-from", tmp_file_path])
 
 
 def create_archive_listing(destination_path, source_name):
     listing_path = destination_path.joinpath(source_name + ".tar.lst")
     tar_path = destination_path.joinpath(source_name + ".tar")
 
-    archive_listing_file = open(listing_path, "w")
-    subprocess.run(["tar", "-tvf", tar_path], stdout=archive_listing_file)
+    helpers.run_shell_cmd(["tar", "-tvf", tar_path], file_output=listing_path)
 
 
 def compress_and_hash(destination_path, threads, compression, part=None):
@@ -241,10 +239,9 @@ def compress_using_lzip(destination_path, source_name, threads, compression):
     additional_arguments = []
 
     if threads:
-        logging.debug(f"Plzip compression extra argument: --threads " + str(threads))
         additional_arguments.extend(["--threads", str(threads)])
 
-    subprocess.run(["plzip", path, f"-{compression}"] + additional_arguments)
+    helpers.run_shell_cmd(["plzip", path, f"-{compression}"] + additional_arguments)
 
 
 def create_and_write_archive_hash(destination_path, source_name):

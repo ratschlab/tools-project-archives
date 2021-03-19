@@ -83,7 +83,7 @@ class CmdBasedCheck:
         logging.info(CHECK_SEP_STR)
         logging.info(f'Running check {self.name}')
 
-        sp = helpers.run_shell_cmd(self.check_cmd)
+        sp = helpers.run_shell_cmd(self.check_cmd, check_returncode=False)
 
         is_success = all(c.check(sp) for c in self.success_conditions)
 

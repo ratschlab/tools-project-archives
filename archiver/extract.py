@@ -70,18 +70,18 @@ def uncompress_and_extract(archive_file_paths, destination_directory_path, threa
             f"Extracting {partial_extraction_path if partial_extraction_path else 'all'} "
             f"from archive {helpers.get_absolute_path_string(archive_path)}")
 
-        additional_arguments = []
-
+        plzip_cmd = ["plzip", "--decompress", "--stdout", archive_path]
         if threads:
-            additional_arguments.extend(["--threads", str(threads)])
+            plzip_cmd.extend(["--threads", str(threads)])
 
-        additional_tar_arguments = []
+        tar_cmd = ["tar", "-x", "-C", destination_directory_path]
         if partial_extraction_path:
-            additional_tar_arguments.append(partial_extraction_path)
+            tar_cmd.append(partial_extraction_path)
 
+        logging.debug(f"Executing command: '{plzip_cmd} | {tar_cmd}'")
         try:
-            p1 = subprocess.Popen(["plzip", "-dc", archive_path] + additional_arguments, stdout=subprocess.PIPE)
-            p2 = subprocess.Popen(["tar", "-x", "-C", destination_directory_path] + additional_tar_arguments, stdin=p1.stdout)
+            p1 = subprocess.Popen(plzip_cmd, stdout=subprocess.PIPE)
+            p2 = subprocess.Popen(tar_cmd, stdin=p1.stdout)
             p1.stdout.close()
             p2.wait()
         except subprocess.CalledProcessError:

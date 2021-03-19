@@ -1,6 +1,5 @@
 import logging
 import re
-import subprocess
 import tempfile
 from collections import namedtuple
 from pathlib import Path
@@ -65,9 +64,9 @@ def list_archives(archives, subdir_path):
         logging.info(f"Listing content of: {archive.name}")
         print(f"Listing content of: {archive.name}")
         if subdir_path:
-            result = subprocess.run(["tar", "-tvf", archive, subdir_path], stdout=subprocess.PIPE)
+            result = helpers.run_shell_cmd(["tar", "-tvf", archive, subdir_path], pipe_stdout=True)
         else:
-            result = subprocess.run(["tar", "-tvf", archive], stdout=subprocess.PIPE)
+            result = helpers.run_shell_cmd(["tar", "-tvf", archive], pipe_stdout=True)
 
         decoded_output = result.stdout.decode("utf-8")
 
