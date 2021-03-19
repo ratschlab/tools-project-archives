@@ -2,11 +2,12 @@ import logging
 import re
 import subprocess
 import tempfile
-from pathlib import Path
 from collections import namedtuple
+from pathlib import Path
+from typing import List
 
 from . import helpers
-from .constants import LISTING_SUFFIX
+from .constants import LISTING_SUFFIX, COMPRESSED_ARCHIVE_SUFFIX
 from .encryption import decrypt_list_of_archives
 
 
@@ -131,3 +132,21 @@ def parse_tar_listing(path):
             entries.append(entry)
 
     return entries
+
+
+def relevant_splits_for_partial_path(archive_path: Path,
+                                     partial_extraction_path: Path) -> List[
+    Path]:
+    # determine which part files are relevant for a path to be extracted
+    # files of a directory may be spread across several splits
+    listing_files = get_listing_files_for_path(archive_path)
+
+    archive_file_set = set()
+    for f in listing_files:
+        for e in parse_tar_listing(f):
+            if e.path.startswith(str(partial_extraction_path)):
+                part_path = f.parent / f.name.replace(LISTING_SUFFIX,
+                                                      COMPRESSED_ARCHIVE_SUFFIX)
+                archive_file_set.add(part_path)
+
+    return sorted(list(archive_file_set))
