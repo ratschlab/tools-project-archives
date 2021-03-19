@@ -23,7 +23,7 @@ def encrypt_list_of_archives(archive_list, encryption_keys, delete=False, output
             _encrypt_list_of_archives_fnc(output_dir, archive_path, encryption_keys, delete)
     else:
         with multiprocessing.Pool(eff_threads) as pool:
-            pool.starmap(_encrypt_list_of_archives_fnc, [(output_dir, p, encryption_keys, delete) for p in archive_list])
+            pool.starmap(_encrypt_list_of_archives_fnc, [(output_dir, p, encryption_keys, delete) for p in sorted(archive_list)])
 
 
 def encrypt_archive(archive_path, output_path, encryption_keys, delete=False):
@@ -50,7 +50,7 @@ def encrypt_archive(archive_path, output_path, encryption_keys, delete=False):
 
 
 def decrypt_list_of_archives(archives, target_directory=None, delete=False):
-    for archive_path in archives:
+    for archive_path in sorted(archives):
         decrypt_archive(archive_path, target_directory, delete)
 
 

@@ -1,12 +1,12 @@
-import subprocess
-import os
-import sys
-from pathlib import Path
 import logging
+import subprocess
 
 from . import helpers
+from . import listing
+from .constants import COMPRESSED_ARCHIVE_SUFFIX, ENCRYPTED_ARCHIVE_SUFFIX, \
+    REQUIRED_SPACE_MULTIPLIER
 from .encryption import decrypt_list_of_archives
-from .constants import COMPRESSED_ARCHIVE_SUFFIX, ENCRYPTED_ARCHIVE_SUFFIX, REQUIRED_SPACE_MULTIPLIER
+
 
 # Should there be a flag or automatically recongnize encrypted archives?
 # Ensure gpg key is available
@@ -36,7 +36,12 @@ def extract_archive(source_path, destination_directory_path, partial_extraction_
     helpers.handle_destination_directory_creation(destination_directory_path, force)
 
     is_encrypted = helpers.path_target_is_encrypted(source_path)
-    archive_files = helpers.get_archives_from_path(source_path, is_encrypted)
+    archive_files_all = sorted(helpers.get_archives_from_path(source_path, is_encrypted))
+
+    if partial_extraction_path:
+        archive_files = listing.relevant_splits_for_partial_path(source_path, partial_extraction_path)
+    else:
+        archive_files = archive_files_all
 
     if is_encrypted:
         # It might make sense to check that enough space is available for:
@@ -53,27 +58,30 @@ def extract_archive(source_path, destination_directory_path, partial_extraction_
 
     ensure_sufficient_disk_capacity_for_extraction(archive_files, destination_directory_path)
 
-    if partial_extraction_path:
-        partial_extraction(archive_files, destination_directory_path, partial_extraction_path)
-    else:
-        uncompress_and_extract(archive_files, destination_directory_path, threads)
+    uncompress_and_extract(archive_files, destination_directory_path, threads, partial_extraction_path=partial_extraction_path)
 
     logging.info("Archive extracted to: " + helpers.get_absolute_path_string(destination_directory_path))
     return destination_directory_path / helpers.filename_without_extensions(source_path)
 
 
-def uncompress_and_extract(archive_file_paths, destination_directory_path, threads, encrypted=False):
+def uncompress_and_extract(archive_file_paths, destination_directory_path, threads, partial_extraction_path=None, encrypted=False):
     for archive_path in archive_file_paths:
-        logging.info(f"Extract archive {helpers.get_absolute_path_string(archive_path)}")
+        logging.info(
+            f"Extracting {partial_extraction_path if partial_extraction_path else 'all'} "
+            f"from archive {helpers.get_absolute_path_string(archive_path)}")
 
         additional_arguments = []
 
         if threads:
             additional_arguments.extend(["--threads", str(threads)])
 
+        additional_tar_arguments = []
+        if partial_extraction_path:
+            additional_tar_arguments.append(partial_extraction_path)
+
         try:
             p1 = subprocess.Popen(["plzip", "-dc", archive_path] + additional_arguments, stdout=subprocess.PIPE)
-            p2 = subprocess.Popen(["tar", "-x", "-C", destination_directory_path], stdin=p1.stdout)
+            p2 = subprocess.Popen(["tar", "-x", "-C", destination_directory_path] + additional_tar_arguments, stdin=p1.stdout)
             p1.stdout.close()
             p2.wait()
         except subprocess.CalledProcessError:
@@ -82,16 +90,6 @@ def uncompress_and_extract(archive_file_paths, destination_directory_path, threa
         destination_directory_path_string = helpers.get_absolute_path_string(destination_directory_path)
 
         logging.info(f"Extracted archive {archive_path.stem} to {destination_directory_path_string}")
-
-
-def partial_extraction(archive_file_paths, destination_directory_path, partial_extraction_path):
-    # TODO: Make this more efficient. No need to decompress every single archive
-    logging.info(f"Start extracting {partial_extraction_path} from archive...")
-
-    for archive_path in archive_file_paths:
-        subprocess.run(["tar", "-xvf", archive_path, "-C", destination_directory_path, partial_extraction_path])
-
-        logging.info(f"Extracted {partial_extraction_path} from {archive_path.stem}")
 
 
 def get_archive_names_after_encryption(archive_files, destination_path=None):

@@ -242,6 +242,21 @@ providing additional integrity checks and recovery mechansims, see also
 
 All key-handling is done by the user using GPG. This tool assumes a private key to decrypt an archive exists in the GPG keychain.
 
+### Cluster Integration
+
+#### Parallelism
+
+In case the number of threads/workers is not specified on the command line, the
+function `multiprocessing.cpu_count()` is used to determine the number of workers used.
+
+In some environments, this value is not determined correctly. For instance, on some
+HPC scheduler (e.g. LSF) the value does not represent the amount of CPUs reserved for
+a job but CPUs available on the whole machine. The correct value may be specified in an environment 
+variable though (on LSF it is `LSB_MAX_NUM_PROCESSOR`).
+Setting the environment variable `ARCHIVER_MAX_CPUS_ENV_VAR` to e.g. `LSB_MAX_NUM_PROCESSOR`
+instructs the `archiver` tool to go look whether the `LSB_MAX_NUM_PROCESSOR` variable is set
+and take this number instead.
+
 
 ## Development
 

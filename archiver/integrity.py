@@ -1,10 +1,11 @@
 import logging
+import multiprocessing
 import tempfile
 from pathlib import Path
 
-
 from . import helpers
-from .constants import COMPRESSED_ARCHIVE_SUFFIX, ENCRYPTED_ARCHIVE_SUFFIX, MD5_LINE_REGEX, LISTING_SUFFIX
+from .constants import COMPRESSED_ARCHIVE_SUFFIX, ENCRYPTED_ARCHIVE_SUFFIX, \
+    LISTING_SUFFIX
 from .extract import extract_archive
 from .listing import parse_tar_listing
 
@@ -15,7 +16,7 @@ def check_integrity(source_path, deep_flag=False, threads=None, work_dir=None):
 
     logging.info("Starting integrity check on: " + source_path.as_posix())
 
-    check_result = shallow_integrity_check(archives_with_hashes)
+    check_result = shallow_integrity_check(archives_with_hashes, workers=threads)
 
     if deep_flag:
         # with deep flag still continue, no matter what the result of the previous test was
@@ -41,18 +42,20 @@ def check_integrity(source_path, deep_flag=False, threads=None, work_dir=None):
     return check_result
 
 
-def shallow_integrity_check(archives_with_hashes):
-    # Check each archive file separately
-    for archive in archives_with_hashes:
-        archive_file_path = archive[0]
-        archive_hash_file_path = archive[1]
-
-        logging.info(f"Verifying hash of {archive_file_path}")
-        if not compare_hashes_from_files(archive_file_path, archive_hash_file_path):
-            logging.warning(f"Hash of file {archive_file_path.name} has changed.")
-            return False
-
+def _shallow_integrity_check_part(archive_file_path, archive_hash_file_path):
+    logging.info(f"Verifying hash of {archive_file_path}")
+    if not compare_hashes_from_files(archive_file_path, archive_hash_file_path):
+        logging.warning(f"Hash of file {archive_file_path.name} has changed.")
+        return False
     return True
+
+
+def shallow_integrity_check(archives_with_hashes, workers=None):
+    with multiprocessing.Pool(workers if workers else 1) as pool:
+        ret = pool.starmap(_shallow_integrity_check_part,
+                           [(p[0], p[1]) for p in archives_with_hashes])
+
+    return all(ret)
 
 
 def verify_relative_symbolic_links(archives_with_hashes):
@@ -166,9 +169,10 @@ def compare_hashes_from_files(archive_file_path, archive_hash_file_path):
 
 def get_archives_with_hashes_from_path(path):
     if path.is_dir():
-        return get_archives_with_hashes_from_directory(path)
-
-    return get_hashes_for_archive(path)
+        ret = get_archives_with_hashes_from_directory(path)
+    else:
+        ret = get_hashes_for_archive(path)
+    return sorted(ret, key=lambda x: x[0])
 
 
 def get_hashes_for_archive(archive_path):

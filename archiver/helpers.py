@@ -9,7 +9,7 @@ import shutil
 import multiprocessing
 
 from .constants import READ_CHUNK_BYTE_SIZE, COMPRESSED_ARCHIVE_SUFFIX, \
-    ENCRYPTED_ARCHIVE_SUFFIX, MAX_NUMBER_CPUS, ENV_VAR_MAPPER_MAX_CPUS, MD5_LINE_REGEX
+    ENCRYPTED_ARCHIVE_SUFFIX, ENV_VAR_MAPPER_MAX_CPUS, MD5_LINE_REGEX
 
 
 def get_files_with_type_in_directory_or_terminate(directory, file_type):
@@ -30,7 +30,7 @@ def get_files_with_type_in_directory(directory, file_type):
             path = directory.joinpath(file).absolute()
             files.append(path)
 
-    return files
+    return sorted(files)
 
 
 def get_absolute_path_string(path):
@@ -162,7 +162,7 @@ def get_number_of_threads_from_env():
     env_variable_name = os.environ.get(ENV_VAR_MAPPER_MAX_CPUS)
 
     if not env_variable_name:
-        logging.info(f"Environment variable {ENV_VAR_MAPPER_MAX_CPUS} is not set")
+        logging.debug(f"Environment variable {ENV_VAR_MAPPER_MAX_CPUS} is not set")
         return None
 
     env_variable_threads = os.environ.get(env_variable_name)
@@ -173,14 +173,14 @@ def get_number_of_threads_from_env():
         pass
 
     if not env_variable_threads_number:
-        logging.info(f"Environment variable {env_variable_name} doesn't contain a valid number of threads")
+        logging.warning(f"Environment variable {env_variable_name} doesn't contain a valid number of threads")
         return
 
     return env_variable_threads_number
 
 
 def get_max_number_of_threads():
-    return max(multiprocessing.cpu_count(), MAX_NUMBER_CPUS)
+    return multiprocessing.cpu_count()
 
 
 def get_uncompressed_archive_size_in_bytes(archive_file_path):
