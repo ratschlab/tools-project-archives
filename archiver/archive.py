@@ -93,6 +93,8 @@ def create_filelist_and_hashs(source_path, destination_path, split_size, threads
     nr_parts = 1
 
     if split_size:
+        logging.info(f"Using a split size of {split_size} bytes ({split_size/1024**3:.3f}GB).")
+
         nr_parts = create_file_listing_hash_split_archives(source_path, destination_path,
                                                 split_size, threads)
 
