@@ -187,7 +187,7 @@ def create_tar_archive(source_path, destination_path, source_name, archive_list=
         return
 
     # -C flag on tar necessary to get relative path in tar archive
-    subprocess.run(["tar", "-cf", destination_file_path, "-C", source_path_parent, source_path.stem])
+    subprocess.run(["tar", "--posix", "-cf", destination_file_path, "-C", source_path_parent, source_path.stem])
 
 
 def create_tar_archive_from_list(source_path, archive_list, destination_file_path, source_path_parent, work_dir=None):
@@ -201,7 +201,7 @@ def create_tar_archive_from_list(source_path, archive_list, destination_file_pat
         with open(tmp_file_path, "w") as tmp_file:
             tmp_file.write("\n".join(files_string_list))
 
-        subprocess.run(["tar", "-cf", destination_file_path, "-C", source_path_parent, "--files-from", tmp_file_path])
+        subprocess.run(["tar", "--posix", "-cf", destination_file_path, "-C", source_path_parent, "--files-from", tmp_file_path])
 
 
 def create_archive_listing(destination_path, source_name):
