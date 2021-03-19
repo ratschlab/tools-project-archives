@@ -172,7 +172,7 @@ def create_tar_archives_and_listings(source_path, destination_path, work_dir, pa
         if not part_hashes:
             helpers.terminate_with_message(f"No {source_name}.md5 or files matching {source_name}.part[0-9]*.md5 found in {destination_path}")
 
-    part_names = [os.path.splitext(p.name)[0] for p in part_hashes]
+    part_names = sorted([os.path.splitext(p.name)[0] for p in part_hashes])
     logging.info(f"Creating tar archives and listings for {','.join(part_names)} using {workers} workers.")
     with multiprocessing.Pool(workers) as pool:
         pool.starmap(_process_part, [ (source_path, destination_path, work_dir, p) for p in part_names])
@@ -221,7 +221,7 @@ def compress_and_hash(destination_path, threads, compression, part=None):
     if not parts:
         helpers.terminate_with_message(f"No suitable tar files found to be compressed in {destination_path}")
 
-    part_names = [os.path.splitext(p.name)[0] for p in parts]
+    part_names = sorted([os.path.splitext(p.name)[0] for p in parts])
 
     # compress sequentially
     for part in part_names:

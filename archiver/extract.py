@@ -36,7 +36,7 @@ def extract_archive(source_path, destination_directory_path, partial_extraction_
     helpers.handle_destination_directory_creation(destination_directory_path, force)
 
     is_encrypted = helpers.path_target_is_encrypted(source_path)
-    archive_files_all = helpers.get_archives_from_path(source_path, is_encrypted)
+    archive_files_all = sorted(helpers.get_archives_from_path(source_path, is_encrypted))
 
     if partial_extraction_path:
         archive_files = listing.relevant_splits_for_partial_path(source_path, partial_extraction_path)

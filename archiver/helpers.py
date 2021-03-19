@@ -30,7 +30,7 @@ def get_files_with_type_in_directory(directory, file_type):
             path = directory.joinpath(file).absolute()
             files.append(path)
 
-    return files
+    return sorted(files)
 
 
 def get_absolute_path_string(path):
