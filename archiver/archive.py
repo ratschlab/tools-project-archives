@@ -90,8 +90,6 @@ def create_split_archive(source_path, destination_path, source_name, splitting, 
 def create_filelist_and_hashs(source_path, destination_path, split_size, threads, force=False):
     helpers.handle_destination_directory_creation(destination_path, force)
 
-    nr_parts = 1
-
     if split_size:
         logging.info(f"Using a split size of {split_size} bytes ({split_size/1024**3:.3f}GB).")
 

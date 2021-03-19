@@ -5,7 +5,7 @@ import os
 import multiprocessing
 
 from . import helpers
-from .constants import REQUIRED_SPACE_MULTIPLIER, COMPRESSED_ARCHIVE_SUFFIX, ENCRYPTION_ALGORITHM
+from .constants import REQUIRED_SPACE_MULTIPLIER, ENCRYPTION_ALGORITHM
 
 
 def _encrypt_list_of_archives_fnc(output_dir, archive_path, encryption_keys, delete):

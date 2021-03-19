@@ -30,7 +30,7 @@ def main(args=tuple(sys.argv[1:])):
     try:
         import coloredlogs
         coloredlogs.install(fmt=log_fmt, level=log_level, stream=log_stream)
-    except ImportError as e:
+    except ImportError:
         pass
 
     logging.info(f"archiver version {__version__}")
