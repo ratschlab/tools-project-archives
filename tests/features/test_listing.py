@@ -139,21 +139,21 @@ def test_list_archive_content_deep_subpath(capsys):
 
     create_file_listing_and_assert_output_equals(archive_file, expected_listing, capsys, "test-folder/folder-in-archive", DEEP)
 
-@pytest.mark.skip(reason="TODO: feature not correctly implemented")
+
 def test_list_archive_content_deep_encrypted_subpath(capsys, setup_gpg):
     archive_file = get_directory_with_name("encrypted-archive") / "test-folder.tar.lz.gpg"
     expected_listing = get_listing_with_name("listing-partial-deep.lst")
 
-    create_file_listing_and_assert_output_equals(archive_file, expected_listing, capsys, "test-folder/subfolder", DEEP)
+    create_file_listing_and_assert_output_equals(archive_file, expected_listing, capsys, "test-folder/folder-in-archive", DEEP)
 
-@pytest.mark.skip(reason="TODO: feature not correctly implemented")
+
 def test_list_archive_content_deep_subpath_split(capsys):
     archive_dir = get_directory_with_name("split-archive")
     expected_listing = get_listing_with_name("listing-split-partial-deep.lst")
 
     create_file_listing_and_assert_output_equals(archive_dir, expected_listing, capsys, "large-folder/subfolder", DEEP)
 
-@pytest.mark.skip(reason="TODO: feature not correctly implemented")
+
 def test_list_archive_content_deep_subpath_encrypted_split(capsys, setup_gpg):
     archive_dir = get_directory_with_name("split-encrypted-archive")
     expected_listing = get_listing_with_name("listing-split-partial-deep.lst")
