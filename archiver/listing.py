@@ -1,13 +1,13 @@
 import logging
 import re
-import subprocess
 import tempfile
 from collections import namedtuple
 from pathlib import Path
 from typing import List
 
 from . import helpers
-from .constants import LISTING_SUFFIX, COMPRESSED_ARCHIVE_SUFFIX
+from .constants import LISTING_SUFFIX, COMPRESSED_ARCHIVE_SUFFIX, \
+    ENCRYPTED_ARCHIVE_SUFFIX
 from .encryption import decrypt_list_of_archives
 
 
@@ -40,6 +40,14 @@ def listing_from_archive(source_path, subdir_path, work_dir):
     is_encrypted = helpers.path_target_is_encrypted(source_path)
     archives = helpers.get_archives_from_path(source_path, is_encrypted)
 
+    if len(archives) > 1 and subdir_path:
+        archives = relevant_splits_for_partial_path(source_path, subdir_path)
+
+        if is_encrypted:
+            archives = [f.parent / f.name.replace(COMPRESSED_ARCHIVE_SUFFIX,
+                                                  ENCRYPTED_ARCHIVE_SUFFIX) for
+                        f in archives]
+
     if is_encrypted:
         logging.info("Deep listing of encrypted archive.")
         decrypt_and_list(archives, subdir_path, work_dir)
@@ -65,9 +73,9 @@ def list_archives(archives, subdir_path):
         logging.info(f"Listing content of: {archive.name}")
         print(f"Listing content of: {archive.name}")
         if subdir_path:
-            result = subprocess.run(["tar", "-tvf", archive, subdir_path], stdout=subprocess.PIPE)
+            result = helpers.run_shell_cmd(["tar", "-tvf", archive, subdir_path], pipe_stdout=True)
         else:
-            result = subprocess.run(["tar", "-tvf", archive], stdout=subprocess.PIPE)
+            result = helpers.run_shell_cmd(["tar", "-tvf", archive], pipe_stdout=True)
 
         decoded_output = result.stdout.decode("utf-8")
 

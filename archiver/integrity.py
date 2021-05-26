@@ -99,7 +99,13 @@ def verify_relative_symbolic_links(archives_with_hashes):
 
 
 def deep_integrity_check(archives_with_hashes, is_encrypted, threads, work_dir):
-    # Unpack each archive separately
+    # verify link structure
+    missing_links = verify_relative_symbolic_links(archives_with_hashes)
+
+    for path, target in missing_links.items():
+        logging.warning(f"Symlink {path} pointing to {target} is broken in archive")
+
+    # verify md5sums in archives
     successful = True
     for archive in archives_with_hashes:
         archive_file_path = archive[0]
@@ -117,11 +123,6 @@ def deep_integrity_check(archives_with_hashes, is_encrypted, threads, work_dir):
 
             r = compare_archive_listing_hashes(hash_result, expected_listing_hash_path)
             successful = successful and r
-
-    missing_links = verify_relative_symbolic_links(archives_with_hashes)
-
-    for path, target in missing_links.items():
-        logging.warning(f"Symlink {path} pointing to {target} is broken in archive")
 
     return successful
 

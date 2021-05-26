@@ -61,7 +61,7 @@ For archiving large directories (>few TBs) `archiver create` allows running the 
 section [Optimally Creating Large Split Archives](#optimally-creating-large-split-archives)
 
 
-### Listing and Extraction
+#### Listing and Extraction
 List archive content
 ```sh
 archiver list ARCHIVE_DIR
@@ -77,7 +77,7 @@ Extract single file from archive
 archiver extract --subpath testdir/testfile ARCHIVE_DIR DESTINATION_DIR
 ```
 
-### Integrity Check
+#### Integrity Check
 Quick integrity check on archive: checking hash of compressed archives match
 ```sh
 archiver check ARCHIVE_DIR

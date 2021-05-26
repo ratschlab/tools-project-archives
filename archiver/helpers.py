@@ -7,6 +7,7 @@ import subprocess
 import logging
 import shutil
 import multiprocessing
+from typing import List, Union
 
 from .constants import READ_CHUNK_BYTE_SIZE, COMPRESSED_ARCHIVE_SUFFIX, \
     ENCRYPTED_ARCHIVE_SUFFIX, ENV_VAR_MAPPER_MAX_CPUS, MD5_LINE_REGEX
@@ -167,9 +168,10 @@ def get_number_of_threads_from_env():
 
     env_variable_threads = os.environ.get(env_variable_name)
 
+    env_variable_threads_number = None
     try:
         env_variable_threads_number = int(env_variable_threads)
-    except:
+    except ValueError:
         pass
 
     if not env_variable_threads_number:
@@ -189,8 +191,8 @@ def get_uncompressed_archive_size_in_bytes(archive_file_path):
 
     try:
         # Using
-        output = subprocess.check_output(["plzip", "-l", archive_file_path] + threads_argument)
-        return int(output.decode("utf-8").splitlines()[-1].lstrip().split(' ', 1)[0])
+        sp = run_shell_cmd(["plzip", "-l", archive_file_path] + threads_argument)
+        return int(sp.stdout.decode("utf-8").splitlines()[-1].lstrip().split(' ', 1)[0])
     except subprocess.CalledProcessError:
         terminate_with_message("Failed to fetch uncompressed archive size.")
 
@@ -225,7 +227,8 @@ def get_size_of_directory(path, deep=False):
         return sum(f.stat().st_size for f in path.glob('**/*') if f.is_file())
 
     command = ["du", "-shb", path] if plattform_is_linux() else ["du", "-sh", path]
-    parsed_output = subprocess.check_output(command).decode("utf-8")
+
+    parsed_output = run_shell_cmd(command).stdout.decode("utf-8")
 
     dir_size = re.split(r'\t+', parsed_output.lstrip())[0]
 
@@ -383,6 +386,19 @@ def encryption_keys_must_exist(key_list):
         terminate_if_file_nonexistent(Path(key))
 
 
-def run_shell_cmd(cmd_str: str):
-    logging.debug(f"Executing command \'{cmd_str}\'")
-    return subprocess.run(cmd_str, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, shell=True)
+def run_shell_cmd(cmd: Union[str, List], file_output: Path = None, pipe_stdout=False, check_returncode=True):
+    if isinstance(cmd, list):
+        cmd_str = ' '.join([str(e) for e in cmd])
+    else:
+        cmd_str = cmd
+
+    logging.debug(f"Executing command: '{cmd_str}'")
+
+    if file_output:
+        with open(file_output, "w") as f:
+            return subprocess.run(cmd_str, stdout=f, stderr=subprocess.STDOUT, shell=True, check=check_returncode)
+    elif pipe_stdout:
+        return subprocess.run(cmd_str, stdout=subprocess.PIPE, shell=True, check=check_returncode)
+    else:
+        return subprocess.run(cmd_str, stdout=subprocess.PIPE,
+                              stderr=subprocess.STDOUT, shell=True, check=check_returncode)
