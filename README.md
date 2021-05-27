@@ -266,3 +266,8 @@ and take this number instead.
 # run in project root
 python3 -m pytest tests/ -s
 ```
+
+### Version Bumping
+
+Currently, the example config of bumpversion is used as is, 
+see [example commands](https://github.com/c4urself/bump2version/tree/master/docs/examples/semantic-versioning) in bumpversion documentation.
