@@ -226,7 +226,7 @@ def get_size_of_directory(path, deep=False):
     if deep:
         return sum(f.stat().st_size for f in path.glob('**/*') if f.is_file())
 
-    command = ["du", "-shb", path] if plattform_is_linux() else ["du", "-sh", path]
+    command = ["du", "-shb", '"' + str(path) + '"' ] if plattform_is_linux() else ["du", "-sh", '"' + str(path) + '"' ]
 
     parsed_output = run_shell_cmd(command).stdout.decode("utf-8")
 
