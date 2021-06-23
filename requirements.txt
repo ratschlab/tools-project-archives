@@ -1,1 +1,2 @@
 # keeping the dependencies minimal and simple, since a long life cycle is expected
+multiprocessing-logging>=0.3,<=0.4
