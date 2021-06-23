@@ -169,13 +169,13 @@ def assert_successful_shallow_check(archive_path, caplog):
 
 
 def assert_integrity_check_with_output(archive_path, expected_output, expected_return, caplog, deep=False):
-    assert check_integrity(archive_path, deep) == expected_return
+    assert check_integrity(archive_path, deep, threads=2) == expected_return
 
     assert caplog.messages[-1] == expected_output
 
 
 def check_integrity_and_validate_output_contains(archive_path, caplog, expected_messages, expected_return, deep=False):
-    assert check_integrity(archive_path, deep) == expected_return
+    assert check_integrity(archive_path, deep, threads=2) == expected_return
 
     for message in expected_messages:
         assert message in caplog.messages

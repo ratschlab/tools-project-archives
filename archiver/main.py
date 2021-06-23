@@ -33,6 +33,7 @@ def main(args=tuple(sys.argv[1:])):
     except ImportError:
         pass
 
+
     logging.info(f"archiver version {__version__}")
     logging.info(f"Executing as {getpass.getuser()} on {os.uname().nodename}")
 

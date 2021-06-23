@@ -1,5 +1,4 @@
 import logging
-import multiprocessing
 import os
 import tempfile
 from pathlib import Path
@@ -173,8 +172,7 @@ def create_tar_archives_and_listings(source_path, destination_path, work_dir, pa
 
     part_names = sorted([os.path.splitext(p.name)[0] for p in part_hashes])
     logging.info(f"Creating tar archives and listings for {','.join(part_names)} using {workers} workers.")
-    with multiprocessing.Pool(workers) as pool:
-        pool.starmap(_process_part, [ (source_path, destination_path, work_dir, p) for p in part_names])
+    helpers.exec_parallel(_process_part, part_names, lambda p: (source_path, destination_path, work_dir, p), workers)
 
 
 def create_tar_archive(source_path, destination_path, source_name, archive_list=None, work_dir=None):
@@ -228,9 +226,9 @@ def compress_and_hash(destination_path, threads, compression, part=None):
 
     # compute md5sums of archive parts in parallel
     logging.info(f"Generate hash of compressed tar {','.join(part_names)} using {threads} threads.")
-    with multiprocessing.Pool(min(threads, len(parts))) as pool:
-        pool.starmap(create_and_write_compressed_archive_hash,
-                     [ (destination_path, part) for part in part_names ])
+
+    helpers.exec_parallel(create_and_write_compressed_archive_hash, part_names, lambda part: (destination_path, part),
+                          min(threads, len(parts)))
 
 
 def compress_using_lzip(destination_path, source_name, threads, compression):

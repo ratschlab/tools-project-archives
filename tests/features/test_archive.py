@@ -20,7 +20,8 @@ def test_create_archive(tmp_path):
     assert_successful_archive_creation(destination_path, archive_path, folder_name, unencrypted="all")
 
 
-def test_create_archive_split(tmp_path, generate_splitting_directory):
+@pytest.mark.parametrize("workers", [2, 1])
+def test_create_archive_split(tmp_path, generate_splitting_directory, workers):
     max_size = 1000 * 1000 * 50
     folder_name = "large-test-folder"
     source_path = generate_splitting_directory
@@ -28,7 +29,7 @@ def test_create_archive_split(tmp_path, generate_splitting_directory):
     archive_path = helpers.get_directory_with_name("split-archive-ressources")
     destination_path = tmp_path / "name-of-destination-folder"
 
-    create_archive(source_path, destination_path, compression=6, splitting=max_size)
+    create_archive(source_path, destination_path, compression=6, splitting=max_size, threads=workers)
     assert_successful_archive_creation(destination_path, archive_path, folder_name, split=2, unencrypted="all")
 
 

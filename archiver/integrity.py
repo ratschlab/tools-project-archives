@@ -1,5 +1,4 @@
 import logging
-import multiprocessing
 import tempfile
 from pathlib import Path
 
@@ -51,9 +50,9 @@ def _shallow_integrity_check_part(archive_file_path, archive_hash_file_path):
 
 
 def shallow_integrity_check(archives_with_hashes, workers=None):
-    with multiprocessing.Pool(workers if workers else 1) as pool:
-        ret = pool.starmap(_shallow_integrity_check_part,
-                           [(p[0], p[1]) for p in archives_with_hashes])
+    eff_workers = workers if workers else 1
+
+    ret = helpers.exec_parallel(_shallow_integrity_check_part, archives_with_hashes, lambda p: (p[0], p[1]), eff_workers)
 
     return all(ret)
 

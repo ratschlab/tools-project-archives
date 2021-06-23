@@ -124,8 +124,7 @@ def hash_files_and_check_symlinks(source_path, abs_paths, max_workers=1, integri
 
     [_check_symlinks(f, source_path, integrity_check=integrity_check) for f in file_list]
 
-    with multiprocessing.Pool(max_workers) as pool:
-        hashes_list = pool.map(get_file_hash_from_path, file_list)
+    hashes_list = exec_parallel(get_file_hash_from_path, file_list, lambda f: (f,), max_workers)
 
     return [[e[0].relative_to(source_path.parent).as_posix(), e[1]] for e
             in zip(file_list, hashes_list)]
@@ -402,3 +401,16 @@ def run_shell_cmd(cmd: Union[str, List], file_output: Path = None, pipe_stdout=F
     else:
         return subprocess.run(cmd_str, stdout=subprocess.PIPE,
                               stderr=subprocess.STDOUT, shell=True, check=check_returncode)
+
+
+def exec_parallel(fnc, loop_var, args_fnc, threads):
+    args = [args_fnc(l) for l in loop_var]
+    if threads == 1:
+        # if only one thread, don't invoke multiprocessing in order to avoid potential issues
+        return [fnc(*a) for a in args]
+    else:
+        with multiprocessing.Pool(threads) as pool:
+            # using starmap instead of map with lambdas taking a loop parameter
+            # and invoking the function of interest in order to avoid serialization issues
+            # with multiprocessing
+            return pool.starmap(fnc, args)
