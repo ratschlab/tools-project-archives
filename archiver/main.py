@@ -47,6 +47,7 @@ def parse_arguments(args):
     parser = argparse.ArgumentParser(prog="archiver", description='Archive large project data')
     parser.add_argument("-w", "--work-dir", type=str, help="Directory for temporary files")
     parser.add_argument("-v", "--verbose", action="store_const", const=True)
+    parser.add_argument("--version", action='version',  version=f'%(prog)s {__version__}')
 
     subparsers = parser.add_subparsers(help="Available commands", required=True, dest="command")
 
