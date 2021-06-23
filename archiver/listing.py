@@ -27,7 +27,7 @@ def listing_from_listing_file(source_path, subdir_path):
         logging.info(f"Listing content of: {listing_file_path.name}")
         print(f"Listing content of: {listing_file_path.name}")
 
-        with open(listing_file_path, "r") as file:
+        with open(listing_file_path, "r", newline="\n") as file:
             for line in file:
                 if not subdir_path or subdir_path in line:
                     print(line.rstrip())
@@ -129,7 +129,7 @@ def parse_tar_listing(path):
                             ' '.join(line[5:7]), line[7], path, link_target)
 
     entries = []
-    with open(path, 'r') as f:
+    with open(path, 'r', newline='\n') as f:
         for l in f.readlines():
             fields = l.split()
 

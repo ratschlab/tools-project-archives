@@ -50,7 +50,7 @@ def create_and_write_file_hash(file_path):
 def read_hash_file(file_path):
     hash_dict = {}
 
-    with open(file_path, "r") as file:
+    with open(file_path, "r", newline='\n') as file:
         for l in file.readlines():
             m = MD5_LINE_REGEX.match(l)
 
