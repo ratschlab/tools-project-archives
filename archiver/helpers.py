@@ -316,7 +316,7 @@ def filename_without_archive_extensions(path):
 
 
 def sort_paths_with_part(paths: Sequence[Path]) -> List[Path]:
-    part_re = re.compile('.*\.part([0-9]+)\.')
+    part_re = re.compile(r'.*\.part([0-9]+)\.')
     def extract_part(p):
         m = part_re.match(p.name)
 

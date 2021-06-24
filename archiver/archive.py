@@ -169,7 +169,7 @@ def create_tar_archives_and_listings(source_path, destination_path, work_dir, pa
         if single_part_md5.exists():
             part_hashes = [single_part_md5]
         else:
-            part_hashes = helpers.list_files_matching_name(destination_path, re.compile(f'{source_name}\.part[0-9]+\.md5'))
+            part_hashes = helpers.list_files_matching_name(destination_path, re.compile(rf'{source_name}\.part[0-9]+\.md5'))
 
         if not part_hashes:
             helpers.terminate_with_message(f"No {source_name}.md5 or files matching {source_name}.part[0-9]*.md5 found in {destination_path}")
