@@ -43,6 +43,6 @@ setup(
     test_suite='tests',
     tests_require=test_requirements,
     url="https://github.com/ratschlab/tools-project-archives",
-    version='0.3.0-dev1',
+    version='0.3.0',
     zip_safe=False,
 )
