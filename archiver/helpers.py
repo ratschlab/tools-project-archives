@@ -7,7 +7,7 @@ import subprocess
 import logging
 import shutil
 import multiprocessing
-from typing import List, Union
+from typing import List, Union, Sequence
 
 from .constants import READ_CHUNK_BYTE_SIZE, COMPRESSED_ARCHIVE_SUFFIX, \
     ENCRYPTED_ARCHIVE_SUFFIX, ENV_VAR_MAPPER_MAX_CPUS, MD5_LINE_REGEX
@@ -315,6 +315,22 @@ def filename_without_archive_extensions(path):
     raise ValueError("Unknown file extension")
 
 
+def sort_paths_with_part(paths: Sequence[Path]) -> List[Path]:
+    part_re = re.compile('.*\.part([0-9]+)\.')
+    def extract_part(p):
+        m = part_re.match(p.name)
+
+        if m:
+            return int(m.groups()[0])
+        return 0
+
+    return sorted(paths, key=extract_part)
+
+
+def list_files_matching_name(path: Path, regex) -> List[Path]:
+    return [p for p in path.iterdir() if p.is_file() and regex.match(p.name)]
+
+
 def handle_destination_directory_creation(destination_path, force=False):
     if not destination_path.exists() and destination_path.parent.exists():
         destination_path.mkdir()
@@ -407,6 +423,7 @@ def run_shell_cmd(cmd: Union[str, List], file_output: Path = None, pipe_stdout=F
         logging.error(f"subprocess stdout was: {e.stdout.decode() if e.stdout else '<empty>'}")
         logging.error(f"subprocess stderr was: {e.stderr.decode() if e.stderr else '<empty>'}")
         raise(e)
+
 
 def exec_parallel(fnc, loop_var, args_fnc, threads):
     args = [args_fnc(l) for l in loop_var]

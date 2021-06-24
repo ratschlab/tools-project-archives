@@ -46,7 +46,7 @@ def encrypt_archive(archive_path, output_path, encryption_keys, delete=False):
 
 
 def decrypt_list_of_archives(archives, target_directory=None, delete=False):
-    for archive_path in sorted(archives):
+    for archive_path in helpers.sort_paths_with_part(archives):
         decrypt_archive(archive_path, target_directory, delete)
 
 

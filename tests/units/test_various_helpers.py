@@ -1,6 +1,8 @@
+from pathlib import Path
+
 import pytest
 
-from archiver.helpers import read_hash_file
+from archiver.helpers import read_hash_file, sort_paths_with_part
 
 special_file_name = (
             'special_file'.encode('utf-8') + bytearray.fromhex('0D')).decode(
@@ -29,3 +31,14 @@ def test_read_hash_file(example_hash_file):
 
     assert len(lst) == 2
     assert special_file_name in file_names
+
+
+@pytest.mark.parametrize('lst,expected', [
+    ([], []),
+    ([Path('/tmp/hello.part10.world'), Path('/tmp/hello.part2.world')],
+     [Path('/tmp/hello.part2.world'), Path('/tmp/hello.part10.world')]),
+    ([Path('/tmp/hello.world'), Path('/tmp/abc.txt')],
+     [Path('/tmp/hello.world'), Path('/tmp/abc.txt')])
+])
+def test_sort_paths_with_part(lst, expected):
+    assert sort_paths_with_part(lst) == expected

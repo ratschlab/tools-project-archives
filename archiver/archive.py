@@ -1,5 +1,6 @@
 import logging
 import os
+import re
 import tempfile
 from pathlib import Path
 
@@ -164,13 +165,17 @@ def create_tar_archives_and_listings(source_path, destination_path, work_dir, pa
     if parts:
         part_hashes = [destination_path / f"{source_name}.part{part}.md5" for part in parts]
     else:
-        part_hashes = list(destination_path.glob(f'{source_name}.md5')) + \
-            list(destination_path.glob(f'{source_name}.part[0-9]*.md5'))
+        single_part_md5 = destination_path /f'{source_name}.md5'
+        if single_part_md5.exists():
+            part_hashes = [single_part_md5]
+        else:
+            part_hashes = helpers.list_files_matching_name(destination_path, re.compile(f'{source_name}\.part[0-9]+\.md5'))
 
         if not part_hashes:
             helpers.terminate_with_message(f"No {source_name}.md5 or files matching {source_name}.part[0-9]*.md5 found in {destination_path}")
 
-    part_names = sorted([os.path.splitext(p.name)[0] for p in part_hashes])
+    part_names = [os.path.splitext(p.name)[0] for p in helpers.sort_paths_with_part(part_hashes)]
+
     logging.info(f"Creating tar archives and listings for {','.join(part_names)} using {workers} workers.")
     helpers.exec_parallel(_process_part, part_names, lambda p: (source_path, destination_path, work_dir, p), workers)
 
@@ -217,7 +222,7 @@ def compress_and_hash(destination_path, threads, compression, part=None):
     if not parts:
         helpers.terminate_with_message(f"No suitable tar files found to be compressed in {destination_path}")
 
-    part_names = sorted([os.path.splitext(p.name)[0] for p in parts])
+    part_names = [os.path.splitext(p.name)[0] for p in helpers.sort_paths_with_part(parts)]
 
     # compress sequentially
     for part in part_names:
