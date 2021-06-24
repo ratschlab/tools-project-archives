@@ -2,7 +2,6 @@ import logging
 import subprocess
 from pathlib import Path
 import os
-import multiprocessing
 
 from . import helpers
 from .constants import REQUIRED_SPACE_MULTIPLIER, ENCRYPTION_ALGORITHM
@@ -18,12 +17,9 @@ def _encrypt_list_of_archives_fnc(output_dir, archive_path, encryption_keys, del
 def encrypt_list_of_archives(archive_list, encryption_keys, delete=False, output_dir=None, threads=1):
     eff_threads = min(threads, len(archive_list))
 
-    if eff_threads == 1:
-        for archive_path in archive_list:
-            _encrypt_list_of_archives_fnc(output_dir, archive_path, encryption_keys, delete)
-    else:
-        with multiprocessing.Pool(eff_threads) as pool:
-            pool.starmap(_encrypt_list_of_archives_fnc, [(output_dir, p, encryption_keys, delete) for p in sorted(archive_list)])
+    helpers.exec_parallel(_encrypt_list_of_archives_fnc, archive_list,
+                          lambda l: (output_dir, l, encryption_keys, delete),
+                          eff_threads)
 
 
 def encrypt_archive(archive_path, output_path, encryption_keys, delete=False):
@@ -50,7 +46,7 @@ def encrypt_archive(archive_path, output_path, encryption_keys, delete=False):
 
 
 def decrypt_list_of_archives(archives, target_directory=None, delete=False):
-    for archive_path in sorted(archives):
+    for archive_path in helpers.sort_paths_with_part(archives):
         decrypt_archive(archive_path, target_directory, delete)
 
 

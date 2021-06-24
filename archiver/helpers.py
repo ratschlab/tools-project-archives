@@ -7,7 +7,7 @@ import subprocess
 import logging
 import shutil
 import multiprocessing
-from typing import List, Union
+from typing import List, Union, Sequence
 
 from .constants import READ_CHUNK_BYTE_SIZE, COMPRESSED_ARCHIVE_SUFFIX, \
     ENCRYPTED_ARCHIVE_SUFFIX, ENV_VAR_MAPPER_MAX_CPUS, MD5_LINE_REGEX
@@ -50,7 +50,7 @@ def create_and_write_file_hash(file_path):
 def read_hash_file(file_path):
     hash_dict = {}
 
-    with open(file_path, "r") as file:
+    with open(file_path, "r", newline='\n') as file:
         for l in file.readlines():
             m = MD5_LINE_REGEX.match(l)
 
@@ -124,8 +124,7 @@ def hash_files_and_check_symlinks(source_path, abs_paths, max_workers=1, integri
 
     [_check_symlinks(f, source_path, integrity_check=integrity_check) for f in file_list]
 
-    with multiprocessing.Pool(max_workers) as pool:
-        hashes_list = pool.map(get_file_hash_from_path, file_list)
+    hashes_list = exec_parallel(get_file_hash_from_path, file_list, lambda f: (f,), max_workers)
 
     return [[e[0].relative_to(source_path.parent).as_posix(), e[1]] for e
             in zip(file_list, hashes_list)]
@@ -316,6 +315,22 @@ def filename_without_archive_extensions(path):
     raise ValueError("Unknown file extension")
 
 
+def sort_paths_with_part(paths: Sequence[Path]) -> List[Path]:
+    part_re = re.compile('.*\.part([0-9]+)\.')
+    def extract_part(p):
+        m = part_re.match(p.name)
+
+        if m:
+            return int(m.groups()[0])
+        return 0
+
+    return sorted(paths, key=extract_part)
+
+
+def list_files_matching_name(path: Path, regex) -> List[Path]:
+    return [p for p in path.iterdir() if p.is_file() and regex.match(p.name)]
+
+
 def handle_destination_directory_creation(destination_path, force=False):
     if not destination_path.exists() and destination_path.parent.exists():
         destination_path.mkdir()
@@ -394,11 +409,30 @@ def run_shell_cmd(cmd: Union[str, List], file_output: Path = None, pipe_stdout=F
 
     logging.debug(f"Executing command: '{cmd_str}'")
 
-    if file_output:
-        with open(file_output, "w") as f:
-            return subprocess.run(cmd_str, stdout=f, stderr=subprocess.STDOUT, shell=True, check=check_returncode)
-    elif pipe_stdout:
-        return subprocess.run(cmd_str, stdout=subprocess.PIPE, shell=True, check=check_returncode)
+    try:
+        if file_output:
+            with open(file_output, "w") as f:
+                return subprocess.run(cmd_str, stdout=f, stderr=subprocess.STDOUT, shell=True, check=check_returncode)
+        elif pipe_stdout:
+            return subprocess.run(cmd_str, stdout=subprocess.PIPE, shell=True, check=check_returncode)
+        else:
+            return subprocess.run(cmd_str, stdout=subprocess.PIPE,
+                                  stderr=subprocess.STDOUT, shell=True, check=check_returncode)
+    except subprocess.CalledProcessError as e:
+        logging.exception(e)
+        logging.error(f"subprocess stdout was: {e.stdout.decode() if e.stdout else '<empty>'}")
+        logging.error(f"subprocess stderr was: {e.stderr.decode() if e.stderr else '<empty>'}")
+        raise(e)
+
+
+def exec_parallel(fnc, loop_var, args_fnc, threads):
+    args = [args_fnc(l) for l in loop_var]
+    if threads == 1:
+        # if only one thread, don't invoke multiprocessing in order to avoid potential issues
+        return [fnc(*a) for a in args]
     else:
-        return subprocess.run(cmd_str, stdout=subprocess.PIPE,
-                              stderr=subprocess.STDOUT, shell=True, check=check_returncode)
+        with multiprocessing.Pool(threads) as pool:
+            # using starmap instead of map with lambdas taking a loop parameter
+            # and invoking the function of interest in order to avoid serialization issues
+            # with multiprocessing
+            return pool.starmap(fnc, args)

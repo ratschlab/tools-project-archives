@@ -7,6 +7,8 @@ import os
 import sys
 from pathlib import Path
 
+import multiprocessing_logging
+
 from . import helpers, __version__
 from .archive import create_archive, encrypt_existing_archive, \
     create_filelist_and_hashs, \
@@ -33,20 +35,30 @@ def main(args=tuple(sys.argv[1:])):
     except ImportError:
         pass
 
+    # handle logging in child processes properly
+    # note, that this will work under linux only. If `fork` would be used a starting
+    # method for child processes, it would also work on other systems. However, this
+    # is not well supported: https://docs.python.org/3/library/multiprocessing.html#contexts-and-start-methods
+    multiprocessing_logging.install_mp_handler()
+
     logging.info(f"archiver version {__version__}")
     logging.info(f"Executing as {getpass.getuser()} on {os.uname().nodename}")
 
-    if parsed_arguments.func:
-        parsed_arguments.func(parsed_arguments)
-    else:
-        sys.exit("Unknown function call")
-
+    try:
+        if parsed_arguments.func:
+            parsed_arguments.func(parsed_arguments)
+        else:
+            sys.exit("Unknown function call")
+    except Exception as e:
+        logging.exception(e)
+        raise(e)
 
 def parse_arguments(args):
     # Main parser
     parser = argparse.ArgumentParser(prog="archiver", description='Archive large project data')
     parser.add_argument("-w", "--work-dir", type=str, help="Directory for temporary files")
     parser.add_argument("-v", "--verbose", action="store_const", const=True)
+    parser.add_argument("--version", action='version',  version=f'%(prog)s {__version__}')
 
     subparsers = parser.add_subparsers(help="Available commands", required=True, dest="command")
 
