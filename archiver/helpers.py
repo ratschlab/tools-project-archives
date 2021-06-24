@@ -393,15 +393,20 @@ def run_shell_cmd(cmd: Union[str, List], file_output: Path = None, pipe_stdout=F
 
     logging.debug(f"Executing command: '{cmd_str}'")
 
-    if file_output:
-        with open(file_output, "w") as f:
-            return subprocess.run(cmd_str, stdout=f, stderr=subprocess.STDOUT, shell=True, check=check_returncode)
-    elif pipe_stdout:
-        return subprocess.run(cmd_str, stdout=subprocess.PIPE, shell=True, check=check_returncode)
-    else:
-        return subprocess.run(cmd_str, stdout=subprocess.PIPE,
-                              stderr=subprocess.STDOUT, shell=True, check=check_returncode)
-
+    try:
+        if file_output:
+            with open(file_output, "w") as f:
+                return subprocess.run(cmd_str, stdout=f, stderr=subprocess.STDOUT, shell=True, check=check_returncode)
+        elif pipe_stdout:
+            return subprocess.run(cmd_str, stdout=subprocess.PIPE, shell=True, check=check_returncode)
+        else:
+            return subprocess.run(cmd_str, stdout=subprocess.PIPE,
+                                  stderr=subprocess.STDOUT, shell=True, check=check_returncode)
+    except subprocess.CalledProcessError as e:
+        logging.exception(e)
+        logging.error(f"subprocess stdout was: {e.stdout.decode() if e.stdout else '<empty>'}")
+        logging.error(f"subprocess stderr was: {e.stderr.decode() if e.stderr else '<empty>'}")
+        raise(e)
 
 def exec_parallel(fnc, loop_var, args_fnc, threads):
     args = [args_fnc(l) for l in loop_var]
