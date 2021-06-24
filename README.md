@@ -18,7 +18,7 @@ It supports:
 
 ### Requirements
 
-- python >= 3.6
+- python >= 3.8
 - [plzip](https://www.nongnu.org/lzip/plzip.html) (available for some package
   management systems like `apt` or `brew`)
 - gnupg (optional, only required for encryption)
