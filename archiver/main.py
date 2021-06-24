@@ -44,11 +44,14 @@ def main(args=tuple(sys.argv[1:])):
     logging.info(f"archiver version {__version__}")
     logging.info(f"Executing as {getpass.getuser()} on {os.uname().nodename}")
 
-    if parsed_arguments.func:
-        parsed_arguments.func(parsed_arguments)
-    else:
-        sys.exit("Unknown function call")
-
+    try:
+        if parsed_arguments.func:
+            parsed_arguments.func(parsed_arguments)
+        else:
+            sys.exit("Unknown function call")
+    except Exception as e:
+        logging.exception(e)
+        raise(e)
 
 def parse_arguments(args):
     # Main parser
