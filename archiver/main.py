@@ -271,14 +271,14 @@ def handle_check(args):
         # not taking 2, as it usually stands for command line argument errors
         return sys.exit(3)
 
-DEFAULT_FILE_CHECK_PATH = Path(__file__).parent.parent / 'default_preparation_checks.ini'
+DEFAULT_FILE_CHECK_PATH = Path(__file__).parent / 'checks' / 'default_preparation_checks.ini'
 def handle_preparation_check(parsed_args):
     wdir = Path(parsed_args.archive_source_dir).absolute()
     cfg_file = parsed_args.check_file
 
     # construct file check objects
     logging.debug(f"Reading config from {cfg_file}")
-    file_checks = CmdBasedCheck.checks_from_configfile(cfg_file)
+    file_checks = CmdBasedCheck.checks_from_configfile(Path(cfg_file))
 
     logging.debug("Verifying all preconditions for the checks are satisfied")
     all_precond = [(c.name, c.run_precondition()) for c in file_checks]
