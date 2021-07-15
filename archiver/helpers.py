@@ -103,17 +103,17 @@ def _check_symlinks(abs_file, relative_to_path, integrity_check=False):
         absolute_root = relative_to_path.resolve().absolute()
         if absolute_root not in abs_file.resolve().parents:
             logging.warning(
-                f"Symlink {abs_file.relative_to(relative_to_path.parent)} found pointing to {abs_file.resolve()} "
-                f"outside the archiving directory {relative_to_path.resolve().absolute()}."
+                f"Symlink with outside target {abs_file.relative_to(relative_to_path.parent)} found pointing to {abs_file.resolve()} "
+                f"which is outside the archiving directory {relative_to_path.resolve().absolute()}."
                 f" The archive will contain the link itself, but not the file it points to.")
         elif not abs_file.resolve().exists():
             logging.warning(
-                f"Symlink {abs_file.relative_to(relative_to_path.parent)} found pointing to a non-existing file {abs_file.resolve()} ."
+                f"Broken symlink {abs_file.relative_to(relative_to_path.parent)} found pointing to a non-existing file {abs_file.resolve()} ."
                 f" The archive will only contain the link itself")
         elif link.is_absolute():
             # target exists and is within tree to be archived, however, link is absolute,
             # so will be broken if unpacked on another system
-            logging.warning(f"Symlink {abs_file.relative_to(relative_to_path.parent)} has an absolute target {link} . "
+            logging.warning(f"Absolute symlink {abs_file.relative_to(relative_to_path.parent)} found with target {link} . "
                             f" Consider making it a relative link to {relative_to_path} s.t. it gets properly "
                             f"resolved when unpacking the archive on another system.")
 
