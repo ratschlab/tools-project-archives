@@ -167,6 +167,11 @@ def get_number_of_threads_from_env():
 
     env_variable_threads = os.environ.get(env_variable_name)
 
+    if not env_variable_threads:
+        logging.debug(
+            f"Environment variable {env_variable_name} is not set")
+        return None
+
     env_variable_threads_number = None
     try:
         env_variable_threads_number = int(env_variable_threads)
