@@ -1,12 +1,14 @@
-import os
-import re
-from pathlib import Path
+import tarfile
+
 import pytest
 
+import archiver
+from archiver import integrity
 from archiver.archive import create_archive
 from tests import helpers
-from .archiving_helpers import assert_successful_archive_creation, get_public_key_paths
-from tests.helpers import generate_splitting_directory, run_archiver_tool
+from tests.helpers import run_archiver_tool, generate_splitting_directory
+from .archiving_helpers import assert_successful_archive_creation, \
+    get_public_key_paths
 
 
 def test_create_archive(tmp_path):
@@ -108,3 +110,41 @@ def test_create_archive_split_encrypted(tmp_path, generate_splitting_directory):
 
     create_archive(source_path, destination_path, encryption_keys=keys, compression=6, remove_unencrypted=True, splitting=max_size)
     assert_successful_archive_creation(destination_path, archive_path, folder_name, split=2, encrypted="all")
+
+
+@pytest.mark.parametrize('splitting_param', [None, 1000**5])
+def test_split_archive_with_exotic_filenames(tmp_path, splitting_param):
+    # file name with trailing \r
+    back_slash_r = ('back_slash_r'.encode('UTF-8') + bytearray.fromhex('0D')).decode('utf-8')
+    back_slash_r
+
+    file_names = ['file.txt', 'file',
+                  'with space', 'more   spaces', 'space at the end ',
+                  "tips'n tricks", 'back\rlashes', back_slash_r,
+                  'back_slash_r_explicit\r.txt', 'new\n\nline.txt', 'newlineatend\n']
+
+    file_dir = tmp_path/'files'
+    file_dir.mkdir()
+
+    for f in file_names:
+        helpers.create_file_with_size(file_dir/f, 100)
+
+    dest = tmp_path/'myarchive'
+    create_archive(file_dir, dest, encryption_keys=None,
+                   compression=6, remove_unencrypted=True, splitting=splitting_param)
+
+    assert integrity.check_integrity(dest, deep_flag=True, threads=1)
+
+    archive_name = 'files' if not splitting_param else 'files.part1'
+    # don't use listing to check tar content, but check it directly.
+    # listing is tricky to process with special characters
+    archiver.helpers.run_shell_cmd(
+        ['plzip', '--decompress', str(dest / f'{archive_name}.tar.lz')])
+    with tarfile.open(dest / f'{archive_name}.tar') as f:
+        file_names_in_tar = {p[len('files/'):] for p in f.getnames()}
+        file_names_in_tar = {n for n in file_names_in_tar if n} # removing 'files/' directory entry
+
+    assert file_names_in_tar == set(file_names)
+
+
+

@@ -59,9 +59,17 @@ def read_hash_file(file_path):
                     f"Not properly formatted MD5 checksum line found in file {file_path}: {l}")
                 return False
 
+            hash_val = m.groups()[0]
+
             path = m.groups()[1]
             path = path[2:] if path.startswith('./') else path
-            hash_dict[path] = m.groups()[0]
+
+            if hash_val.startswith('\\'):
+                # reverse of archive.create_file_listing_hash
+                hash_val = hash_val[1:]
+                path = path.replace('\\n', '\n')
+
+            hash_dict[path] = hash_val
     return hash_dict
 
 

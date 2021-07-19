@@ -129,13 +129,18 @@ def create_file_listing_hash(source_path_root, destination_path, source_name, ar
     hashes = hashes_for_path_list(paths_to_hash_list, source_path_root, max_workers)
     file_path = destination_path.joinpath(source_name + ".md5")
 
+
     logging.info(f"Writing file hash list to {file_path}")
     with open(file_path, "a") as hash_file:
         for line in hashes:
             file_path = line[0]
-            file_hash = line[1]
+            hash_prefix = ''
+            if '\n' in file_path:
+                file_path = file_path.replace('\n', '\\n') # escaping new lines in filenames...
+                hash_prefix = '\\' # see https://www.gnu.org/software/coreutils/manual/html_node/md5sum-invocation.html#md5sum-invocation
 
-            hash_file.write(f"{file_hash} {file_path}\n")
+            file_hash = line[1]
+            hash_file.write(f"{hash_prefix}{file_hash} {file_path}\n")
 
 
 def hashes_for_path_list(path_list, source_path_root, max_workers=1):
@@ -194,7 +199,7 @@ def create_tar_archive(source_path, destination_path, source_name, archive_list=
 
 def create_tar_archive_from_list(source_path, archive_list, destination_file_path, source_path_parent, work_dir=None):
     relative_archive_list = [path.absolute().relative_to(source_path.absolute().parent) for path in archive_list]
-    files_string_list = [path.as_posix() for path in relative_archive_list]
+    files_string_list = [path.as_posix().replace('\n', '\\n') for path in relative_archive_list]
 
     # Using TemporaryDirectory instead of NamedTemporaryFile to have full control over file creation
     with tempfile.TemporaryDirectory(dir=work_dir) as temp_path_string:
