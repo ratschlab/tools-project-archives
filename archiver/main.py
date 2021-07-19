@@ -9,15 +9,15 @@ from pathlib import Path
 
 import multiprocessing_logging
 
-from . import helpers, __version__
-from .archive import create_archive, encrypt_existing_archive, \
+from archiver import helpers, __version__
+from archiver.archive import create_archive, encrypt_existing_archive, \
     create_filelist_and_hashs, \
     create_tar_archives_and_listings, compress_and_hash
-from .constants import DEFAULT_COMPRESSION_LEVEL
-from .extract import extract_archive, decrypt_existing_archive
-from .integrity import check_integrity
-from .listing import create_listing
-from .preparation_checks import CmdBasedCheck
+from archiver.constants import DEFAULT_COMPRESSION_LEVEL
+from archiver.extract import extract_archive, decrypt_existing_archive
+from archiver.integrity import check_integrity
+from archiver.listing import create_listing
+from archiver.preparation_checks import CmdBasedCheck
 
 
 def main(args=tuple(sys.argv[1:])):
