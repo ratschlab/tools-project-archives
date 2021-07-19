@@ -181,11 +181,13 @@ def test_parse_tar_listing(listing_name):
 
     listing = parse_tar_listing(listing_path)
 
-    assert len(listing) == 7
+    assert len(listing) == 8
     assert all(e.owner == 'marc' for e in listing)
     assert all(e.group == 'staff' for e in listing)
     assert all(int(e.size) >= 0 for e in listing)
     assert listing[-1].link_target == '../file1.txt'
+    paths = {e.path for e in listing}
+    assert 'symlink-folder/folder with\ttab/file2.txt' in paths
 
 
 # MARK: Test helpers
