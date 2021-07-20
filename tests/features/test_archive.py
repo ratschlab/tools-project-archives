@@ -118,10 +118,15 @@ def test_split_archive_with_exotic_filenames(tmp_path, splitting_param):
     back_slash_r = ('back_slash_r'.encode('UTF-8') + bytearray.fromhex('0D')).decode('utf-8')
     back_slash_r
 
-    file_names = ['file.txt', 'file',
+    file_names = sorted(['file.txt', 'file',
                   'with space', 'more   spaces', 'space at the end ',
                   "tips'n tricks", 'back\rlashes', back_slash_r,
-                  'back_slash_r_explicit\r.txt', 'new\n\nline.txt', 'newlineatend\n']
+                  "double_slash_\\r", "double_slash_\\\r", r'many_slashes_\\\X',
+                  'newline_with_\\n_slash', 'newline_with_\\\n_slash',
+                  "öéeé", '你好',
+                  'back_slash_r_explicit\r.txt', 'new\n\nline.txt', 'newlineatend\n'])
+
+    # TODO: this fails: 'öé\\reé\\n',
 
     file_dir = tmp_path/'files'
     file_dir.mkdir()

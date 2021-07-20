@@ -126,17 +126,17 @@ def create_file_listing_hash(source_path_root, destination_path, source_name, ar
     else:
         paths_to_hash_list = [source_path_root]
 
-    hashes = hashes_for_path_list(paths_to_hash_list, source_path_root, max_workers)
-    file_path = destination_path.joinpath(source_name + ".md5")
+    hashes = sorted(hashes_for_path_list(paths_to_hash_list, source_path_root, max_workers), key=lambda p: p[0])
+    hash_file_path = destination_path.joinpath(source_name + ".md5")
 
 
-    logging.info(f"Writing file hash list to {file_path}")
-    with open(file_path, "a") as hash_file:
+    logging.info(f"Writing file hash list to {hash_file_path}")
+    with open(hash_file_path, "a") as hash_file:
         for line in hashes:
             file_path = line[0]
             hash_prefix = ''
-            if '\n' in file_path:
-                file_path = file_path.replace('\n', '\\n') # escaping new lines in filenames...
+            if '\n' in file_path or '\\' in file_path:
+                file_path = file_path.replace('\\', '\\\\').replace('\n', '\\n') # escaping new lines in filenames...
                 hash_prefix = '\\' # see https://www.gnu.org/software/coreutils/manual/html_node/md5sum-invocation.html#md5sum-invocation
 
             file_hash = line[1]
@@ -199,16 +199,16 @@ def create_tar_archive(source_path, destination_path, source_name, archive_list=
 
 def create_tar_archive_from_list(source_path, archive_list, destination_file_path, source_path_parent, work_dir=None):
     relative_archive_list = [path.absolute().relative_to(source_path.absolute().parent) for path in archive_list]
-    files_string_list = [path.as_posix().replace('\n', '\\n') for path in relative_archive_list]
+    files_string_list = [path.as_posix() for path in relative_archive_list]
 
     # Using TemporaryDirectory instead of NamedTemporaryFile to have full control over file creation
     with tempfile.TemporaryDirectory(dir=work_dir) as temp_path_string:
         tmp_file_path = Path(temp_path_string) / "paths.txt"
 
         with open(tmp_file_path, "w") as tmp_file:
-            tmp_file.write("\n".join(files_string_list))
+            tmp_file.write("\0".join(files_string_list))
 
-        helpers.run_shell_cmd(["tar", "--posix", "-cf", destination_file_path, "-C", source_path_parent, "--files-from", tmp_file_path])
+        helpers.run_shell_cmd(["tar", "--posix", "-cf", destination_file_path, "-C", source_path_parent, "--null", "--files-from", tmp_file_path])
 
 
 def create_archive_listing(destination_path, source_name):

@@ -8,6 +8,7 @@ import logging
 import shutil
 import multiprocessing
 from typing import List, Union, Sequence
+import unicodedata
 
 from .constants import READ_CHUNK_BYTE_SIZE, COMPRESSED_ARCHIVE_SUFFIX, \
     ENCRYPTED_ARCHIVE_SUFFIX, ENV_VAR_MAPPER_MAX_CPUS, MD5_LINE_REGEX
@@ -67,8 +68,7 @@ def read_hash_file(file_path):
             if hash_val.startswith('\\'):
                 # reverse of archive.create_file_listing_hash
                 hash_val = hash_val[1:]
-                path = path.replace('\\n', '\n')
-
+                path = path.encode().decode('unicode_escape')
             hash_dict[path] = hash_val
     return hash_dict
 
@@ -134,7 +134,7 @@ def hash_files_and_check_symlinks(source_path, abs_paths, max_workers=1, integri
 
     hashes_list = exec_parallel(get_file_hash_from_path, file_list, lambda f: (f,), max_workers)
 
-    return [[e[0].relative_to(source_path.parent).as_posix(), e[1]] for e
+    return [[unicodedata.normalize('NFC', e[0].relative_to(source_path.parent).as_posix()), e[1]] for e
             in zip(file_list, hashes_list)]
 
 
