@@ -116,17 +116,17 @@ def test_create_archive_split_encrypted(tmp_path, generate_splitting_directory):
 def test_split_archive_with_exotic_filenames(tmp_path, splitting_param):
     # file name with trailing \r
     back_slash_r = ('back_slash_r'.encode('UTF-8') + bytearray.fromhex('0D')).decode('utf-8')
-    back_slash_r
 
-    file_names = sorted(['file.txt', 'file',
+    # TODO: fails on with bsdtar '¨æß¿X7Á\x80tÂæitÝ«ä\x0b\x9ee\x1d\x80r%6\x81\x19_÷\x1an'
+    file_names = sorted([back_slash_r, 'file.txt', 'file',
                   'with space', 'more   spaces', 'space at the end ',
                   "tips'n tricks", 'back\rlashes', back_slash_r,
-                  "double_slash_\\r", "double_slash_\\\r", r'many_slashes_\\\X',
-                  'newline_with_\\n_slash', 'newline_with_\\\n_slash',
-                  "öéeé", '你好',
+                  r"double_slash_\\r", r"double_slash_\\\r", r'many_slashes_\\\X',
+                  'newline_with_\\n_slash', 'newline_with_\\\n_slash', 'mixed_extended_ascii\n_olé',
+                  'backslash_escapes_mixed_extended_ascii\\r_\\n_你好',
+                  "öéeé", '你好', '__$$__\'\"~!@#$%^&*()_+`',
+                  "xM\x1d(+gfx]sD\x0f(c-\nF\x1a*&bb\x0b~c\rD-,", 'LE7\xa0\x1bÛ\xa0½òþ', # random sequences
                   'back_slash_r_explicit\r.txt', 'new\n\nline.txt', 'newlineatend\n'])
-
-    # TODO: this fails: 'öé\\reé\\n',
 
     file_dir = tmp_path/'files'
     file_dir.mkdir()
@@ -141,6 +141,7 @@ def test_split_archive_with_exotic_filenames(tmp_path, splitting_param):
     assert integrity.check_integrity(dest, deep_flag=True, threads=1)
 
     archive_name = 'files' if not splitting_param else 'files.part1'
+
     # don't use listing to check tar content, but check it directly.
     # listing is tricky to process with special characters
     archiver.helpers.run_shell_cmd(

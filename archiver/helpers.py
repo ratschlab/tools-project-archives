@@ -68,7 +68,9 @@ def read_hash_file(file_path):
             if hash_val.startswith('\\'):
                 # reverse of archive.create_file_listing_hash
                 hash_val = hash_val[1:]
-                path = path.encode().decode('unicode_escape')
+                # following https://stackoverflow.com/questions/1885181/how-to-un-escape-a-backslash-escaped-string
+                path = path.encode('latin-1', 'backslashreplace').decode('unicode_escape')
+
             hash_dict[path] = hash_val
     return hash_dict
 
