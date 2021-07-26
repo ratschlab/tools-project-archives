@@ -9,15 +9,15 @@ from pathlib import Path
 
 import multiprocessing_logging
 
-from . import helpers, __version__
-from .archive import create_archive, encrypt_existing_archive, \
+from archiver import helpers, __version__
+from archiver.archive import create_archive, encrypt_existing_archive, \
     create_filelist_and_hashs, \
     create_tar_archives_and_listings, compress_and_hash
-from .constants import DEFAULT_COMPRESSION_LEVEL
-from .extract import extract_archive, decrypt_existing_archive
-from .integrity import check_integrity
-from .listing import create_listing
-from .preparation_checks import CmdBasedCheck
+from archiver.constants import DEFAULT_COMPRESSION_LEVEL
+from archiver.extract import extract_archive, decrypt_existing_archive
+from archiver.integrity import check_integrity
+from archiver.listing import create_listing
+from archiver.preparation_checks import CmdBasedCheck
 
 
 def main(args=tuple(sys.argv[1:])):
@@ -271,14 +271,14 @@ def handle_check(args):
         # not taking 2, as it usually stands for command line argument errors
         return sys.exit(3)
 
-DEFAULT_FILE_CHECK_PATH = Path(__file__).parent.parent / 'default_preparation_checks.ini'
+DEFAULT_FILE_CHECK_PATH = Path(__file__).parent / 'checks' / 'default_preparation_checks.ini'
 def handle_preparation_check(parsed_args):
     wdir = Path(parsed_args.archive_source_dir).absolute()
     cfg_file = parsed_args.check_file
 
     # construct file check objects
     logging.debug(f"Reading config from {cfg_file}")
-    file_checks = CmdBasedCheck.checks_from_configfile(cfg_file)
+    file_checks = CmdBasedCheck.checks_from_configfile(Path(cfg_file))
 
     logging.debug("Verifying all preconditions for the checks are satisfied")
     all_precond = [(c.name, c.run_precondition()) for c in file_checks]

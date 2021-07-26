@@ -7,7 +7,7 @@ from archiver.preparation_checks import CmdBasedCheck
 from tests.helpers import create_file_with_size
 
 default_config_file_path = Path(
-    __file__).parent.parent.parent / 'default_preparation_checks.ini'
+    __file__).parent.parent.parent / 'archiver'/ 'checks' / 'default_preparation_checks.ini'
 
 
 @pytest.fixture(scope="module")
