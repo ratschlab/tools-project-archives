@@ -45,11 +45,22 @@ if [ "$#" -lt 2 ]; then
     exit 1
 fi
 
+if [ -z ${MIN_WORKERS} ]; then
+    echo "WARNING: -m no set. Using 1 for minimum number of workers"
+    MIN_WORKERS=1
+fi
+
+if [ -z ${MAX_WORKERS} ]; then
+    echo "WARNING: -n no set. Using 1 for maximum number of workers"
+    MAX_WORKERS=1
+fi
+
+
 SRC_DIR=$1
 ARCHIVE_DIR=$2
 shift 2
 
-SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+SCRIPT_DIR="$(dirname "$(readlink -f "$0")")"
 SNAKEFILE=${SCRIPT_DIR}/Snakefile
 
 source ${SCRIPT_DIR}/archiving_workflow_env.sh
@@ -69,6 +80,6 @@ if [ -z "${WORKDIR_OPT}" ]; then
 fi
 
 
-snakemake --cluster "${SK_CLUSTER_CMD}" --config src_dir=${SRC_DIR} archive_dir=${ARCHIVE_DIR} ${WORKDIR_OPT} --jobs ${NR_JOBS} --keep-going --printshellcmds ${SK_ADDITIONAL_OPTS} $@
+snakemake --snakefile ${SCRIPT_DIR}/Snakefile --cluster "${SK_CLUSTER_CMD}" --config src_dir=${SRC_DIR} archive_dir=${ARCHIVE_DIR} ${WORKDIR_OPT} --jobs ${NR_JOBS} --keep-going --printshellcmds ${SK_ADDITIONAL_OPTS} $@
 
 
