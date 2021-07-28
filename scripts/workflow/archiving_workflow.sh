@@ -15,7 +15,6 @@ usage()
 }
 
 WORKDIR_OPT=""
-RUN_LOCALLY=0 # by default, use invoke workflow with --cluster
 
 while getopts 'hlm:n:p:w:' opt; do
     case $opt in
@@ -71,15 +70,15 @@ if [ ${RUN_LOCALLY} ]; then
     NR_JOBS=${MAX_WORKERS} # in local execution --jobs is an alias for --cores
 fi
 
+
 if [ -z "${WORKDIR_OPT}" ]; then
-    if [ -z "${DEFAULT_WORKDIR}" ]; then
-        WORKDIR_OPT="wdir_root=${WORKDIR_OPT}"
+    if [ ! -z "${DEFAULT_WORKDIR}" ]; then
+        WORKDIR_OPT="wdir_root=${DEFAULT_WORKDIR}"
     else
         WORKDIR_OPT="wdir_root=/tmp"
     fi
 fi
 
-
-snakemake --snakefile ${SCRIPT_DIR}/Snakefile --cluster "${SK_CLUSTER_CMD}" --config src_dir=${SRC_DIR} archive_dir=${ARCHIVE_DIR} ${WORKDIR_OPT} --jobs ${NR_JOBS} --keep-going --printshellcmds ${SK_ADDITIONAL_OPTS} $@
+snakemake --snakefile ${SCRIPT_DIR}/Snakefile --cluster "${SK_CLUSTER_CMD}" --config src_dir=${SRC_DIR} archive_dir=${ARCHIVE_DIR} ${WORKDIR_OPT} min_workers=${MIN_WORKERS} max_workers=${MAX_WORKERS} --jobs ${NR_JOBS} --keep-going --printshellcmds ${SK_ADDITIONAL_OPTS} $@
 
 

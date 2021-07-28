@@ -7,7 +7,7 @@ import shutil
 src_dir=Path(config['src_dir'])
 target_dir=Path(config['archive_dir'])
 
-compress_cores=config.get('max_workers', workflow.cores)
+compress_cores=config.get('max_workers', 1)
 io_cores=config.get('min_workers', compress_cores)
 
 part_size=config.get('part_size', None)
