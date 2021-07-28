@@ -1,0 +1,102 @@
+import glob
+import os
+from pathlib import Path
+import tempfile
+import shutil
+
+src_dir=Path(config['src_dir'])
+target_dir=Path(config['archive_dir'])
+
+compress_cores=config.get('max_workers', workflow.cores)
+io_cores=config.get('min_workers', compress_cores)
+
+part_size=config.get('part_size', None)
+
+# currently mainly for logs
+# for distributed execution needs to be on a shared filesystem
+wdir_root=Path(config['wdir_root'])
+
+wdir=wdir_root/f"archiving_{src_dir.name}_tmp"
+
+onstart:
+     wdir.mkdir(exist_ok=True, parents=True)
+
+onsuccess:
+    if wdir.exists():
+        shutil.rmtree(wdir)
+
+
+log_dir = wdir/'logs'
+
+target_file = target_dir / 'archiving.log'
+compress_done = target_dir/"compress.DONE"
+localrules: merge_logs
+
+rule all:
+    input: target_file, compress_done
+
+
+
+rule create_filelist:
+    input: src_dir
+    output: touch(target_dir / "filelist.DONE")
+    threads: io_cores
+    params:
+        part_size_opt=f'--part-size {part_size}' if part_size else ''
+    resources:
+        mem_mb=2000,
+    log: log_dir/"create_filelist.log"
+    shell:
+        """
+        OUTDIR=$(dirname {output})
+        if [ -d $OUTDIR ]; then
+            rmdir $OUTDIR
+        fi
+
+        PARENT=$(dirname $OUTDIR)
+        if [ ! -d $PARENT ]; then
+            mkdir -p $PARENT
+        fi
+
+        which archiver
+        archiver --verbose -w {wdir} create filelist {params.part_size_opt} -n {threads} {input} $OUTDIR >> {log} 2>&1
+        """
+
+rule create_tar:
+    input:
+        src_dir=src_dir,
+        file_list_done=rules.create_filelist.output[0]
+    output: touch(target_dir/"tar.DONE")
+    threads: io_cores
+    resources:
+        mem_mb=2000,
+    log: log_dir / "create_tar.log"
+    shell:
+        """
+        OUTDIR=$(dirname {input.file_list_done})
+
+        archiver --verbose -w {wdir} create tar -n {threads} {input.src_dir} $OUTDIR >> {log} 2>&1
+        """
+
+rule compress:
+    input: rules.create_tar.output[0]
+    output: touch(compress_done)
+    threads: compress_cores
+    resources:
+        mem_mb=2000,
+    log: log_dir/"compress.log"
+    shell:
+        """
+        OUTDIR=$(dirname {output})
+
+        archiver --verbose -w {wdir} create compressed-tar -n {threads} $OUTDIR >> {log} 2>&1
+        """
+
+rule merge_logs:
+    input: rules.create_filelist.log, rules.create_tar.log, rules.compress.log
+    output: target_dir / "archiving.log"
+    shell:
+        """
+        cat {input[0]} {input[1]} {input[2]} > {output}
+        rm  {input[0]} {input[1]} {input[2]}
+        """
