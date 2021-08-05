@@ -1,7 +1,4 @@
-import glob
-import os
 from pathlib import Path
-import tempfile
 import shutil
 
 src_dir=Path(config['src_dir'])
@@ -58,7 +55,6 @@ rule create_filelist:
             mkdir -p $PARENT
         fi
 
-        which archiver
         archiver --verbose -w {wdir} create filelist {params.part_size_opt} -n {threads} {input} $OUTDIR >> {log} 2>&1
         """
 
