@@ -103,8 +103,12 @@ ListingEntry=namedtuple('ListingEntry', ['permissions', 'owner',
 def parse_tar_listing(path):
     LINK_RE_SEP = re.compile(r"\s?->\s?")
 
-    def _process_path(fields, path_index):
-        remaining = ''.join(fields[path_index:])
+    def _process_path(fields, path_index, orig_line):
+        # losing exact whitespace information in split(), get it back here
+        re_prefix = r'\s+'.join(fields[0:path_index])
+        re_remaining = re.compile(rf'{re_prefix}\s(.*)')
+        remaining = re_remaining.match(orig_line).groups()[0]
+
         # last field may contain 'path' or 'path -> link target'
         link_parts = []
         if '->' in remaining:
@@ -113,17 +117,17 @@ def parse_tar_listing(path):
         if len(link_parts) > 1:
             return link_parts[0], link_parts[1]
         else:
-            return fields[path_index], None
+            return remaining, None
 
-    def _process_gnutar(fields):
-        path, link_target = _process_path(fields, 5)
+    def _process_gnutar(fields, orig_line):
+        path, link_target = _process_path(fields, 5, orig_line)
         owner, group = fields[1].split('/')
 
         return ListingEntry(fields[0], owner, group, fields[2], fields[3],
                             fields[4], path, link_target)
 
-    def _process_bsdtar(line):
-        path, link_target = _process_path(line, 8)
+    def _process_bsdtar(line, orig_line):
+        path, link_target = _process_path(line, 8, orig_line)
 
         return ListingEntry(line[0], line[2], line[3], line[4],
                             ' '.join(line[5:7]), line[7], path, link_target)
@@ -135,8 +139,8 @@ def parse_tar_listing(path):
 
             # assume field 3 is a date formatted like 2020-12-17 to determine listing format
             is_gnu_tar = '-' in fields[3]
-            entry = _process_gnutar(fields) if is_gnu_tar else _process_bsdtar(
-                fields)
+            entry = _process_gnutar(fields, l) if is_gnu_tar else _process_bsdtar(
+                fields, l)
             entries.append(entry)
 
     return entries

@@ -8,6 +8,7 @@ import logging
 import shutil
 import multiprocessing
 from typing import List, Union, Sequence
+import unicodedata
 
 from .constants import READ_CHUNK_BYTE_SIZE, COMPRESSED_ARCHIVE_SUFFIX, \
     ENCRYPTED_ARCHIVE_SUFFIX, ENV_VAR_MAPPER_MAX_CPUS, MD5_LINE_REGEX
@@ -59,9 +60,18 @@ def read_hash_file(file_path):
                     f"Not properly formatted MD5 checksum line found in file {file_path}: {l}")
                 return False
 
+            hash_val = m.groups()[0]
+
             path = m.groups()[1]
             path = path[2:] if path.startswith('./') else path
-            hash_dict[path] = m.groups()[0]
+
+            if hash_val.startswith('\\'):
+                # reverse of archive.create_file_listing_hash
+                hash_val = hash_val[1:]
+                # following https://stackoverflow.com/questions/1885181/how-to-un-escape-a-backslash-escaped-string
+                path = path.encode('latin-1', 'backslashreplace').decode('unicode_escape')
+
+            hash_dict[path] = hash_val
     return hash_dict
 
 
@@ -103,17 +113,17 @@ def _check_symlinks(abs_file, relative_to_path, integrity_check=False):
         absolute_root = relative_to_path.resolve().absolute()
         if absolute_root not in abs_file.resolve().parents:
             logging.warning(
-                f"Symlink {abs_file.relative_to(relative_to_path.parent)} found pointing to {abs_file.resolve()} "
-                f"outside the archiving directory {relative_to_path.resolve().absolute()}."
+                f"Symlink with outside target {abs_file.relative_to(relative_to_path.parent)} found pointing to {abs_file.resolve()} "
+                f"which is outside the archiving directory {relative_to_path.resolve().absolute()}."
                 f" The archive will contain the link itself, but not the file it points to.")
         elif not abs_file.resolve().exists():
             logging.warning(
-                f"Symlink {abs_file.relative_to(relative_to_path.parent)} found pointing to a non-existing file {abs_file.resolve()} ."
+                f"Broken symlink {abs_file.relative_to(relative_to_path.parent)} found pointing to a non-existing file {abs_file.resolve()} ."
                 f" The archive will only contain the link itself")
         elif link.is_absolute():
             # target exists and is within tree to be archived, however, link is absolute,
             # so will be broken if unpacked on another system
-            logging.warning(f"Symlink {abs_file.relative_to(relative_to_path.parent)} has an absolute target {link} . "
+            logging.warning(f"Absolute symlink {abs_file.relative_to(relative_to_path.parent)} found with target {link} . "
                             f" Consider making it a relative link to {relative_to_path} s.t. it gets properly "
                             f"resolved when unpacking the archive on another system.")
 
@@ -126,7 +136,7 @@ def hash_files_and_check_symlinks(source_path, abs_paths, max_workers=1, integri
 
     hashes_list = exec_parallel(get_file_hash_from_path, file_list, lambda f: (f,), max_workers)
 
-    return [[e[0].relative_to(source_path.parent).as_posix(), e[1]] for e
+    return [[unicodedata.normalize('NFC', e[0].relative_to(source_path.parent).as_posix()), e[1]] for e
             in zip(file_list, hashes_list)]
 
 
@@ -166,6 +176,11 @@ def get_number_of_threads_from_env():
         return None
 
     env_variable_threads = os.environ.get(env_variable_name)
+
+    if not env_variable_threads:
+        logging.debug(
+            f"Environment variable {env_variable_name} is not set")
+        return None
 
     env_variable_threads_number = None
     try:

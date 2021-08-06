@@ -98,12 +98,20 @@ class CmdBasedCheck:
 
 
     @staticmethod
-    def checks_from_configfile(path):
+    def checks_from_configfile(path: Path):
+        if not path.exists():
+           raise FileNotFoundError(f"Could not find path {path}")
+
         config = configparser.ConfigParser()
 
         config.read(path)
 
-        logging.debug(f"Found {len(config.sections())} checks")
+        nr_checks = len(config.sections())
+
+        if nr_checks == 0:
+            raise ValueError(f"No checks found in {path}")
+
+        logging.debug(f"Found {nr_checks} checks")
         return [CmdBasedCheck(name, sec['precondition'],
                               sec['precondition_failure_msg'],
                               sec['check_cmd'],

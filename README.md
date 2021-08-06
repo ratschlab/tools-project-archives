@@ -123,24 +123,35 @@ Relevant Code:
 
 Directory Structure:
 [overview over directory structure]
+e.g. (adapted output of `tree -L 2 -d`)
+
+├── conda      <- conda environments
+├── data
+│   ├── preprocessed
+│   └── varia
+├── models
+└── reports
 
 ```
 
 ##### Check File Structure
 
-A few things you may want to check before proceeding with the archive creation:
- * check you have read access to all files, fix if necessary. Otherwise, the archiving step will fail
- * check if there are unnecessary files or duplicates
- * check for broken symlinks
- * replace absolute symlinks (e.g pointing to a file like `/data/myproject/samples/myfile.txt`) 
-   with relative symlinks (e.g. `samples/myfile.txt`)
+Before attempting to create an archive, it is recommended to verify the file structure to
+avoid issues when creating the archive or later on using it:
 
-To help you verify all this, you can run
 ```sh
 archiver preparation-checks SOURCE_DIR
 ```
 
+Among other points, the above command
+ * checks you have read access to all files, fix if necessary. Otherwise, the archiving step will fail
+ * checks if there are unnecessary files or duplicates
+ * checks for broken symlinks
+ * looks for absolute symlinks (e.g pointing to a file like `/data/myproject/samples/myfile.txt`) 
+   which should be replaced by relative symlinks (e.g. `samples/myfile.txt`)
+
 If some check fails, look in the output for suggestions on how to fix it.
+
 
 
 #### Creating the Archive
@@ -156,12 +167,15 @@ destination directory for the archive files - see section [Archive Package Struc
 for details on the files generated during archiving. 
 
 Larger archives (maybe >1TB) can be split into parts, that is, instead of creating one huge
-compressed tar file, several tar files are generated. This can be done by adding
-the `--part-size` argument. Note, that the part size is with respect to the uncompressed size.
-Splitting the archive into parts can simplify file
+compressed tar file, several tar files are generated. Splitting the archive into parts can simplify file
 handling as moving large files between systems can be painful. There may also be
 file size limits on the target system. Furthermore, archive creation, integrity
 checks and partial extractions can be done faster with a split archive due to parallelization.
+
+Splitting can be done by adding
+the `--part-size` argument. The part size is with respect to the uncompressed size. Note, that for
+already highly compressed data, it is possible that the final compressed files can be slightly larger (e.g + ~1%) than 
+the size specified in `--part-size` due to the overhead of the compression format.
 
 Refer to `archiver archive --help` for more details.
 
