@@ -82,6 +82,16 @@ fi
 WORKDIR_OPT="wdir_root=${WORKDIR}"
 
 
-snakemake --directory ${WORKDIR}/snakemake_dir_${USER} --snakefile ${SCRIPT_DIR}/Snakefile --cluster "${SK_CLUSTER_CMD}" --config src_dir=${SRC_DIR} archive_dir=${ARCHIVE_DIR} ${WORKDIR_OPT} min_workers=${MIN_WORKERS} max_workers=${MAX_WORKERS} --jobs ${NR_JOBS} --keep-going --printshellcmds ${SK_ADDITIONAL_OPTS} $@
+snakemake --directory ${WORKDIR}/snakemake_dir_${USER} \
+          --snakefile ${SCRIPT_DIR}/Snakefile \
+          --cluster "${SK_CLUSTER_CMD}" \
+          --config src_dir=${SRC_DIR} \
+          archive_dir=${ARCHIVE_DIR} \
+          ${WORKDIR_OPT} \
+          min_workers=${MIN_WORKERS} \
+          max_workers=${MAX_WORKERS} \
+          --jobs ${NR_JOBS} \
+          --keep-going --printshellcmds \
+          ${SK_ADDITIONAL_OPTS} $@
 
 
