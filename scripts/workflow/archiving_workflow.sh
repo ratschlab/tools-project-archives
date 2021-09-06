@@ -14,7 +14,7 @@ usage()
     echo ""
 }
 
-WORKDIR_OPT=""
+WORKDIR=""
 
 while getopts 'hlm:n:p:w:' opt; do
     case $opt in
@@ -26,7 +26,7 @@ while getopts 'hlm:n:p:w:' opt; do
         (m)   MIN_WORKERS=$OPTARG;;
         (n)   MAX_WORKERS=$OPTARG;;
         (p)   PART_SIZE=$OPTARG;;
-        (w)   WORKDIR_OPT="wdir_root=${OPTARG}";;
+        (w)   WORKDIR="${OPTARG}";;
         (*)
             usage
             exit 1
@@ -71,14 +71,17 @@ if [ ${RUN_LOCALLY} ]; then
 fi
 
 
-if [ -z "${WORKDIR_OPT}" ]; then
+if [ -z "${WORKDIR}" ]; then
     if [ ! -z "${DEFAULT_WORKDIR}" ]; then
-        WORKDIR_OPT="wdir_root=${DEFAULT_WORKDIR}"
+        WORKDIR="${DEFAULT_WORKDIR}"
     else
-        WORKDIR_OPT="wdir_root=/tmp"
+        WORKDIR="/tmp"
     fi
 fi
 
-snakemake --snakefile ${SCRIPT_DIR}/Snakefile --cluster "${SK_CLUSTER_CMD}" --config src_dir=${SRC_DIR} archive_dir=${ARCHIVE_DIR} ${WORKDIR_OPT} min_workers=${MIN_WORKERS} max_workers=${MAX_WORKERS} --jobs ${NR_JOBS} --keep-going --printshellcmds ${SK_ADDITIONAL_OPTS} $@
+WORKDIR_OPT="wdir_root=${WORKDIR}"
+
+
+snakemake --directory ${WORKDIR}/snakemake_dir_${USER} --snakefile ${SCRIPT_DIR}/Snakefile --cluster "${SK_CLUSTER_CMD}" --config src_dir=${SRC_DIR} archive_dir=${ARCHIVE_DIR} ${WORKDIR_OPT} min_workers=${MIN_WORKERS} max_workers=${MAX_WORKERS} --jobs ${NR_JOBS} --keep-going --printshellcmds ${SK_ADDITIONAL_OPTS} $@
 
 
