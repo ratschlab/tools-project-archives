@@ -20,6 +20,18 @@ from archiver.listing import create_listing
 from archiver.preparation_checks import CmdBasedCheck
 
 
+def _get_tool_versions_str():
+    plzip_version = helpers.run_shell_cmd(['plzip', '--version', '|', 'head', '-n', '1'], pipe_stdout=True).stdout.decode('UTF-8')
+    tar_version = helpers.run_shell_cmd(['tar', '--version', '|', 'head', '-n', '1'],
+                                          pipe_stdout=True).stdout.decode('UTF-8')
+    gpg_version = helpers.run_shell_cmd(['gpg', '--version', '|', 'head', '-n', '1'],
+                                          pipe_stdout=True, check_returncode=False).stdout.decode('UTF-8')
+    if not gpg_version:
+        gpg_version = "GPG not available."
+
+    return f"archiver version {__version__}, with {plzip_version.strip()}, {tar_version.strip()}, {gpg_version.strip()}"
+
+
 def main(args=tuple(sys.argv[1:])):
     parsed_arguments = parse_arguments(args)
 
@@ -41,7 +53,7 @@ def main(args=tuple(sys.argv[1:])):
     # is not well supported: https://docs.python.org/3/library/multiprocessing.html#contexts-and-start-methods
     multiprocessing_logging.install_mp_handler()
 
-    logging.info(f"archiver version {__version__}")
+    logging.info(_get_tool_versions_str())
     logging.info(f"Executing as {getpass.getuser()} on {os.uname().nodename}")
 
     try:
