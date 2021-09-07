@@ -17,7 +17,7 @@ def _encrypt_list_of_archives_fnc(output_dir, archive_path, encryption_keys, del
 def encrypt_list_of_archives(archive_list, encryption_keys, delete=False, output_dir=None, threads=1):
     eff_threads = min(threads, len(archive_list))
 
-    helpers.exec_parallel(_encrypt_list_of_archives_fnc, archive_list,
+    helpers.exec_parallel(_encrypt_list_of_archives_fnc, helpers.sort_paths_with_part(archive_list),
                           lambda l: (output_dir, l, encryption_keys, delete),
                           eff_threads)
 

@@ -110,6 +110,7 @@ def parse_arguments(args):
     parser_encrypt = subparsers.add_parser("encrypt", help="Encrypt existing unencrypted archive")
     parser_encrypt.add_argument("source", type=str, help="Existing archive directory or .tar.lz file")
     parser_encrypt.add_argument("destination", type=str, nargs="?", help="Specify destination where encrypted archive should be stored")
+    parser_encrypt.add_argument("-n", "--threads", type=int, help=f"{thread_help}. Applicable for split archives")
     parser_encrypt.add_argument("-k", "--key", type=str, action="append", required=True, help=encryption_key_help)
     parser_encrypt.add_argument("-r", "--remove", action="store_true", default=False, help=remove_unencrypted_help)
     parser_encrypt.add_argument("-e", "--reencrypt", action="store_true", default=False, help="Reencrypt already encrypted archive with a new set of keys. Only newly specified keys will have access.")
@@ -233,7 +234,8 @@ def handle_encryption(args):
         # Encrypted archive will be removed in any case, since new one will be created
         decrypt_existing_archive(source_path, remove_unencrypted=True)
 
-    encrypt_existing_archive(source_path, args.key, destination_path, remove_unencrypted, args.force)
+    threads = args.threads if args.threads else 1
+    encrypt_existing_archive(source_path, args.key, destination_path, remove_unencrypted, args.force, threads=threads)
 
 
 def handle_decryption(args):

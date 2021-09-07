@@ -11,7 +11,7 @@ from .constants import COMPRESSED_ARCHIVE_SUFFIX, ENCRYPTED_ARCHIVE_SUFFIX, \
 from .encryption import encrypt_list_of_archives
 
 
-def encrypt_existing_archive(archive_path, encryption_keys, destination_dir=None, remove_unencrypted=False, force=False):
+def encrypt_existing_archive(archive_path, encryption_keys, destination_dir=None, remove_unencrypted=False, force=False, threads=1):
     helpers.encryption_keys_must_exist(encryption_keys)
 
     if destination_dir:
@@ -23,13 +23,13 @@ def encrypt_existing_archive(archive_path, encryption_keys, destination_dir=None
 
         archive_files = helpers.get_files_with_type_in_directory_or_terminate(archive_path, COMPRESSED_ARCHIVE_SUFFIX)
 
-        encrypt_list_of_archives(archive_files, encryption_keys, remove_unencrypted, destination_dir)
+        encrypt_list_of_archives(archive_files, encryption_keys, remove_unencrypted, destination_dir, threads=threads)
         return
 
     helpers.terminate_if_path_not_file_of_type(archive_path, COMPRESSED_ARCHIVE_SUFFIX)
 
     logging.info("Start encryption of existing archive " + helpers.get_absolute_path_string(archive_path))
-    encrypt_list_of_archives([archive_path], encryption_keys, remove_unencrypted, destination_dir)
+    encrypt_list_of_archives([archive_path], encryption_keys, remove_unencrypted, destination_dir, threads=threads)
 
 
 def create_archive(source_path, destination_path, threads=None, encryption_keys=None, compression=DEFAULT_COMPRESSION_LEVEL, splitting=None, remove_unencrypted=False, force=False, work_dir=None):
@@ -42,6 +42,9 @@ def create_archive(source_path, destination_path, threads=None, encryption_keys=
     source_name = source_path.name
 
     logging.info(f"Start creating archive for: {helpers.get_absolute_path_string(source_path)}")
+
+    if not threads:
+        threads = 1
 
     if splitting:
         create_split_archive(source_path, destination_path, source_name, int(splitting), threads, encryption_keys, compression, remove_unencrypted, work_dir, force)
@@ -66,7 +69,7 @@ def create_archive(source_path, destination_path, threads=None, encryption_keys=
         if encryption_keys:
             logging.info("Starting encryption...")
             archive_list = [destination_path.joinpath(source_name + COMPRESSED_ARCHIVE_SUFFIX)]
-            encrypt_list_of_archives(archive_list, encryption_keys, remove_unencrypted)
+            encrypt_list_of_archives(archive_list, encryption_keys, remove_unencrypted, threads=threads)
 
     logging.info(f"Archive created: {helpers.get_absolute_path_string(destination_path)}")
 
