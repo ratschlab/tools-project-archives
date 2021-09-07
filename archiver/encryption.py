@@ -45,9 +45,16 @@ def encrypt_archive(archive_path, output_path, encryption_keys, delete=False):
     logging.info(f"Encryption of archive {archive_path} complete.")
 
 
-def decrypt_list_of_archives(archives, target_directory=None, delete=False):
-    for archive_path in helpers.sort_paths_with_part(archives):
-        decrypt_archive(archive_path, target_directory, delete)
+def _decrypt_list_of_archives_fnc(archive_path, target_directory, delete):
+    decrypt_archive(archive_path, target_directory, delete)
+
+
+def decrypt_list_of_archives(archives, target_directory=None, delete=False, threads=1):
+    eff_threads = min(threads, len(archives))
+
+    helpers.exec_parallel(_decrypt_list_of_archives_fnc, helpers.sort_paths_with_part(archives),
+                          lambda l: (l, target_directory, delete),
+                          eff_threads)
 
 
 def decrypt_archive(archive_path, target_directory, delete=False):
