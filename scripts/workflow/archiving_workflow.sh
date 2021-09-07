@@ -6,6 +6,7 @@ usage()
     echo "Running archiving workflow (create filelist, create tar and create compressed-tar) on a cluster or locally"
     echo "Usage: $0 [-h] [-l] [-m MIN_WORKERS] [-n MAX_WORKERS [-p PART_SIZE] [-w WORKDIR] DIR_TO_BE_ARCHIVED DEST_DIR"
     echo "  -h  Help. Display this message and quit."
+    echo "  -k  Adding path to gpg public key file, if archives should be encrypted. Several keys can be given separated by a comma"
     echo "  -l  Run locally on current host instead of submitting to cluster"
     echo "  -m  minimum number of workers, typically set for IO bound tasks"
     echo "  -n  maximum number of workers, typically set for CPU bound tasks like compression"
@@ -15,13 +16,15 @@ usage()
 }
 
 WORKDIR=""
+ENCRYPTION_KEYS=""
 
-while getopts 'hlm:n:p:w:' opt; do
+while getopts 'hk:lm:n:p:w:' opt; do
     case $opt in
         (h)
             usage
             exit 0
             ;;
+        (k)   ENCRYPTION_KEYS=$OPTARG;;
         (l)   RUN_LOCALLY=1;;
         (m)   MIN_WORKERS=$OPTARG;;
         (n)   MAX_WORKERS=$OPTARG;;
@@ -81,13 +84,22 @@ fi
 
 WORKDIR_OPT="wdir_root=${WORKDIR}"
 
+PART_SIZE_OPT=""
+if [ ! -z ${PART_SIZE} ]; then
+    PART_SIZE_OPT="part_size=${PART_SIZE}"
+fi
+
+ENCRYPTION_KEYS_OPT=""
+if [ ! -z ${ENCRYPTION_KEYS} ]; then
+    ENCRYPTION_KEYS_OPT="encryption_keys=${ENCRYPTION_KEYS}"
+fi
 
 snakemake --directory ${WORKDIR}/snakemake_dir_${USER} \
           --snakefile ${SCRIPT_DIR}/Snakefile \
           --cluster "${SK_CLUSTER_CMD}" \
           --config src_dir=${SRC_DIR} \
           archive_dir=${ARCHIVE_DIR} \
-          ${WORKDIR_OPT} \
+          ${WORKDIR_OPT} ${ENCRYPTION_KEYS_OPT} ${PART_SIZE_OPT} \
           min_workers=${MIN_WORKERS} \
           max_workers=${MAX_WORKERS} \
           --jobs ${NR_JOBS} \

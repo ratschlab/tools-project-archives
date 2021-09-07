@@ -9,6 +9,8 @@ io_cores=config.get('min_workers', compress_cores)
 
 part_size=config.get('part_size', None)
 
+encrypt='encryption_keys' in config
+
 # currently mainly for logs
 # for distributed execution needs to be on a shared filesystem
 wdir_root=Path(config['wdir_root'])
@@ -27,11 +29,11 @@ log_dir = wdir/'logs'
 
 target_file = target_dir / 'archiving.log'
 compress_done = target_dir/"compress.DONE"
+encryption_done = target_dir/"encryption.DONE"
 localrules: merge_logs
 
 rule all:
-    input: target_file, compress_done
-
+    input: target_file, encryption_done if encrypt else compress_done
 
 
 rule create_filelist:
@@ -88,11 +90,35 @@ rule compress:
         archiver --verbose -w {wdir} create compressed-tar -n {threads} $OUTDIR >> {log} 2>&1
         """
 
-rule merge_logs:
-    input: rules.create_filelist.log, rules.create_tar.log, rules.compress.log
-    output: target_dir / "archiving.log"
+encrypt_key_opts=""
+
+if encrypt:
+    encrypt_key_opts=" ".join([f"-k {p}"  for p in [ s.strip() for s in config['encryption_keys'].split(',')] if p])
+
+rule encrypt:
+    input: rules.compress.output[0]
+    output: touch(encryption_done)
+    threads: io_cores
+    params:
+        key_opts=encrypt_key_opts
+    resources:
+        mem_mb=2000
+    log: log_dir/"encrypt.log"
     shell:
         """
-        cat {input[0]} {input[1]} {input[2]} > {output}
-        rm  {input[0]} {input[1]} {input[2]}
+        OUTDIR=$(dirname ${output})
+        archiver --verbose -w {wdir} encrypt -n {threads} --remove {params.key_opts} $(dirname {input}) >> {log} 2>&1
+        """
+
+merge_logs_input=[rules.create_filelist.log, rules.create_tar.log, rules.compress.log] + ([rules.encrypt.log] if encrypt else [])
+
+rule merge_logs:
+    input: merge_logs_input
+    output: target_dir / "archiving.log"
+    params:
+        filelist=lambda wildcards, input: " ".join([ i for i in input ])
+    shell:
+        """
+        cat {params.filelist} > {output}
+        rm {params.filelist}
         """
