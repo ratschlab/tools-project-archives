@@ -62,6 +62,12 @@ SRC_DIR=$1
 ARCHIVE_DIR=$2
 shift 2
 
+if [ ! -e ${SRC_DIR} ]; then
+  echo "Directory to be archived ${SRC_DIR} does not seem to exist."
+  exit 1
+fi
+
+
 SCRIPT_DIR="$(dirname "$(readlink -f "$0")")"
 SNAKEFILE=${SCRIPT_DIR}/Snakefile
 
