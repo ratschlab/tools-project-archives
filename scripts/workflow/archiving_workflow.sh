@@ -82,7 +82,7 @@ if [ -z "${WORKDIR}" ]; then
     fi
 fi
 
-WORKDIR_OPT="wdir_root=${WORKDIR}"
+WORKDIR_OPT="wdir_root=$(realpath ${WORKDIR})"
 
 PART_SIZE_OPT=""
 if [ ! -z ${PART_SIZE} ]; then
@@ -94,11 +94,11 @@ if [ ! -z ${ENCRYPTION_KEYS} ]; then
     ENCRYPTION_KEYS_OPT="encryption_keys=${ENCRYPTION_KEYS}"
 fi
 
-snakemake --directory ${WORKDIR}/snakemake_dir_${USER} \
+snakemake --directory $(realpath ${WORKDIR})/snakemake_dir_${USER} \
           --snakefile ${SCRIPT_DIR}/Snakefile \
           --cluster "${SK_CLUSTER_CMD}" \
-          --config src_dir=${SRC_DIR} \
-          archive_dir=${ARCHIVE_DIR} \
+          --config src_dir=$(realpath ${SRC_DIR}) \
+          archive_dir=$(realpath ${ARCHIVE_DIR}) \
           ${WORKDIR_OPT} ${ENCRYPTION_KEYS_OPT} ${PART_SIZE_OPT} \
           min_workers=${MIN_WORKERS} \
           max_workers=${MAX_WORKERS} \
