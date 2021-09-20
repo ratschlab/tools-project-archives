@@ -12,7 +12,7 @@ from .encryption import decrypt_list_of_archives
 # Ensure gpg key is available
 
 
-def decrypt_existing_archive(archive_path, destination_dir=None, remove_unencrypted=False, force=False):
+def decrypt_existing_archive(archive_path, destination_dir=None, remove_unencrypted=False, force=False, threads=1):
     if destination_dir:
         helpers.handle_destination_directory_creation(destination_dir, force)
 
@@ -22,18 +22,21 @@ def decrypt_existing_archive(archive_path, destination_dir=None, remove_unencryp
 
         archive_files = helpers.get_files_with_type_in_directory_or_terminate(archive_path, ENCRYPTED_ARCHIVE_SUFFIX)
 
-        decrypt_list_of_archives(archive_files, destination_dir, delete=remove_unencrypted)
+        decrypt_list_of_archives(archive_files, destination_dir, delete=remove_unencrypted, threads=threads)
         return
 
     helpers.terminate_if_path_not_file_of_type(archive_path, ENCRYPTED_ARCHIVE_SUFFIX)
 
     logging.info("Start decryption of existing archive " + helpers.get_absolute_path_string(archive_path))
-    decrypt_list_of_archives([archive_path], destination_dir, delete=remove_unencrypted)
+    decrypt_list_of_archives([archive_path], destination_dir, delete=remove_unencrypted, threads=threads)
 
 
 def extract_archive(source_path, destination_directory_path, partial_extraction_path=None, threads=None, force=False, extract_at_destination=False):
     # Create destination folder if nonexistent or overwrite if --force option used
     helpers.handle_destination_directory_creation(destination_directory_path, force)
+
+    if not threads:
+        threads=1
 
     is_encrypted = helpers.path_target_is_encrypted(source_path)
     archive_files_all = sorted(helpers.get_archives_from_path(source_path, is_encrypted))
@@ -53,7 +56,7 @@ def extract_archive(source_path, destination_directory_path, partial_extraction_
         # For example: deep integrity check should decrypt the archive in the tmp folder, in order to not touch the archive folder
         destination_path = destination_directory_path if extract_at_destination else None
 
-        decrypt_list_of_archives(archive_files, destination_path)
+        decrypt_list_of_archives(archive_files, destination_path, threads=threads)
         archive_files = get_archive_names_after_encryption(archive_files, destination_path)
 
     ensure_sufficient_disk_capacity_for_extraction(archive_files, destination_directory_path)

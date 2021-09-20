@@ -20,6 +20,18 @@ from archiver.listing import create_listing
 from archiver.preparation_checks import CmdBasedCheck
 
 
+def _get_tool_versions_str():
+    plzip_version = helpers.run_shell_cmd(['plzip', '--version', '|', 'head', '-n', '1'], pipe_stdout=True).stdout.decode('UTF-8')
+    tar_version = helpers.run_shell_cmd(['tar', '--version', '|', 'head', '-n', '1'],
+                                          pipe_stdout=True).stdout.decode('UTF-8')
+    gpg_version = helpers.run_shell_cmd(['gpg', '--version', '|', 'head', '-n', '1'],
+                                          pipe_stdout=True, check_returncode=False).stdout.decode('UTF-8')
+    if not gpg_version:
+        gpg_version = "GPG not available."
+
+    return f"archiver version {__version__}, with {plzip_version.strip()}, {tar_version.strip()}, {gpg_version.strip()}"
+
+
 def main(args=tuple(sys.argv[1:])):
     parsed_arguments = parse_arguments(args)
 
@@ -41,7 +53,7 @@ def main(args=tuple(sys.argv[1:])):
     # is not well supported: https://docs.python.org/3/library/multiprocessing.html#contexts-and-start-methods
     multiprocessing_logging.install_mp_handler()
 
-    logging.info(f"archiver version {__version__}")
+    logging.info(_get_tool_versions_str())
     logging.info(f"Executing as {getpass.getuser()} on {os.uname().nodename}")
 
     try:
@@ -110,6 +122,7 @@ def parse_arguments(args):
     parser_encrypt = subparsers.add_parser("encrypt", help="Encrypt existing unencrypted archive")
     parser_encrypt.add_argument("source", type=str, help="Existing archive directory or .tar.lz file")
     parser_encrypt.add_argument("destination", type=str, nargs="?", help="Specify destination where encrypted archive should be stored")
+    parser_encrypt.add_argument("-n", "--threads", type=int, help=f"{thread_help}. Applicable for split archives")
     parser_encrypt.add_argument("-k", "--key", type=str, action="append", required=True, help=encryption_key_help)
     parser_encrypt.add_argument("-r", "--remove", action="store_true", default=False, help=remove_unencrypted_help)
     parser_encrypt.add_argument("-e", "--reencrypt", action="store_true", default=False, help="Reencrypt already encrypted archive with a new set of keys. Only newly specified keys will have access.")
@@ -120,6 +133,7 @@ def parse_arguments(args):
     parser_decrypt = subparsers.add_parser("decrypt", help="Decrypt existing encrypted archive")
     parser_decrypt.add_argument("source", type=str, help="Existing archive directory or .tar.lz file")
     parser_decrypt.add_argument("destination", type=str, nargs="?", help="Specify destination where unencrypted archive should be stored")
+    parser_decrypt.add_argument("-n", "--threads", type=int, help=f"{thread_help}. Applicable for split archives")
     parser_decrypt.add_argument("-r", "--remove", action="store_true", default=False, help="Remove encrypted archive after unencrypted archive has been created and stored.")
     parser_decrypt.add_argument("-f", "--force", action="store_true", default=False, help=force_help)
     parser_decrypt.set_defaults(func=handle_decryption)
@@ -227,20 +241,23 @@ def handle_encryption(args):
 
     remove_unencrypted = args.remove
 
+    threads = args.threads if args.threads else 1
+
     if args.reencrypt:
         # Always remove the unencrypted archive when --reencrypt is used since there was no unencrypted archive present
         remove_unencrypted = True
         # Encrypted archive will be removed in any case, since new one will be created
-        decrypt_existing_archive(source_path, remove_unencrypted=True)
+        decrypt_existing_archive(source_path, remove_unencrypted=True, threads=threads)
 
-    encrypt_existing_archive(source_path, args.key, destination_path, remove_unencrypted, args.force)
+    encrypt_existing_archive(source_path, args.key, destination_path, remove_unencrypted, args.force, threads=threads)
 
 
 def handle_decryption(args):
     source_path = Path(args.source)
     destination_path = Path(args.destination) if args.destination else None
 
-    decrypt_existing_archive(source_path, destination_path, args.remove, args.force)
+    threads = args.threads if args.threads else 1
+    decrypt_existing_archive(source_path, destination_path, args.remove, args.force, threads=threads)
 
 
 def handle_extract(args):
