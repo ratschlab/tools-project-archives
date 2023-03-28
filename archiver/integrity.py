@@ -4,18 +4,28 @@ from pathlib import Path
 
 from . import helpers
 from .constants import COMPRESSED_ARCHIVE_SUFFIX, ENCRYPTED_ARCHIVE_SUFFIX, \
-    LISTING_SUFFIX
+    LISTING_SUFFIX, HASH_SUFFIX, TAR_HASH_SUFFIX, COMPRESSED_ARCHIVE_HASH_SUFFIX, \
+    ENCRYPTED_ARCHIVE_HASH_SUFFIX
 from .extract import extract_archive
 from .listing import parse_tar_listing
 
 
 def check_integrity(source_path, deep_flag=False, threads=None, work_dir=None):
+
     archives_with_hashes = get_archives_with_hashes_from_path(source_path)
     is_encrypted = helpers.path_target_is_encrypted(source_path)
 
     logging.info("Starting integrity check on: " + source_path.as_posix())
 
     check_result = shallow_integrity_check(archives_with_hashes, workers=threads)
+
+    if source_path.is_dir():
+        integrity_result = check_archive_list_integrity(source_path)
+        if not integrity_result:
+            logging.error(
+                "Integrity check unsuccessful. Files missing in archive.")
+        check_result = check_result and integrity_result
+
 
     if deep_flag:
         # with deep flag still continue, no matter what the result of the previous test was
@@ -40,6 +50,47 @@ def check_integrity(source_path, deep_flag=False, threads=None, work_dir=None):
 
     return check_result
 
+
+def check_archive_part_integrity(source_name: Path) -> bool:
+
+    check_result = True
+    for s in [HASH_SUFFIX, TAR_HASH_SUFFIX, LISTING_SUFFIX]:
+        path = source_name.parent / Path(source_name.name + s)
+        if not path.is_file():
+            logging.warning(f"Expected file {path.as_posix()} does not exists.")
+            check_result = False
+    path_c = source_name.parent / Path(source_name.name + COMPRESSED_ARCHIVE_SUFFIX)
+    path_e = source_name.parent / Path(source_name.name + ENCRYPTED_ARCHIVE_SUFFIX)
+    if not (path_c.is_file() or path_e.is_file()):
+        logging.warning(f"Neither of the expected files {path_c.as_posix()} and {path_e.as_posix()} exist.")
+        check_result = False
+
+    path_c = source_name.parent / Path(source_name.name + COMPRESSED_ARCHIVE_HASH_SUFFIX)
+    path_e = source_name.parent / Path(source_name.name + ENCRYPTED_ARCHIVE_HASH_SUFFIX)
+    if not (path_c.is_file() or path_e.is_file()):
+        logging.warning(f"Neither of the expected files {path_c.as_posix()} and {path_e.as_posix()} exist.")
+        check_result = False
+
+    return check_result
+
+def check_archive_list_integrity(source_path: Path) -> bool:
+
+    parts = helpers.get_parts(source_path)
+    source_name = helpers.infer_source_name(source_path)
+
+    logging.info(f'Found {parts} parts in archive {source_path.as_posix()}')
+    check_result = True
+    if parts > 0:
+        for part in range(1, parts + 1):
+            check_result = check_result and check_archive_part_integrity(source_name.parent / Path(source_name.name + f'.part{part}'))
+    else:
+        if len([_ for _ in source_path.glob('*.part*')]) > 0:
+            logging.error("Archive seems to contain multiple parts, but no *.parts.txt could be found.")
+            check_result = False
+        else:
+            check_result = check_result and check_archive_part_integrity(source_name)
+
+    return check_result
 
 def _shallow_integrity_check_part(archive_file_path, archive_hash_file_path):
     logging.info(f"Verifying hash of {archive_file_path}")
@@ -159,7 +210,7 @@ def compare_hashes_from_files(archive_file_path, archive_hash_file_path):
     # Generate hash of .tar.lz
     archive_hash = helpers.get_file_hash_from_path(archive_file_path)
 
-    # Read hash of .tar.lz.md5
+    # Read hash of .tar.lz.md5
     with open(archive_hash_file_path, "r") as file:
         hash_file_content = file.read()
 

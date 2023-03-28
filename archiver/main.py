@@ -80,7 +80,8 @@ def parse_arguments(args):
     part_help = "Which part to process. If missing, process all"
     force_help = "Overwrite output directory if it already exists and create parents of folder if they don't exist."
     thread_help = "Set the number of workers"
-    encryption_key_help = "Path to public key which will be used for encryption. Archive will be encrypted when this option is used. Can be used more than once."
+    encryption_key_help = "Path to public key which will be used for encryption. Archive will be encrypted when this " \
+                          "option is used. Can be used more than once."
     remove_unencrypted_help = "Remove unencrypted archive after encrypted archive has been created and stored."
 
     # Create Archive Parent Parser
@@ -175,11 +176,11 @@ def parse_arguments(args):
 
 
 def handle_archive(args):
-    # Path to a file or directory which will be archived or encrypted
+    # Path to a file or directory which will be archived or encrypted
     source_path = Path(args.source)
-    # Path to a directory which will be created (if it does yet exist)
+    # Path to a directory which will be created (if it does yet exist)
     destination_path = Path(args.archive_dir)
-    # Default compression level should be 6
+    # Default compression level should be 6
     compression = args.compression if args.compression else DEFAULT_COMPRESSION_LEVEL
 
     threads = helpers.get_threads_from_args_or_environment(args.threads)
