@@ -18,8 +18,8 @@ test_requirements = ['pytest==6.1']
 setup(
     author="Noah Fleischmann",
     author_email="noah.fleischmann@inf.ethz.ch",
-    maintainer="Marc Zimmermann",
-    maintainer_email='marc.zimmermann@inf.ethz.ch',
+    maintainer="Andre Kahles",
+    maintainer_email='andre.kahles@inf.ethz.ch',
     classifiers=[
         'Development Status :: 2 - Pre-Alpha',
         'Intended Audience :: Science/Research',
@@ -44,6 +44,6 @@ setup(
     test_suite='tests',
     tests_require=test_requirements,
     url="https://github.com/ratschlab/tools-project-archives",
-    version='0.4.1',
+    version='0.4.2',
     zip_safe=False,
 )
