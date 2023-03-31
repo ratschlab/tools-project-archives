@@ -48,6 +48,23 @@ def create_and_write_file_hash(file_path):
         hash_file.write(f"{hash_output}  {file_path.name}\n")
 
 
+def read_file_listing(file_path):
+
+    listing = []
+
+    with open(file_path, "r", newline='\n') as file:
+        for file_path in file.readlines():
+            file_path = file_path.strip('\n')
+            if file_path.startswith('\\'):
+                # reverse of archive.create_file_listing_hash
+                file_path = file_path[1:]
+                # following https://stackoverflow.com/questions/1885181/how-to-un-escape-a-backslash-escaped-string
+                file_path = file_path.encode('latin-1', 'backslashreplace').decode('unicode_escape')
+            listing.append(Path(file_path))
+
+    return listing
+
+
 def read_hash_file(file_path):
     hash_dict = {}
 
@@ -140,14 +157,25 @@ def hash_files_and_check_symlinks(source_path, abs_paths, max_workers=1, integri
             in zip(file_list, hashes_list)]
 
 
-def get_files_in_folder(folder_path):
-    file_list = []
-    for root, _, files in os.walk(folder_path):
+def get_files_in_folder(folder_path, include_dirs=False):
+    listing = []
+    for root, dirs, files in os.walk(folder_path):
         root_path = Path(root)
         for file in files:
             abs_file = root_path.joinpath(file)
-            file_list.append(abs_file)
-    return file_list
+            listing.append(abs_file)
+        dirs_ = []
+        for dir in dirs:
+            abs_dir = root_path.joinpath(dir)
+            if Path(abs_dir).is_symlink():
+                listing.append(abs_dir)
+            else:
+                if include_dirs:
+                    listing.append(abs_dir)
+                dirs_.append(dir)
+        dirs = dirs_
+
+    return listing
 
 
 def get_threads_from_args_or_environment(threads_arg):
