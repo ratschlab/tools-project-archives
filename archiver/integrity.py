@@ -59,17 +59,14 @@ def check_archive_part_integrity(source_name: Path) -> bool:
         if not path.is_file():
             logging.warning(f"Expected file {path.as_posix()} does not exists.")
             check_result = False
-    path_c = source_name.parent / Path(source_name.name + COMPRESSED_ARCHIVE_SUFFIX)
-    path_e = source_name.parent / Path(source_name.name + ENCRYPTED_ARCHIVE_SUFFIX)
-    if not (path_c.is_file() or path_e.is_file()):
-        logging.warning(f"Neither of the expected files {path_c.as_posix()} and {path_e.as_posix()} exist.")
-        check_result = False
 
-    path_c = source_name.parent / Path(source_name.name + COMPRESSED_ARCHIVE_HASH_SUFFIX)
-    path_e = source_name.parent / Path(source_name.name + ENCRYPTED_ARCHIVE_HASH_SUFFIX)
-    if not (path_c.is_file() or path_e.is_file()):
-        logging.warning(f"Neither of the expected files {path_c.as_posix()} and {path_e.as_posix()} exist.")
-        check_result = False
+    for s in [(COMPRESSED_ARCHIVE_SUFFIX, ENCRYPTED_ARCHIVE_SUFFIX),
+              (COMPRESSED_ARCHIVE_HASH_SUFFIX, ENCRYPTED_ARCHIVE_HASH_SUFFIX)]:
+        path_c = source_name.parent / Path(source_name.name + s[0])
+        path_e = source_name.parent / Path(source_name.name + s[1])
+        if not (path_c.is_file() or path_e.is_file()):
+            logging.warning(f"Neither of the expected files {path_c.as_posix()} and {path_e.as_posix()} exist.")
+            check_result = False
 
     return check_result
 
@@ -83,12 +80,11 @@ def check_archive_list_integrity(source_path: Path) -> bool:
     if parts > 0:
         for part in range(1, parts + 1):
             check_result = check_result and check_archive_part_integrity(source_name.parent / Path(source_name.name + f'.part{part}'))
+    elif len(list(source_path.glob('*.part*'))) > 0:
+        logging.error("Archive seems to contain multiple parts, but no *.parts.txt could be found.")
+        check_result = False
     else:
-        if len([_ for _ in source_path.glob('*.part*')]) > 0:
-            logging.error("Archive seems to contain multiple parts, but no *.parts.txt could be found.")
-            check_result = False
-        else:
-            check_result = check_result and check_archive_part_integrity(source_name)
+        check_result = check_result and check_archive_part_integrity(source_name)
 
     return check_result
 
