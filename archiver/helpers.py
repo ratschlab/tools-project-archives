@@ -329,7 +329,7 @@ def infer_source_name(source_path: Path) -> Path:
         return filepath_without_extensions(source_path)
     else:
         all_files = [p for p in source_path.iterdir() if p.is_file()]
-        unique_names = list(set([filepath_without_extensions(_) for _ in all_files]))
+        unique_names = list(set([filepath_without_extensions(f) for f in all_files]))
 
         if len(unique_names) == 0:
             terminate_with_message('There are no archive files present')
@@ -366,7 +366,7 @@ def sort_paths_with_part(paths: Sequence[Path]) -> List[Path]:
 
 def get_parts(source_path: Path) -> int:
 
-    parts_file = [_ for _ in source_path.glob('*.parts.txt')]
+    parts_file = list(source_path.glob('*.parts.txt'))
     if len(parts_file) > 1:
         terminate_with_message(f'More than 1 file (total {len(parts_file)}) are matching the pattern *.parts.txt')
     if parts_file:
