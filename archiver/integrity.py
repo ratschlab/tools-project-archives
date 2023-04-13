@@ -21,10 +21,14 @@ def check_integrity(source_path, deep_flag=False, threads=None, work_dir=None):
 
     if source_path.is_dir():
         integrity_result = check_archive_list_integrity(source_path)
-        if not integrity_result:
-            logging.error(
-                "Integrity check unsuccessful. Files missing in archive.")
-        check_result = check_result and integrity_result
+    else:
+        file_path = source_path.parent / Path(helpers.filename_without_archive_extensions(source_path))
+        integrity_result = check_archive_part_integrity(file_path)
+
+    if not integrity_result:
+        logging.error(
+            "Integrity check unsuccessful. Files missing in archive.")
+    check_result = check_result and integrity_result
 
 
     if deep_flag:
