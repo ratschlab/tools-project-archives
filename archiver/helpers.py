@@ -173,7 +173,7 @@ def get_files_in_folder(folder_path, include_dirs=False):
                 if include_dirs:
                     listing.append(abs_dir)
                 dirs_.append(dir)
-        dirs = dirs_
+        dirs[:] = dirs_
 
     return listing
 
