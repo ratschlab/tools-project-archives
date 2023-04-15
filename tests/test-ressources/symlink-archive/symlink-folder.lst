@@ -1,0 +1,7 @@
+symlink-folder
+symlink-folder/file1.txt
+symlink-folder/invalid_link
+symlink-folder/folder-in-archive
+symlink-folder/invalid_link_abs
+symlink-folder/folder-in-archive/file2.txt
+symlink-folder/folder-in-archive/link.txt

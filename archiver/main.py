@@ -11,7 +11,7 @@ import multiprocessing_logging
 
 from archiver import helpers, __version__
 from archiver.archive import create_archive, encrypt_existing_archive, \
-    create_filelist_and_hashs, \
+    create_filelist_and_hashes, \
     create_tar_archives_and_listings, compress_and_hash
 from archiver.constants import DEFAULT_COMPRESSION_LEVEL
 from archiver.extract import extract_archive, decrypt_existing_archive
@@ -103,7 +103,7 @@ def parse_arguments(args):
     parser_create = subparsers.add_parser("create", help="Create archives step-by-step (optimization possibilities for large split archives)")
     subparser_create = parser_create.add_subparsers(help="Available subcommands", required=True, dest="create_command")
 
-    parser_create_filelist = subparser_create.add_parser("filelist", help="create list and hashs of all files to be archived", parents=[archive_parent_parser])
+    parser_create_filelist = subparser_create.add_parser("filelist", help="create list and hashes of all files to be archived", parents=[archive_parent_parser])
     parser_create_filelist.add_argument("--part-size", type=str, help=part_size_help)
     parser_create_filelist.add_argument("-f", "--force", action="store_true", default=False, help=force_help)
     parser_create_filelist.set_defaults(func=handle_create_filelist)
@@ -211,7 +211,9 @@ def handle_create_filelist(args):
         except Exception as error:
             helpers.terminate_with_exception(error)
 
-    create_filelist_and_hashs(source_path, destination_path, bytes_splitting, threads, args.force)
+    # Create destination folder if nonexistent or overwrite if --force option used
+    helpers.handle_destination_directory_creation(destination_path, args.force)
+    create_filelist_and_hashes(source_path, destination_path, bytes_splitting, threads)
 
 
 def handle_create_tar_archive(args):

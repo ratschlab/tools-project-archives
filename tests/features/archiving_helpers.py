@@ -10,8 +10,8 @@ UNENCRYPTED_HASH_FILENAMES = [".tar.md5", ".tar.lz.md5"]
 SPLIT_ENCRYPTED_HASH_FILENAMES = [".part1.tar.md5", ".part2.tar.md5", ".part1.tar.lz.md5", ".part2.tar.lz.md5", ".part1.tar.lz.gpg.md5", ".part2.tar.lz.gpg.md5"]
 SPLIT_UNENCRYPTED_HASH_FILENAMES = [".part1.tar.md5", ".part2.tar.md5", ".part1.tar.lz.md5", ".part2.tar.lz.md5"]
 
-ENCRYPTED_LISTING = [".tar.lst", ".tar.lz.md5", ".md5", ".tar.lz.gpg", ".tar.lz.gpg.md5", ".tar.md5"]
-UNENCRYPTED_LISTING = ['.tar.lst', '.tar.lz.md5', '.md5', '.tar.lz', '.tar.md5']
+ENCRYPTED_LISTING = [".lst", ".tar.lst", ".tar.lz.md5", ".md5", ".tar.lz.gpg", ".tar.lz.gpg.md5", ".tar.md5"]
+UNENCRYPTED_LISTING = ['.lst', '.tar.lst', '.tar.lz.md5', '.md5', '.tar.lz', '.tar.md5']
 SPLIT_UNENCRYPTED_LISTINGS = ['.part1.tar.lst', '.part1.tar.lz.md5', '.part1.md5', '.part1.tar.lz', '.part1.tar.md5',
                               '.part2.tar.lst', '.part2.tar.lz.md5', '.part2.md5', '.part2.tar.lz', '.part2.tar.md5']
 SPLIT_ENCRYPTED_LISTINGS = [".part1.tar.lst", ".part1.tar.lz.md5", ".part1.md5", ".part1.tar.lz.gpg", ".part1.tar.lz.gpg.md5", ".part1.tar.md5",
