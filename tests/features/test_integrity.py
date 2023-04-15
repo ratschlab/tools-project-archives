@@ -127,6 +127,22 @@ def test_integrity_check_deep_corrupted_encrypted(caplog, setup_gpg):
 
     check_integrity_and_validate_output_contains(archive_dir, caplog, expected_messages, False, DEEP)
 
+def test_incomplete_check_on_split_archive(caplog):
+    archive_dir = get_directory_with_name("split-archive-incomplete")
+
+    expected_messages = ["Integrity check unsuccessful. Files missing in archive.",
+                         "Basic integrity check unsuccessful. But checksums of files in archive match."]
+
+    check_integrity_and_validate_output_contains(archive_dir, caplog, expected_messages, False, DEEP)
+
+
+def test_incomplete_check_on_split_archive_encrypted(caplog):
+    archive_dir = get_directory_with_name("split-encrypted-archive-incomplete")
+
+    expected_messages = ["Integrity check unsuccessful. Files missing in archive.",
+                         "Basic integrity check unsuccessful. But checksums of files in archive match."]
+
+    check_integrity_and_validate_output_contains(archive_dir, caplog, expected_messages, False, DEEP)
 
 def test_integrity_check_symlink(caplog):
     archive_dir = get_directory_with_name("symlink-archive")

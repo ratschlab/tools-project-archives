@@ -317,6 +317,28 @@ def filename_without_extensions(path):
     return path.name[:-len(suffixes_string)]
 
 
+def filepath_without_extensions(path:Path) -> Path:
+    """Removes every suffix, including .partX"""
+    suffixes_string = "".join(path.suffixes)
+
+    return path.parent / path.name[:-len(suffixes_string)]
+
+def infer_source_name(source_path: Path) -> Path:
+
+    if not source_path.is_dir():
+        return filepath_without_extensions(source_path)
+    else:
+        all_files = [p for p in source_path.iterdir() if p.is_file()]
+        unique_names = list(set([filepath_without_extensions(f) for f in all_files]))
+
+        if len(unique_names) == 0:
+            terminate_with_message('There are no archive files present')
+        elif len(unique_names) > 1:
+            terminate_with_message(f'More than one possible archive name detected: {str(unique_names)}')
+
+        return unique_names[0]
+
+
 def filename_without_archive_extensions(path):
     """Removes known archive extensions but keeps extensions like .partX"""
     name = path.name
@@ -341,6 +363,19 @@ def sort_paths_with_part(paths: Sequence[Path]) -> List[Path]:
 
     return sorted(paths, key=extract_part)
 
+
+def get_parts(source_path: Path) -> int:
+
+    parts_file = list(source_path.glob('*.parts.txt'))
+    if len(parts_file) > 1:
+        terminate_with_message(f'More than 1 file (total {len(parts_file)}) are matching the pattern *.parts.txt')
+    if parts_file:
+        with open(parts_file[0], 'r') as pf:
+           parts = int(pf.readline().strip())
+    else:
+        parts = 0
+
+    return parts
 
 def list_files_matching_name(path: Path, regex) -> List[Path]:
     return [p for p in path.iterdir() if p.is_file() and regex.match(p.name)]
@@ -396,6 +431,10 @@ def terminate_if_file_nonexistent(path):
     if not path.is_file():
         terminate_with_message(f"No such file: {get_absolute_path_string(path)}")
 
+def terminate_if_files_nonexistent(paths):
+    files = ';'.join([str(get_absolute_path_string(path)) for path in paths])
+    if not min([_.is_file() for _ in paths]):
+        terminate_with_message(f"None of the files exist: {files}")
 
 def terminate_if_path_exists(path):
     if path.exists():
