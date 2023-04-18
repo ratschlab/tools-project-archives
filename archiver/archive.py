@@ -153,7 +153,7 @@ def hashes_for_path_list(path_list, source_path_root, max_workers=1):
     files = [path for path in path_list if (not path.is_dir()) or path.is_symlink()]
 
     for path in path_list:
-        if path.is_dir():
+        if path.is_dir() and not path.is_symlink():
             files.extend(helpers.get_files_in_folder(path))
 
     return helpers.hash_files_and_check_symlinks(source_path_root, files, max_workers=max_workers)

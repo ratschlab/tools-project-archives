@@ -1,0 +1,6 @@
+drwxr-xr-x  0 akahles staff       0 Mar 29 15:51 symlink-folder2/dir2/
+drwxr-xr-x  0 akahles staff       0 Apr 14 16:18 symlink-folder2/empty_dir/
+drwxr-xr-x  0 akahles staff       0 Mar 29 15:51 symlink-folder2/dir1/
+-rw-r--r--  0 akahles staff     150 Apr 18 14:34 symlink-folder2/file2.txt
+-rw-r--r--  0 akahles staff     150 Apr 18 14:34 symlink-folder2/file1.txt
+-rw-r--r--  0 akahles staff     150 Apr 14 16:21 symlink-folder2/dir2/file4.txt
