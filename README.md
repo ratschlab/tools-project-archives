@@ -26,8 +26,12 @@ It supports:
 
 ### Install Python Package
 
+Assuming connection to git via SSH:
+
 ```
-pip install project-archiver
+git clone git@github.com:ratschlab/tools-project-archives.git
+cd tools-project-archives
+pip install -e .
 ```
 
 For nicer output on the console, you can optionally install the `coloredlogs` package
