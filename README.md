@@ -22,7 +22,7 @@ It supports:
 - [plzip](https://www.nongnu.org/lzip/plzip.html) (available for some package
   management systems like `apt` or `brew`)
 - gnupg (optional, only required for encryption)
-- [jdupes](https://github.com/jbruchon/jdupes) (optional, for preparation checks)
+- [jdupes](https://codeberg.org/jbruchon/jdupes) (optional, for preparation checks)
 
 ### Install Python Package
 
