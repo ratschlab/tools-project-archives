@@ -34,7 +34,7 @@ jobs:
       run: |
         git clone https://codeberg.org/jbruchon/jdupes.git
         cd jdupes
-        git checkout v1.19.1
+        git checkout v1.27
         make && sudo make install
     - name: Test with pytest
       run: |
