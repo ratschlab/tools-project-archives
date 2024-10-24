@@ -51,7 +51,7 @@ def assert_archiving_splitting(path, max_size, expected_result):
 
 def relative_strings_from_archives_list(archives, relative_to_path):
     # Return a list in order to assert length in test
-    return [relatative_string_from_path_list(paths, relative_to_path) for paths in archives]
+    return [relatative_string_from_path_list(paths[0], relative_to_path) for paths in archives]
 
 
 def relatative_string_from_path_list(path_list, relative_to_path):
