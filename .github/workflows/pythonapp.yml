@@ -36,6 +36,7 @@ jobs:
         cd libjodycode
         git checkout v3.0
         make && sudo make install
+        echo "LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib" >> $GITHUB_ENV
         cd ..
         git clone https://codeberg.org/jbruchon/jdupes.git
         cd jdupes
