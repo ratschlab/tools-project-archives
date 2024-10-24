@@ -32,6 +32,11 @@ jobs:
     # jdupes is an optional dependency in the precondition checks, need it here for testing
     - name: Install jdupes
       run: |
+        git clone https://codeberg.org/jbruchon/libjodycode.git
+        cd libjodycode
+        git checkout v3.0
+        make && sudo make install
+        cd ..
         git clone https://codeberg.org/jbruchon/jdupes.git
         cd jdupes
         git checkout v1.27
