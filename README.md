@@ -26,10 +26,17 @@ It supports:
 
 ### Install Python Package
 
-Assuming connection to git via SSH:
+From PyPI:
 
 ```
-git clone git@github.com:ratschlab/tools-project-archives.git
+pip install project-archiver
+```
+
+
+From GitHub (for developers):
+
+```
+git clone https://github.com/ratschlab/tools-project-archives.git
 cd tools-project-archives
 pip install -e .
 ```
