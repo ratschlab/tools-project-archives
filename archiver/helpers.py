@@ -11,7 +11,8 @@ from typing import List, Union, Sequence
 import unicodedata
 
 from .constants import READ_CHUNK_BYTE_SIZE, COMPRESSED_ARCHIVE_SUFFIX, \
-    ENCRYPTED_ARCHIVE_SUFFIX, ENV_VAR_MAPPER_MAX_CPUS, MD5_LINE_REGEX
+    ENCRYPTED_ARCHIVE_SUFFIX, ENV_VAR_MAPPER_MAX_CPUS, MD5_LINE_REGEX, \
+    ALLOWED_SUFFIXES_REG
 
 
 def get_files_with_type_in_directory_or_terminate(directory, file_type):
@@ -339,15 +340,35 @@ def file_is_valid_archive_or_terminate(file_path):
 
 
 def filename_without_extensions(path):
-    """Removes every suffix, including .partX"""
-    suffixes_string = "".join(path.suffixes)
+    """Removes every allowed suffix, including .partX"""
+    suffixes = path.suffixes
+    if len(suffixes) > 0:
+        allowed_suffixes = []
+        for s in suffixes[::-1]:
+            if re.match(ALLOWED_SUFFIXES_REG, s.lower()):
+                allowed_suffixes.append(s)
+            else:
+                break
+        suffixes = allowed_suffixes[::-1]
+
+    suffixes_string = "".join(suffixes)
 
     return path.name[:-len(suffixes_string)]
 
 
 def filepath_without_extensions(path:Path) -> Path:
     """Removes every suffix, including .partX"""
-    suffixes_string = "".join(path.suffixes)
+    suffixes = path.suffixes
+    if len(suffixes) > 0:
+        allowed_suffixes = []
+        for s in suffixes[::-1]:
+            if re.match(ALLOWED_SUFFIXES_REG, s.lower()):
+                allowed_suffixes.append(s)
+            else:
+                break
+        suffixes = allowed_suffixes[::-1]
+
+    suffixes_string = "".join(suffixes)
 
     return path.parent / path.name[:-len(suffixes_string)]
 
@@ -362,7 +383,7 @@ def infer_source_name(source_path: Path) -> Path:
         if len(unique_names) == 0:
             terminate_with_message('There are no archive files present')
         elif len(unique_names) > 1:
-            terminate_with_message(f'More than one possible archive name detected: {str(unique_names)}')
+            terminate_with_message(f'Automatic archive name detection has failed. More than one possible archive name detected: {str(unique_names)}\n optionally use --archive_name to specific archive name.')
 
         return unique_names[0]
 

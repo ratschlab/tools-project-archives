@@ -160,6 +160,7 @@ def parse_arguments(args):
     parser_check.add_argument("archive_dir", type=str, help="Select source archive directory or .tar.lz file")
     parser_check.add_argument("-d", "--deep", action="store_true", help="Verify integrity by unpacking archive and hashing each file")
     parser_check.add_argument("-n", "--threads", type=int, help=thread_help)
+    parser_check.add_argument("--archive_name", type=str, help="Provide explicit source name of the archive (if automatic detection fails")
     parser_check.set_defaults(func=handle_check)
 
     # Preparation checks
@@ -285,7 +286,7 @@ def handle_check(args):
     source_path = Path(args.archive_dir)
     threads = helpers.get_threads_from_args_or_environment(args.threads)
 
-    if not check_integrity(source_path, args.deep, threads, args.work_dir):
+    if not check_integrity(source_path, args.deep, threads, args.work_dir, args.archive_name):
         # return a different error code to the default code of 1 to be able to distinguish
         # general errors from a successful run of the program with an unsuccessful outcome
         # not taking 2, as it usually stands for command line argument errors

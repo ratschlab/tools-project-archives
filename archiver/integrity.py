@@ -10,7 +10,7 @@ from .extract import extract_archive
 from .listing import parse_tar_listing
 
 
-def check_integrity(source_path, deep_flag=False, threads=None, work_dir=None):
+def check_integrity(source_path, deep_flag=False, threads=None, work_dir=None, archive_name=None):
 
     archives_with_hashes = get_archives_with_hashes_from_path(source_path)
     is_encrypted = helpers.path_target_is_encrypted(source_path)
@@ -20,10 +20,10 @@ def check_integrity(source_path, deep_flag=False, threads=None, work_dir=None):
     check_result = shallow_integrity_check(archives_with_hashes, workers=threads)
 
     if source_path.is_dir():
-        integrity_result = check_archive_list_integrity(source_path)
+        integrity_result = check_archive_list_integrity(source_path, archive_name)
     else:
         file_path = source_path.parent / Path(helpers.filename_without_archive_extensions(source_path))
-        integrity_result = check_archive_part_integrity(file_path)
+        integrity_result = check_archive_part_integrity(file_path, archive_name)
 
     if not integrity_result:
         logging.error(
@@ -74,10 +74,13 @@ def check_archive_part_integrity(source_name: Path) -> bool:
 
     return check_result
 
-def check_archive_list_integrity(source_path: Path) -> bool:
+def check_archive_list_integrity(source_path: Path, archive_name: str = None) -> bool:
 
     parts = helpers.get_parts(source_path)
-    source_name = helpers.infer_source_name(source_path)
+    if archive_name is None:
+        source_name = helpers.infer_source_name(source_path)
+    else:
+        source_name = source_path / Path(archive_name)
 
     logging.info(f'Found {parts} parts in archive {source_path.as_posix()}')
     check_result = True
