@@ -355,10 +355,10 @@ def filepath_without_archive_extensions(path:Path) -> Path:
 def infer_source_name(source_path: Path) -> Path:
 
     if not source_path.is_dir():
-        return filepath_without_extensions(source_path)
+        return filepath_without_archive_extensions(source_path)
     else:
         all_files = [p for p in source_path.iterdir() if p.is_file()]
-        unique_names = list(set([filepath_without_extensions(f) for f in all_files]))
+        unique_names = list(set([filepath_without_archive_extensions(f) for f in all_files]))
 
         if len(unique_names) == 0:
             terminate_with_message('There are no archive files present')
@@ -368,7 +368,7 @@ def infer_source_name(source_path: Path) -> Path:
         return unique_names[0]
 
 
-def filename_without_archive_extensions(path):
+def filename_without_archive_extensions_multipart(path):
     """Removes known archive extensions but keeps extensions like .partX"""
     name = path.name
 
