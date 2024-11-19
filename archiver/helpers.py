@@ -12,7 +12,7 @@ import unicodedata
 
 from .constants import READ_CHUNK_BYTE_SIZE, COMPRESSED_ARCHIVE_SUFFIX, \
     ENCRYPTED_ARCHIVE_SUFFIX, ENV_VAR_MAPPER_MAX_CPUS, MD5_LINE_REGEX, \
-    ALLOWED_SUFFIXES_REG
+    ARCHIVE_SUFFIXES_REG
 
 
 def get_files_with_type_in_directory_or_terminate(directory, file_type):
@@ -339,36 +339,16 @@ def file_is_valid_archive_or_terminate(file_path):
         terminate_with_message(f"File {file_path.as_posix()} is not a valid archive of type {COMPRESSED_ARCHIVE_SUFFIX} or {ENCRYPTED_ARCHIVE_SUFFIX} or doesn't exist.")
 
 
-def filename_without_extensions(path):
-    """Removes every allowed suffix, including .partX"""
-    suffixes = path.suffixes
-    if len(suffixes) > 0:
-        allowed_suffixes = []
-        for s in suffixes[::-1]:
-            if re.match(ALLOWED_SUFFIXES_REG, s.lower()):
-                allowed_suffixes.append(s)
-            else:
-                break
-        suffixes = allowed_suffixes[::-1]
-
-    suffixes_string = "".join(suffixes)
-
-    return path.name[:-len(suffixes_string)]
+def filename_without_archive_extensions(path):
+    """Removes every archiving suffix"""
+    return filepath_without_archive_extensions(path).name
 
 
-def filepath_without_extensions(path:Path) -> Path:
-    """Removes every suffix, including .partX"""
-    suffixes = path.suffixes
-    if len(suffixes) > 0:
-        allowed_suffixes = []
-        for s in suffixes[::-1]:
-            if re.match(ALLOWED_SUFFIXES_REG, s.lower()):
-                allowed_suffixes.append(s)
-            else:
-                break
-        suffixes = allowed_suffixes[::-1]
-
-    suffixes_string = "".join(suffixes)
+def filepath_without_archive_extensions(path:Path) -> Path:
+    """Removes every archiving suffix"""
+    while re.match(ARCHIVE_SUFFIXES_REG, path.suffix):
+        path = path.with_suffix('')
+    return path
 
     return path.parent / path.name[:-len(suffixes_string)]
 
@@ -383,7 +363,7 @@ def infer_source_name(source_path: Path) -> Path:
         if len(unique_names) == 0:
             terminate_with_message('There are no archive files present')
         elif len(unique_names) > 1:
-            terminate_with_message(f'Automatic archive name detection has failed. More than one possible archive name detected: {str(unique_names)}\n optionally use --archive_name to specific archive name.')
+            terminate_with_message(f'Automatic archive name detection has failed. More than one possible archive name detected: {str(unique_names)}\noptionally use --archive_name to specify archive name.')
 
         return unique_names[0]
 
