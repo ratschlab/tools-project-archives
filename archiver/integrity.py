@@ -77,10 +77,10 @@ def check_archive_part_integrity(source_name: Path) -> bool:
 def check_archive_list_integrity(source_path: Path, archive_name: str = None) -> bool:
 
     parts = helpers.get_parts(source_path)
-    if archive_name is None:
-        source_name = helpers.infer_source_name(source_path)
-    else:
+    if archive_name:
         source_name = source_path / Path(archive_name)
+    else:
+        source_name = helpers.infer_source_name(source_path)
 
     logging.info(f'Found {parts} parts in archive {source_path.as_posix()}')
     check_result = True
