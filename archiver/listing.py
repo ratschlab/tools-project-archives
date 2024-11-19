@@ -90,7 +90,7 @@ def get_listing_files_for_path(path):
 
      # If specific file is used, maybe not all results of search path will be shown (since they could be in different file)
     helpers.file_is_valid_archive_or_terminate(path)
-    listing_path = path.parent / (helpers.filename_without_archive_extensions(path) + ".tar.lst")
+    listing_path = path.parent / (helpers.filename_without_archive_extensions_multipart(path) + ".tar.lst")
     helpers.terminate_if_path_nonexistent(path)
 
     return [listing_path]
