@@ -339,18 +339,17 @@ def file_is_valid_archive_or_terminate(file_path):
         terminate_with_message(f"File {file_path.as_posix()} is not a valid archive of type {COMPRESSED_ARCHIVE_SUFFIX} or {ENCRYPTED_ARCHIVE_SUFFIX} or doesn't exist.")
 
 
-def filename_without_archive_extensions(path):
-    """Removes every archiving suffix"""
-    return filepath_without_archive_extensions(path).name
-
-
 def filepath_without_archive_extensions(path:Path) -> Path:
     """Removes every archiving suffix"""
     while re.match(ARCHIVE_SUFFIXES_REG, path.suffix):
         path = path.with_suffix('')
     return path
 
-    return path.parent / path.name[:-len(suffixes_string)]
+
+def filename_without_archive_extensions(path):
+    """Removes every archiving suffix"""
+    return filepath_without_archive_extensions(path).name
+
 
 def infer_source_name(source_path: Path) -> Path:
 
