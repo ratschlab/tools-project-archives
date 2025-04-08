@@ -99,6 +99,11 @@ def test_integrity_check_deep_on_split_archive(caplog):
 
     assert_successful_deep_check(archive_file, caplog)
 
+def test_integrity_check_deep_on_split_archive_name_conflict(caplog):
+    archive_dir = get_directory_with_name("split-archive-name-conflict")
+    archive_file = archive_dir.joinpath("project.part1.part1.tar.lz")
+
+    assert_successful_deep_check(archive_file, caplog, archive_name="project.part1")
 
 def test_integrity_check_deep_on_split_encrypted_archive(caplog, setup_gpg):
     archive_dir = get_directory_with_name("split-encrypted-archive")
@@ -182,9 +187,9 @@ def test_verify_relative_symbolic_links():
 
 # MARK: Helpers
 
-def assert_successful_deep_check(archive_path, caplog):
+def assert_successful_deep_check(archive_path, caplog, archive_name=None):
     expected_output = "Deep integrity check successful."
-    assert_integrity_check_with_output(archive_path, expected_output, True, caplog, DEEP)
+    assert_integrity_check_with_output(archive_path, expected_output, True, caplog, DEEP, archive_name)
 
 
 def assert_successful_shallow_check(archive_path, caplog):
@@ -192,8 +197,8 @@ def assert_successful_shallow_check(archive_path, caplog):
     assert_integrity_check_with_output(archive_path, expected_output, True, caplog)
 
 
-def assert_integrity_check_with_output(archive_path, expected_output, expected_return, caplog, deep=False):
-    assert check_integrity(archive_path, deep, threads=2) == expected_return
+def assert_integrity_check_with_output(archive_path, expected_output, expected_return, caplog, deep=False, archive_name=None):
+    assert check_integrity(archive_path, deep, threads=2, archive_name=archive_name) == expected_return
 
     assert caplog.messages[-1] == expected_output
 

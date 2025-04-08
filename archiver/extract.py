@@ -31,7 +31,7 @@ def decrypt_existing_archive(archive_path, destination_dir=None, remove_unencryp
     decrypt_list_of_archives([archive_path], destination_dir, delete=remove_unencrypted, threads=threads)
 
 
-def extract_archive(source_path, destination_directory_path, partial_extraction_path=None, threads=None, force=False, extract_at_destination=False):
+def extract_archive(source_path, destination_directory_path, partial_extraction_path=None, threads=None, force=False, extract_at_destination=False, archive_name=None):
     # Create destination folder if nonexistent or overwrite if --force option used
     helpers.handle_destination_directory_creation(destination_directory_path, force)
 
@@ -64,7 +64,9 @@ def extract_archive(source_path, destination_directory_path, partial_extraction_
     uncompress_and_extract(archive_files, destination_directory_path, threads, partial_extraction_path=partial_extraction_path)
 
     logging.info("Archive extracted to: " + helpers.get_absolute_path_string(destination_directory_path))
-    return destination_directory_path / helpers.filename_without_archive_extensions(source_path)
+    if not archive_name:
+        archive_name = helpers.filename_without_archive_extensions(source_path)
+    return destination_directory_path / archive_name
 
 
 def uncompress_and_extract(archive_file_paths, destination_directory_path, threads, partial_extraction_path=None, encrypted=False):

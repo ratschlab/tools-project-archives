@@ -34,7 +34,7 @@ def check_integrity(source_path, deep_flag=False, threads=None, work_dir=None, a
     if deep_flag:
         # with deep flag still continue, no matter what the result of the previous test was
         deep_check_result = deep_integrity_check(archives_with_hashes,
-                                                 is_encrypted, threads, work_dir)
+                                                 is_encrypted, threads, work_dir, archive_name)
 
         if check_result and deep_check_result:
             logging.info("Deep integrity check successful.")
@@ -151,7 +151,7 @@ def verify_relative_symbolic_links(archives_with_hashes):
     return missing
 
 
-def deep_integrity_check(archives_with_hashes, is_encrypted, threads, work_dir):
+def deep_integrity_check(archives_with_hashes, is_encrypted, threads, work_dir, archive_name=None):
     # verify link structure
     missing_links = verify_relative_symbolic_links(archives_with_hashes)
 
@@ -167,7 +167,7 @@ def deep_integrity_check(archives_with_hashes, is_encrypted, threads, work_dir):
         # Create temporary directory to unpack archive
         with tempfile.TemporaryDirectory(dir=work_dir) as temp_path_string:
             temp_path = Path(temp_path_string) / "extraction-folder"
-            archive_content_path = extract_archive(archive_file_path, temp_path, threads=threads, extract_at_destination=True)
+            archive_content_path = extract_archive(archive_file_path, temp_path, threads=threads, extract_at_destination=True, archive_name=archive_name)
 
             terminate_if_extracted_archive_not_existing(archive_content_path)
 
