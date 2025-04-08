@@ -144,6 +144,7 @@ def parse_arguments(args):
     parser_extract.add_argument("archive_dir", type=str, help="Select source archive tar.lz file")
     parser_extract.add_argument("destination", type=str, help="Path to directory where archive will be extracted")
     parser_extract.add_argument("-s", "--subpath", type=str, help="Directory or file inside archive to extract")
+    parser_extract.add_argument("--archive-name", type=str, help="Provide explicit source name of the archive (if it contains suffixes used by the archiver - e.g., .part1)")
     parser_extract.add_argument("-n", "--threads", type=int, help=thread_help)
     parser_extract.add_argument("-f", "--force", action="store_true", default=False, help=force_help)
     parser_extract.set_defaults(func=handle_extract)
@@ -160,6 +161,7 @@ def parse_arguments(args):
     parser_check.add_argument("archive_dir", type=str, help="Select source archive directory or .tar.lz file")
     parser_check.add_argument("-d", "--deep", action="store_true", help="Verify integrity by unpacking archive and hashing each file")
     parser_check.add_argument("-n", "--threads", type=int, help=thread_help)
+    parser_check.add_argument("--archive-name", type=str, help="Provide explicit source name of the archive (if contains suffixes used by the archiver - e.g., .part1)")
     parser_check.set_defaults(func=handle_check)
 
     # Preparation checks
@@ -270,7 +272,7 @@ def handle_extract(args):
 
     threads = helpers.get_threads_from_args_or_environment(args.threads)
 
-    extract_archive(source_path, destination_directory_path, args.subpath, threads, args.force)
+    extract_archive(source_path, destination_directory_path, args.subpath, threads, args.force, archive_name=args.archive_name)
 
 
 def handle_list(args):
@@ -285,7 +287,7 @@ def handle_check(args):
     source_path = Path(args.archive_dir)
     threads = helpers.get_threads_from_args_or_environment(args.threads)
 
-    if not check_integrity(source_path, args.deep, threads, args.work_dir):
+    if not check_integrity(source_path, args.deep, threads, args.work_dir, args.archive_name):
         # return a different error code to the default code of 1 to be able to distinguish
         # general errors from a successful run of the program with an unsuccessful outcome
         # not taking 2, as it usually stands for command line argument errors

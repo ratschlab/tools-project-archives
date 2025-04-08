@@ -10,7 +10,7 @@ from .extract import extract_archive
 from .listing import parse_tar_listing
 
 
-def check_integrity(source_path, deep_flag=False, threads=None, work_dir=None):
+def check_integrity(source_path, deep_flag=False, threads=None, work_dir=None, archive_name=None):
 
     archives_with_hashes = get_archives_with_hashes_from_path(source_path)
     is_encrypted = helpers.path_target_is_encrypted(source_path)
@@ -20,9 +20,9 @@ def check_integrity(source_path, deep_flag=False, threads=None, work_dir=None):
     check_result = shallow_integrity_check(archives_with_hashes, workers=threads)
 
     if source_path.is_dir():
-        integrity_result = check_archive_list_integrity(source_path)
+        integrity_result = check_archive_list_integrity(source_path, archive_name)
     else:
-        file_path = source_path.parent / Path(helpers.filename_without_archive_extensions(source_path))
+        file_path = source_path.parent / Path(helpers.filename_without_archive_extensions_multipart(source_path))
         integrity_result = check_archive_part_integrity(file_path)
 
     if not integrity_result:
@@ -34,7 +34,7 @@ def check_integrity(source_path, deep_flag=False, threads=None, work_dir=None):
     if deep_flag:
         # with deep flag still continue, no matter what the result of the previous test was
         deep_check_result = deep_integrity_check(archives_with_hashes,
-                                                 is_encrypted, threads, work_dir)
+                                                 is_encrypted, threads, work_dir, archive_name)
 
         if check_result and deep_check_result:
             logging.info("Deep integrity check successful.")
@@ -74,10 +74,13 @@ def check_archive_part_integrity(source_name: Path) -> bool:
 
     return check_result
 
-def check_archive_list_integrity(source_path: Path) -> bool:
+def check_archive_list_integrity(source_path: Path, archive_name: str = None) -> bool:
 
     parts = helpers.get_parts(source_path)
-    source_name = helpers.infer_source_name(source_path)
+    if archive_name:
+        source_name = source_path / Path(archive_name)
+    else:
+        source_name = helpers.infer_source_name(source_path)
 
     logging.info(f'Found {parts} parts in archive {source_path.as_posix()}')
     check_result = True
@@ -123,7 +126,7 @@ def verify_relative_symbolic_links(archives_with_hashes):
     symlink_dict = {} # all symlinks found across listing
     for archive in archives_with_hashes:
         part_path = archive[0]
-        part_listing = part_path.parent / (helpers.filename_without_archive_extensions(part_path) + LISTING_SUFFIX)
+        part_listing = part_path.parent / (helpers.filename_without_archive_extensions_multipart(part_path) + LISTING_SUFFIX)
         entries = parse_tar_listing(part_listing)
 
         file_set.update([str(e.path).rstrip('/') for e in entries])
@@ -148,7 +151,7 @@ def verify_relative_symbolic_links(archives_with_hashes):
     return missing
 
 
-def deep_integrity_check(archives_with_hashes, is_encrypted, threads, work_dir):
+def deep_integrity_check(archives_with_hashes, is_encrypted, threads, work_dir, archive_name=None):
     # verify link structure
     missing_links = verify_relative_symbolic_links(archives_with_hashes)
 
@@ -164,7 +167,7 @@ def deep_integrity_check(archives_with_hashes, is_encrypted, threads, work_dir):
         # Create temporary directory to unpack archive
         with tempfile.TemporaryDirectory(dir=work_dir) as temp_path_string:
             temp_path = Path(temp_path_string) / "extraction-folder"
-            archive_content_path = extract_archive(archive_file_path, temp_path, threads=threads, extract_at_destination=True)
+            archive_content_path = extract_archive(archive_file_path, temp_path, threads=threads, extract_at_destination=True, archive_name=archive_name)
 
             terminate_if_extracted_archive_not_existing(archive_content_path)
 
@@ -234,7 +237,7 @@ def get_hashes_for_archive(archive_path):
     hash_file_path = archive_path.parent / (archive_path.name + ".md5")
     helpers.terminate_if_path_nonexistent(hash_file_path)
 
-    hash_listing_path = archive_path.parent / (helpers.filename_without_archive_extensions(archive_path) + ".md5")
+    hash_listing_path = archive_path.parent / (helpers.filename_without_archive_extensions_multipart(archive_path) + ".md5")
     helpers.terminate_if_path_nonexistent(hash_listing_path)
 
     return [(archive_file_path, hash_file_path, hash_listing_path)]
@@ -257,7 +260,7 @@ def get_archives_with_hashes_from_directory(source_path):
         hash_path = archive.parent / (archive.name + ".md5")
         helpers.terminate_if_path_nonexistent(hash_path)
 
-        hash_listing_path = Path(archive.parent) / (helpers.filename_without_archive_extensions(archive) + ".md5")
+        hash_listing_path = Path(archive.parent) / (helpers.filename_without_archive_extensions_multipart(archive) + ".md5")
         helpers.terminate_if_path_nonexistent(hash_listing_path)
 
         archive_with_hash_path = (archive, hash_path, hash_listing_path)

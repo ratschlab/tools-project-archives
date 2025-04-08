@@ -12,5 +12,7 @@ READ_CHUNK_BYTE_SIZE = 1000 * 1000 * 100
 ENCRYPTION_ALGORITHM = "AES256"
 ENV_VAR_MAPPER_MAX_CPUS = "ARCHIVER_MAX_CPUS_ENV_VAR"
 DEFAULT_COMPRESSION_LEVEL = 6
+ARCHIVE_SUFFIXES = ['\.part[0-9]+', '\.tar', '\.md5', '\.lz', '\.gpg', '\.lst', '\.parts', '\.txt']
+ARCHIVE_SUFFIXES_REG = '$|'.join(ARCHIVE_SUFFIXES) + '$'
 
 MD5_LINE_REGEX = re.compile(r'(\S+)\s+(\S.*)')
