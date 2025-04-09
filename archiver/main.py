@@ -323,12 +323,15 @@ def handle_preparation_check(parsed_args):
         logging.info("All performed checks successful :)")
 
         if not all_precond_success:
+            logging.shutdown()
             sys.exit(1)
     else:
         logging.warning(f"Some checks failed: "
                         f"{', '.join([name for name, r in all_ret if not r])}")
+        logging.shutdown()
         sys.exit(1)
 
+    logging.shutdown()
 
 
 if __name__ == "__main__":
