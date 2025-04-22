@@ -5,6 +5,7 @@ import hashlib
 from pathlib import Path
 import subprocess
 import logging
+import time
 import shutil
 import multiprocessing
 from typing import List, Union, Sequence
@@ -475,6 +476,8 @@ def terminate_with_exception(exception):
 
 def terminate_with_message(message):
     logging.error(message)
+    logging.shutdown()
+    time.sleep(0.5)
     sys.exit(1)
 
 
