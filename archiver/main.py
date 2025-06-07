@@ -77,6 +77,8 @@ def parse_arguments(args):
     compression_help = f"Compression level between 0 (fastest) to 9 (slowest), default is {DEFAULT_COMPRESSION_LEVEL}"
     part_size_help = "Split archive into parts by specifying the maximum size of each " \
                      "part (based on uncompressed filesizes). Example: 5G for 5 gigibytes (2^30 bytes)."
+    max_single_help = "When splitting archives and part-size is exceeded, this is the max size a single file can" \
+                      "have to still be allowed to form an individual part. Example: 1T for 1 tebibytes (2^40 bytes)."
     part_help = "Which part to process. If missing, process all"
     force_help = "Overwrite output directory if it already exists and create parents of folder if they don't exist."
     thread_help = "Set the number of workers"
@@ -96,6 +98,7 @@ def parse_arguments(args):
     parser_archive.add_argument("-k", "--key", type=str, action="append",
                                 help=encryption_key_help)
     parser_archive.add_argument("--part-size", type=str, help=part_size_help)
+    parser_archive.add_argument("--max-single", type=str, help=max_single_help)
     parser_archive.add_argument("-r", "--remove", action="store_true", default=False, help=remove_unencrypted_help)
     parser_archive.add_argument("-f", "--force", action="store_true", default=False, help=force_help)
     parser_archive.set_defaults(func=handle_archive)
@@ -105,6 +108,7 @@ def parse_arguments(args):
 
     parser_create_filelist = subparser_create.add_parser("filelist", help="create list and hashes of all files to be archived", parents=[archive_parent_parser])
     parser_create_filelist.add_argument("--part-size", type=str, help=part_size_help)
+    parser_create_filelist.add_argument("--max-single", type=str, help=max_single_help)
     parser_create_filelist.add_argument("-f", "--force", action="store_true", default=False, help=force_help)
     parser_create_filelist.set_defaults(func=handle_create_filelist)
 
@@ -206,6 +210,7 @@ def handle_create_filelist(args):
     threads = helpers.get_threads_from_args_or_environment(args.threads)
 
     bytes_splitting = None
+    bytes_splitting_single = None
 
     if args.part_size:
         try:
@@ -213,9 +218,15 @@ def handle_create_filelist(args):
         except Exception as error:
             helpers.terminate_with_exception(error)
 
+    if args.max_single:
+        try: 
+            bytes_splitting_single = helpers.get_bytes_in_string_with_unit(args.max_single)
+        except Exception as error:
+            helpers.terminate_with_exception(error)
+
     # Create destination folder if nonexistent or overwrite if --force option used
     helpers.handle_destination_directory_creation(destination_path, args.force)
-    create_filelist_and_hashes(source_path, destination_path, bytes_splitting, threads)
+    create_filelist_and_hashes(source_path, destination_path, bytes_splitting, threads, bytes_splitting_single)
 
 
 def handle_create_tar_archive(args):

@@ -4,7 +4,7 @@ from pathlib import Path
 from . import helpers
 
 
-def split_directory(directory_path, max_package_size):
+def split_directory(directory_path, max_package_size, max_single_size=None):
     # all file sizes are in bytes
     current_archive = []
     current_listing = []
@@ -49,7 +49,7 @@ def split_directory(directory_path, max_package_size):
                 current_archive.append(file_path)
                 current_listing.append(file_path)
                 archive_size += file_size
-            elif file_size < max_package_size:
+            elif file_size < max_package_size or (max_single_size is not None and file_size < max_single_size):
                 yield current_archive, current_listing
 
                 current_archive = [file_path]
