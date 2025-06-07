@@ -77,7 +77,7 @@ def parse_arguments(args):
     compression_help = f"Compression level between 0 (fastest) to 9 (slowest), default is {DEFAULT_COMPRESSION_LEVEL}"
     part_size_help = "Split archive into parts by specifying the maximum size of each " \
                      "part (based on uncompressed filesizes). Example: 5G for 5 gigibytes (2^30 bytes)."
-    max_single_help = "When splitting archives and part-size is exceeded, this is the max size a single file can" \
+    max_single_help = "When splitting archives and part-size is exceeded, this is the max size a single file can " \
                       "have to still be allowed to form an individual part. Example: 1T for 1 tebibytes (2^40 bytes)."
     part_help = "Which part to process. If missing, process all"
     force_help = "Overwrite output directory if it already exists and create parents of folder if they don't exist."
