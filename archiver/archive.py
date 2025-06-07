@@ -83,13 +83,13 @@ def create_split_archive(source_path, destination_path, threads, encryption_keys
         do_encryption(destination_path, encryption_keys, threads)
 
 
-def create_filelist_and_hashes(source_path, destination_path, split_size, threads):
+def create_filelist_and_hashes(source_path, destination_path, split_size, threads, max_single_size=None):
 
     if split_size:
         logging.info(f"Using a split size of {split_size} bytes ({split_size/1024**3:.3f}GB).")
 
         nr_parts = create_file_listing_hash_split_archives(source_path, destination_path,
-                                                split_size, threads)
+                                                split_size, max_single_size, threads)
 
         with open(destination_path / f"{source_path.name}.parts.txt", "w") as f:
             f.write(f"{nr_parts}\n")
@@ -98,9 +98,9 @@ def create_filelist_and_hashes(source_path, destination_path, split_size, thread
                                  source_path.name, max_workers=threads)
 
 
-def create_file_listing_hash_split_archives(source_path, destination_path, split_size, threads):
+def create_file_listing_hash_split_archives(source_path, destination_path, split_size, max_single_size, threads):
 
-    split_archives = splitter.split_directory(source_path, split_size)
+    split_archives = splitter.split_directory(source_path, split_size, max_single_size)
 
     source_name = source_path.name
     nr_parts = 0

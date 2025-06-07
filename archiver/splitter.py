@@ -4,7 +4,7 @@ from pathlib import Path
 from . import helpers
 
 
-def split_directory(directory_path, max_package_size):
+def split_directory(directory_path, max_package_size, max_single_size=None):
     # all file sizes are in bytes
     current_archive = []
     current_listing = []
@@ -26,7 +26,7 @@ def split_directory(directory_path, max_package_size):
             dir_size = helpers.get_size_of_path(dir_path)
 
             current_listing.append(dir_path)
-            if archive_size + dir_size < max_package_size:
+            if archive_size + dir_size <= max_package_size:
                 current_archive.append(dir_path)
                 current_listing.extend(helpers.get_files_in_folder(dir_path, include_dirs=True))
                 archive_size += dir_size
@@ -45,11 +45,11 @@ def split_directory(directory_path, max_package_size):
             if file_path.exists():
                 file_size = file_path.stat().st_size
 
-            if archive_size + file_size < max_package_size:
+            if archive_size + file_size <= max_package_size:
                 current_archive.append(file_path)
                 current_listing.append(file_path)
                 archive_size += file_size
-            elif file_size < max_package_size:
+            elif file_size <= max_package_size or (max_single_size is not None and file_size <= max_single_size):
                 yield current_archive, current_listing
 
                 current_archive = [file_path]
