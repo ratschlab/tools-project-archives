@@ -38,6 +38,6 @@ setup(
     name='project-archiver',
     packages=['archiver'],
     url="https://github.com/ratschlab/tools-project-archives",
-    version='0.6.1',
+    version='0.6.2',
     zip_safe=False,
 )
