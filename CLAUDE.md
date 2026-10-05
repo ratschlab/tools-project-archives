@@ -4,7 +4,7 @@ Notes for working on `project-archiver` (`archiver` CLI): packs research project
 directories into md5-hashed, plzip-compressed, optionally split and gpg-encrypted
 tar archives, and checks/extracts/lists them later. Long-lived tool: dependencies
 are deliberately minimal (only `multiprocessing-logging`; `coloredlogs` optional).
-Supports Python >= 3.8 (CI: 3.8/3.9 on ubuntu-22.04), so avoid newer syntax.
+Supports Python >= 3.8 (CI: 3.8/3.9/3.12 on ubuntu-22.04; the cluster env uses 3.9), so avoid newer syntax.
 
 ## Commands
 
@@ -105,6 +105,7 @@ bytes, as `md5sum` does. Tests that need such names (`test_archive_with_non_utf8
 
 ## Conventions
 
-- Branches: work on `develop`, PRs into `main`. Version is in `setup.py`, `archiver/__init__.py` and
+- Branches: work on `develop`, PRs `develop` → `main`. External PRs sometimes land directly on `main`, so
+  merge `main` back into `develop` when that happens (last synced 2026-10-05). Version is in `setup.py`, `archiver/__init__.py` and
   `setup.cfg` (bumpversion).
 - Errors meant for users go through `helpers.terminate_with_message` (it exits). Logging goes to stdout.
