@@ -26,8 +26,19 @@ It supports:
 
 ### Install Python Package
 
+From PyPI:
+
 ```
 pip install project-archiver
+```
+
+
+From GitHub (for developers):
+
+```
+git clone https://github.com/ratschlab/tools-project-archives.git
+cd tools-project-archives
+pip install -e .
 ```
 
 For nicer output on the console, you can optionally install the `coloredlogs` package

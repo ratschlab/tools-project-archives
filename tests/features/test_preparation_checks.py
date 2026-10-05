@@ -52,7 +52,7 @@ def test_symlinks_within_dir_only(default_checks: Dict[str, CmdBasedCheck], tmpd
     myfile = Path(tmpdir, 'myfile')
     myfile.touch()
 
-    mylink = Path(tmpdir, 'mylink')
+    mylink = Path(tmpdir, 'mylink (1)')
     mylink.symlink_to(myfile.relative_to(mylink.parent))
 
     mylink2 = Path(tmpdir, 'mylink2')
