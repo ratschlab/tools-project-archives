@@ -7,7 +7,7 @@ from pathlib import Path
 from . import helpers
 from . import splitter
 from .constants import COMPRESSED_ARCHIVE_SUFFIX, ENCRYPTED_ARCHIVE_SUFFIX, \
-    DEFAULT_COMPRESSION_LEVEL
+    DEFAULT_COMPRESSION_LEVEL, PATH_FILE_ENCODING
 from .encryption import encrypt_list_of_archives
 
 
@@ -124,7 +124,7 @@ def create_file_listing_hash(source_path_root, destination_path, source_name, ar
     hash_file_path = destination_path.joinpath(source_name + ".md5")
 
     logging.info(f"Writing file hash list to {hash_file_path}")
-    with open(hash_file_path, "a") as hash_file:
+    with open(hash_file_path, "a", **PATH_FILE_ENCODING) as hash_file:
         for line in hashes:
             file_path = line[0]
             hash_prefix = ''
@@ -140,7 +140,7 @@ def create_file_listing_hash(source_path_root, destination_path, source_name, ar
     if not listing:
         listing = helpers.get_files_in_folder(source_path_root, include_dirs=True)
     listing = [_.relative_to(source_path_root.parent).as_posix() for _ in listing]
-    with open(listing_file_path, "a") as listing_file:
+    with open(listing_file_path, "a", **PATH_FILE_ENCODING) as listing_file:
         for file_path in listing:
             prefix = ''
             if '\n' in file_path or '\\' in file_path:
@@ -212,7 +212,7 @@ def create_tar_archive_from_list(source_path, archive_list, destination_file_pat
     with tempfile.TemporaryDirectory(dir=work_dir) as temp_path_string:
         tmp_file_path = Path(temp_path_string) / "paths.txt"
 
-        with open(tmp_file_path, "w") as tmp_file:
+        with open(tmp_file_path, "w", **PATH_FILE_ENCODING) as tmp_file:
             tmp_file.write("\0".join(files_string_list))
 
         helpers.run_shell_cmd(["tar", "--posix", "-cf", destination_file_path, "-C", source_path_parent, "--null", "--no-recursion", "--files-from", tmp_file_path])

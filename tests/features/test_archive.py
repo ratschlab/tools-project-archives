@@ -1,3 +1,4 @@
+import os
 import tarfile
 
 import pytest
@@ -5,6 +6,7 @@ import pytest
 import archiver
 from archiver import integrity
 from archiver.archive import create_archive
+from archiver.extract import extract_archive
 from tests import helpers
 from tests.helpers import run_archiver_tool, generate_splitting_directory
 from .archiving_helpers import assert_successful_archive_creation, \
@@ -151,6 +153,34 @@ def test_split_archive_with_exotic_filenames(tmp_path, splitting_param):
         file_names_in_tar = {n for n in file_names_in_tar if n} # removing 'files/' directory entry
 
     assert file_names_in_tar == set(file_names)
+
+
+@pytest.mark.parametrize('splitting_param', [None, 1000**5])
+def test_archive_with_non_utf8_filenames(tmp_path, splitting_param):
+    # file names which are not valid UTF-8 (e.g. latin-1 encoded or truncated multi-byte
+    # sequences). Python represents them with surrogate escapes, see PEP 383
+    file_names = sorted([b'bad_\xf0name.txt', b'latin1_ol\xe9', b'\xff\xfe',
+                         b'truncated_\xe4\xbd\xa0_\xf0\x9f', b'newline_\n_and_\xf0',
+                         b'backslash_\\_\xe9', b'valid_utf8_ol\xc3\xa9'])
+
+    file_dir = tmp_path/'files'
+    file_dir.mkdir()
+
+    try:
+        for f in file_names:
+            helpers.create_file_with_size(os.fsencode(file_dir) + b'/' + f, 100)
+    except OSError:
+        pytest.skip("file system does not support file names which are not valid UTF-8")
+
+    dest = tmp_path/'myarchive'
+    create_archive(file_dir, dest, encryption_keys=None,
+                   compression=6, remove_unencrypted=True, splitting=splitting_param)
+
+    assert integrity.check_integrity(dest, deep_flag=True, threads=1)
+
+    extraction_dir = tmp_path/'extracted'
+    extract_archive(dest, extraction_dir)
+    assert sorted(os.listdir(os.fsencode(extraction_dir/'files'))) == file_names
 
 
 

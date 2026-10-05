@@ -3,6 +3,7 @@
 import argparse
 import getpass
 import logging
+import multiprocessing
 import os
 import sys
 from pathlib import Path
@@ -51,7 +52,9 @@ def main(args=tuple(sys.argv[1:])):
     # note, that this will work under linux only. If `fork` would be used a starting
     # method for child processes, it would also work on other systems. However, this
     # is not well supported: https://docs.python.org/3/library/multiprocessing.html#contexts-and-start-methods
-    multiprocessing_logging.install_mp_handler()
+    # multiprocessing_logging refuses to work with other start methods (e.g. `spawn` on macOS)
+    if multiprocessing.get_start_method() == 'fork':
+        multiprocessing_logging.install_mp_handler()
 
     logging.info(_get_tool_versions_str())
     logging.info(f"Executing as {getpass.getuser()} on {os.uname().nodename}")
@@ -64,6 +67,9 @@ def main(args=tuple(sys.argv[1:])):
     except Exception as e:
         logging.exception(e)
         raise(e)
+    finally:
+        # flush pending records of the multiprocessing handler, otherwise the last messages may get lost
+        logging.shutdown()
 
 def parse_arguments(args):
     # Main parser

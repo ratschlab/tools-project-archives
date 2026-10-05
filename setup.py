@@ -8,12 +8,8 @@ from setuptools import setup
 with open('README.md') as readme_file:
     readme = readme_file.read()
 
-setup_requirements = ['pytest-runner']
-
 with open('requirements.txt') as f:
     requirements = list(f.readlines())
-
-test_requirements = ['pytest==6.1']
 
 setup(
     author="Noah Fleischmann",
@@ -41,9 +37,6 @@ setup(
     keywords=['archiving', 'data lifecycle', 'research'],
     name='project-archiver',
     packages=['archiver'],
-    setup_requires=setup_requirements,
-    test_suite='tests',
-    tests_require=test_requirements,
     url="https://github.com/ratschlab/tools-project-archives",
     version='0.6.1',
     zip_safe=False,

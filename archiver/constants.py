@@ -16,3 +16,7 @@ ARCHIVE_SUFFIXES = ['\.part[0-9]+', '\.tar', '\.md5', '\.lz', '\.gpg', '\.lst', 
 ARCHIVE_SUFFIXES_REG = '$|'.join(ARCHIVE_SUFFIXES) + '$'
 
 MD5_LINE_REGEX = re.compile(r'(\S+)\s+(\S.*)')
+
+# for text files containing file paths (hash lists, listings): file names don't need to be valid UTF-8,
+# Python represents such bytes as surrogates (PEP 383), surrogateescape writes them back as the original bytes
+PATH_FILE_ENCODING = {'encoding': 'utf-8', 'errors': 'surrogateescape'}

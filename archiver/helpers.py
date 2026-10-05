@@ -13,7 +13,7 @@ import unicodedata
 
 from .constants import READ_CHUNK_BYTE_SIZE, COMPRESSED_ARCHIVE_SUFFIX, \
     ENCRYPTED_ARCHIVE_SUFFIX, ENV_VAR_MAPPER_MAX_CPUS, MD5_LINE_REGEX, \
-    ARCHIVE_SUFFIXES_REG
+    ARCHIVE_SUFFIXES_REG, PATH_FILE_ENCODING
 
 
 def get_files_with_type_in_directory_or_terminate(directory, file_type):
@@ -54,7 +54,7 @@ def read_file_listing(file_path):
 
     listing = []
 
-    with open(file_path, "r", newline='\n') as file:
+    with open(file_path, "r", newline='\n', **PATH_FILE_ENCODING) as file:
         for file_path in file.readlines():
             file_path = file_path.strip('\n')
             if file_path.startswith('\\'):
@@ -70,7 +70,7 @@ def read_file_listing(file_path):
 def read_hash_file(file_path):
     hash_dict = {}
 
-    with open(file_path, "r", newline='\n') as file:
+    with open(file_path, "r", newline='\n', **PATH_FILE_ENCODING) as file:
         for l in file.readlines():
             m = MD5_LINE_REGEX.match(l)
 
