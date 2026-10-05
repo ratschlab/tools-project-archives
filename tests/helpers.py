@@ -115,8 +115,8 @@ def get_current_directory():
     return Path(os.path.realpath(__file__)).parent
 
 
-def run_archiver_tool(args_list):
+def run_archiver_tool(args_list, **kwargs):
     code_base = get_current_directory().parent
 
     return subprocess.run(['python', '-m', 'archiver.main'] + args_list,
-                              cwd=code_base)
+                              cwd=code_base, **kwargs)

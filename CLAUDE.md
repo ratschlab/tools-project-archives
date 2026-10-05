@@ -86,9 +86,11 @@ relative to the **parent** of the source dir, so they start with `NAME/`. Hash k
   `create_split_archive`, so `threads` lands in `remove_unencrypted` and `threads` stays 1. A split + encrypted
   `archive` therefore deletes the unencrypted `.tar.lz` files whenever threads >= 1, whatever `--remove` says,
   because `--remove` is never passed through.
-- On a normal exit (no `terminate_with_message`), `main()` never calls `logging.shutdown()`. The
-  `multiprocessing_logging` handler forwards records through a background thread, so the **last log lines are lost**,
-  for example "Deep integrity check successful." from `check`. Exit codes are still correct. Confirmed 2026-10-05 on HEAD.
+- (Fixed 2026-10-05) The last log lines of a run were lost. The causes were a missing `logging.shutdown()` in
+  `main()` (now in `finally`) and a race in multiprocessing-logging <0.4 (`empty()` ignores the queue's feeder buffer).
+  Hence the requirement `>=0.4,<0.5`. 0.4 asserts the `fork` start method, so `main()` installs the mp handler only
+  under `fork` (Linux). On macOS, with `spawn`, it was never useful. Regression test:
+  `test_end_to_end.py::test_last_log_message_not_lost`. It's flaky by nature, so loop it about 20 times in the Linux container.
 - `constants.ARCHIVE_SUFFIXES` uses non-raw strings with `\.`, which triggers a SyntaxWarning on Python 3.12+.
 
 ## Non-UTF-8 file names
