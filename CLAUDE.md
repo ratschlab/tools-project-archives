@@ -86,7 +86,20 @@ relative to the **parent** of the source dir, so they start with `NAME/`. Hash k
   `create_split_archive`, so `threads` lands in `remove_unencrypted` and `threads` stays 1. A split + encrypted
   `archive` therefore deletes the unencrypted `.tar.lz` files whenever threads >= 1, whatever `--remove` says,
   because `--remove` is never passed through.
+- On a normal exit (no `terminate_with_message`), `main()` never calls `logging.shutdown()`. The
+  `multiprocessing_logging` handler forwards records through a background thread, so the **last log lines are lost**,
+  for example "Deep integrity check successful." from `check`. Exit codes are still correct. Confirmed 2026-10-05 on HEAD.
 - `constants.ARCHIVE_SUFFIXES` uses non-raw strings with `\.`, which triggers a SyntaxWarning on Python 3.12+.
+
+## Non-UTF-8 file names
+
+Linux file names are raw bytes. Python decodes names that aren't valid UTF-8 using surrogate escapes
+(for example, byte 0xF0 becomes `'\udcf0'`). Every text file holding paths (`.md5`, `.lst`, the `tar --files-from` list, and reading
+`.tar.lst`) must be opened with `**constants.PATH_FILE_ENCODING` (utf-8 + surrogateescape). Otherwise writing
+raises `UnicodeEncodeError: ... surrogates not allowed`, which is what crashed a cluster run in 2026-10. This round-trips the original
+bytes, as `md5sum` does. Tests that need such names (`test_archive_with_non_utf8_filenames`) skip on macOS
+(APFS rejects them), so run them in a Linux container:
+`docker run --rm -v "$PWD":/code:ro <py3.9 image with plzip> bash -c 'cp -r /code /w && cd /w && python3 -m pytest -p no:cacheprovider'`.
 
 ## Conventions
 
