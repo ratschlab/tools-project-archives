@@ -14,16 +14,17 @@ jobs:
 
     runs-on: ubuntu-22.04
     strategy:
+      fail-fast: false
       matrix:
-        python_version: [ 3.8, 3.9 ]
+        python_version: [ '3.8', '3.9', '3.12' ]
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
     - name: Set up Python
-      uses: actions/setup-python@v1
+      uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.python_version }}
     - name: Install system dependencies
-      run: sudo apt-get install plzip tar gnupg2 build-essential
+      run: sudo apt-get update && sudo apt-get install plzip tar gnupg2 build-essential
     - name: Install python dependencies
       run: |
         python -m pip install --upgrade pip
