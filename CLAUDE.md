@@ -26,6 +26,13 @@ Test baseline (2026-10-05, maintainer's mac): all 111 tests pass.
   Pin RSA explicitly, because gpg 2.5 defaults may not be readable by CI's gpg 2.2.
 - macOS has bsdtar, while CI uses GNU tar. The listing parser handles both formats.
 
+Installing: always use pip (`pip install .`, or `pip install -e .` for development). The package metadata is in
+`setup.py`, and `pyproject.toml` only declares the build system, so even old pip versions use PEP 517/660. Without it,
+pip <= 23.0 fell back to `setup.py develop`. That route keeps the metadata in the checkout's `*.egg-info`, and
+`make clean` deletes it, which gives `PackageNotFoundError: project-archiver` (happened on the cluster in 2026-10).
+`pip install -e .` needs pip >= 21.3; regular installs work with any pip. Don't use `python setup.py install`: with
+setuptools >= 80 it skips the dependencies.
+
 ## Layout
 
 - `archiver/main.py`: argparse CLI plus `handle_*` functions. Subcommands: `archive`,

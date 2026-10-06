@@ -1,0 +1,8 @@
+# Only declares the build system, the package metadata is in setup.py.
+# Having this file makes pip use the standard build interface (PEP 517/660), also for
+# editable installs. Otherwise, older pip versions (<= 23.0) fall back to the deprecated
+# `setup.py develop`, which keeps the package metadata in the source directory and breaks
+# the installation once it gets removed (e.g. by `make clean`).
+[build-system]
+requires = ["setuptools>=64", "wheel"]
+build-backend = "setuptools.build_meta"
