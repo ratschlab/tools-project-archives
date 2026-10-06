@@ -33,13 +33,22 @@ pip install project-archiver
 ```
 
 
-From GitHub (for developers):
+From GitHub (e.g. a specific release, as PyPI may lag behind):
+
+```
+pip install 'project-archiver @ git+https://github.com/ratschlab/tools-project-archives@v0.6.2'
+```
+
+For development, as an editable install (requires pip >= 21.3, update with `pip install -U pip`):
 
 ```
 git clone https://github.com/ratschlab/tools-project-archives.git
 cd tools-project-archives
 pip install -e .
 ```
+
+Note, that an editable install always runs the code currently checked out in the
+cloned directory. For archiving production data, prefer a regular (non-editable) install.
 
 For nicer output on the console, you can optionally install the `coloredlogs` package
 
